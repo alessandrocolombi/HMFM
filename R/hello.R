@@ -15,7 +15,9 @@
 
 #' Title
 #'
+#' @param x input parameter
 #' @export
-hello <- function() {
+hello <- function(x) {
   print("Hello, world!")
+  return(x+10)
 }

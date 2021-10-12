@@ -4,7 +4,10 @@
 \alias{hello}
 \title{Title}
 \usage{
-hello()
+hello(x)
+}
+\arguments{
+\item{x}{input parameter}
 }
 \description{
 Title
