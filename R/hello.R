@@ -16,6 +16,7 @@
 #' Title
 #'
 #' @param x input parameter
+#' @return returns x plus 10
 #' @export
 hello <- function(x) {
   print("Hello, world!")

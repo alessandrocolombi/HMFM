@@ -9,6 +9,9 @@ hello(x)
 \arguments{
 \item{x}{input parameter}
 }
+\value{
+returns x plus 10
+}
 \description{
 Title
 }
