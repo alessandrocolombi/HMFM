@@ -1,0 +1,3 @@
+# Setting compiler standard
+CXX_STD = CXX17
+NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations

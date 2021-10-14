@@ -6,20 +6,25 @@
 
 using namespace Rcpp;
 
-// try_Rcpp
-int try_Rcpp(int x);
-RcppExport SEXP _GDFMM_try_Rcpp(SEXP xSEXP) {
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
+// try_rcpp
+int try_rcpp(int x);
+RcppExport SEXP _GDFMM_try_rcpp(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(try_Rcpp(x));
+    rcpp_result_gen = Rcpp::wrap(try_rcpp(x));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_GDFMM_try_Rcpp", (DL_FUNC) &_GDFMM_try_Rcpp, 1},
+    {"_GDFMM_try_rcpp", (DL_FUNC) &_GDFMM_try_rcpp, 1},
     {NULL, NULL, 0}
 };
 
