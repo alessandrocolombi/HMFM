@@ -6,6 +6,8 @@
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include "include_headers.h"
+#include "recurrent_traits.h"
 
 //' Title Rcpp function
 //'
