@@ -22,9 +22,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// TestGSL
+void TestGSL();
+RcppExport SEXP _GDFMM_TestGSL() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    TestGSL();
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_try_rcpp", (DL_FUNC) &_GDFMM_try_rcpp, 1},
+    {"_GDFMM_TestGSL", (DL_FUNC) &_GDFMM_TestGSL, 0},
     {NULL, NULL, 0}
 };
 

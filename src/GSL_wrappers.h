@@ -191,14 +191,15 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 	//Callable object to draw a sample from Dirichlet(alpha[0],...,alpha[K-1]). 
 	//Both input and output Type are template parameters. Return type of a template function can not be template(not sure). For sure, it can be if the template parameter RetType describes the class
 	//as in this case.
-	// --> NB: Keep record of tested types! <--
+	// --> NB: Keep record of tested types! It is very challenging to check the type in the code. For example, alpha can not be a std::vector but I you do not get any compiler error if
+	//		you insert a matrix. For sure, VecCol and VecRow works well, other types may be dangerous (not tested). <--
 	template<typename RetType = VecCol> 
 	struct rdirichlet{
 		
 		//Default constructor, used to check that Return
 		rdirichlet(){
 			//Check for Return Type
-			static_assert( std::is_same_v<RetType, VecCol> || //is it better to put it in a default constructor??
+			static_assert( std::is_same_v<RetType, VecCol> || 
 						   std::is_same_v<RetType, VecRow> ||
 						   std::is_same_v<RetType, std::vector<double> >  ,
 						  "______ ERROR, invalid Return Type requested in rdirichlet. Can handle only VecRow, VecCol and std::vector<double> _____");			
@@ -208,36 +209,15 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 		template<typename Derived>
 		RetType operator()(GSL_RNG const & engine, Eigen::MatrixBase<Derived> const & alpha)const{
 
-			using InputType = Eigen::MatrixBase<Derived>; //Easier to write
-
-			//Check for Return Type
-			//static_assert( std::is_same_v<RetType, VecCol> || //is it better to put it in a default constructor??
-						   //std::is_same_v<RetType, VecRow> ||
-						   //std::is_same_v<RetType, std::vector<double> >  ,
-						  //"Error, invalid Return Type requested in rdirichlet. Can handle only VecRow, VecCol and std::vector<double>");
-
-			//Check for Input Type
-			static_assert( std::is_same_v<InputType, VecCol> || 
-						   std::is_same_v<InputType, VecRow> ||
-						   std::is_same_v<RetType, std::vector<double> >  ,
-						  "____ ERROR, invalid InputType  requested in rdirichlet. Can handle only VecRow, VecCol and std::vector<double> ____");
-
 			unsigned int dim = alpha.size();
 			if(dim < 1){
 				throw std::runtime_error("length of alpha (concentration parameter) in rdirichlet has to be positive");
 			}
 
-			//Declare return object
-			/* The simplest way to proceed is to create a gsl_vector for storing the sampled values and then to copy it into an eigen vector. If doing this way the copy cannot be avoided 
-			   even if Eigen::Map is used. Indeed Eigen map wraps the gsl_vector buffer of data to be an eigen object but when the vector is returned, the gsl_vector has to be freed and the
-			   buffer is corrupted, returning the wrong result.
-			   What is implemented below is different, first the Eigen object is allocated and then the gsl_vector is defined such that it writes on the same buffer of the Eigen vector. No copies
-			   are done before returning.
-			   Note that the gsl_vector is not defined by means of gsl_vector_alloc(). Indeed that function allocates some space in memory that is lost when result.data is set to be the same
-			   of return_obj, which of course generates a memory leak. This happens because the gsl_vector does not own the buffer and do not deallocate that space by calling gsl_vector_free(). */
+			//Declare return objec
 
 			RetType return_obj;
-			if constexpr(std::is_same_v<RetType, VecCol> || std::is_same_v<RetType, VecCol> ){
+			if constexpr(std::is_same_v<RetType, VecCol> || std::is_same_v<RetType, VecRow> ){
 
 				return_obj = RetType::Zero(dim);				//Eigen obj that has to be returned
 			}
@@ -246,17 +226,8 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 				return_obj.resize(dim);
 				return_obj = std::vector<double>(dim, 0.0);		//std::vector<double> that has to be returned
 			}
-			gsl_vector result;									//gsl_vector where the sampled values will be stored. 
-			result.size   = dim;								//size of the vector
-			result.stride = 1;									//how close in memory the elements of result.data are. 
-			result.owner  = 0;									//result does not own the buffer where data are stored 
-			result.data   = return_obj.data();					//set data buffer of gsl_vector to the exactly the same of the Eigen vector. 
-															 	//From now on return_obj and result share the same buffer, writing on result.data() is like writing on return_obj.data() and viceversa
-
-			//Sample with GSL
-			gsl_ran_dirichlet(engine(), dim, alpha.data(), result);
-
-			//Return (do not need to free memory for result becuase it is writing on return_obj)
+			gsl_ran_dirichlet(engine(), dim, alpha.derived().data(), return_obj.data());
+			//Return 
 			return(return_obj);
 		}
 

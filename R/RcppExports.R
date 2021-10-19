@@ -8,3 +8,10 @@ try_rcpp <- function(x) {
     .Call(`_GDFMM_try_rcpp`, x)
 }
 
+#' Testing GSL wrappers
+#'
+#' @export
+TestGSL <- function() {
+    invisible(.Call(`_GDFMM_TestGSL`))
+}
+
