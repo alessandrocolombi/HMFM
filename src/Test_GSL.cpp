@@ -102,13 +102,24 @@ void TestGSL(){
 	Rcpp::Rcout<<std::endl<<std::endl;
 
 	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<"  Poisson distribution   " <<std::endl;
+	Rcpp::Rcout<<"##########################"<<std::endl;
+
+	sample::rpoisson 	  Poi;			  //create the object
+	Rcpp::Rcout<<"Sequence using random seed, defaulted engine."<<std::endl;
+	for(int i = 0; i < Nrep; ++i){
+		Rcpp::Rcout<<" "<<Poi(2.0)<<" ||";
+	}
+	Rcpp::Rcout<<std::endl<<std::endl;
+
+	Rcpp::Rcout<<"##########################"<<std::endl;
 	Rcpp::Rcout<<"  Dirichlet distribution  " <<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
 
 	/*This is a template class. The template parameter may be defaulter to use VecCol*/
 	int k = 5; //number of dirichelt components
 
-	Rcpp::Rcout<<"Testing VecCol"<<std::endl;
+	Rcpp::Rcout<<"----- Testing VecCol -------"<<std::endl;
 	sample::rdirichlet<VecCol> 	Dir_veccol; 
 	sample::rdirichlet<VecCol> 	Dir_veccol2; //same as before 
 
@@ -125,8 +136,8 @@ void TestGSL(){
 	Rcpp::Rcout<<"Can not pass alfa as an std::vector<double>. You get the compiler error ‘std::vector<double>’ is not derived from ‘const Eigen::MatrixBase<Derived> "<<std::endl;
 	//Rcpp::Rcout<< Dir_veccol(engine1, alfa3) <<std::endl;
 	Rcpp::Rcout<<"However you can wrap the std::vector into an eigen type. Eigen::Map is extremely efficient, no overhead is introduced"<<std::endl;
-	Rcpp::Rcout<< Dir_veccol(engine1, Eigen::Map<const VecCol> (&(alfa3[0]), alfa3.size()) ) <<std::endl;
-	Rcpp::Rcout<<"It is difficult to check types. For examples, the function may be call passing a matrix. This is the danger of templates, the function works but it would produce an error."<<std::endl;
+	Rcpp::Rcout<< Dir_veccol(engine1, Eigen::Map<VecCol> (&(alfa3[0]), alfa3.size()) ) <<std::endl;
+	Rcpp::Rcout<<"The function can not get a matrix as input. However, it is difficult to check types in templates, that is why it is important to keep track of types that works fine and be cafeful."<<std::endl;
 	//Rcpp::Rcout<< Dir_veccol(engine1, alfa4) <<std::endl;
 
 	Rcpp::Rcout<<"----- Testing VecRow -------"<<std::endl;
@@ -137,7 +148,7 @@ void TestGSL(){
 	Rcpp::Rcout<<"Return VecRow, input VecRow: "<<std::endl;
 	Rcpp::Rcout<< Dir_vecrow(engine1, alfa2) <<std::endl;
 	Rcpp::Rcout<<"Return VecRow, input std::vector wrapped as Eigen:"<<std::endl;
-	Rcpp::Rcout<< Dir_vecrow(engine1, Eigen::Map<const VecCol> (&(alfa3[0]), alfa3.size()) ) <<std::endl;
+	Rcpp::Rcout<< Dir_vecrow(engine1, Eigen::Map<const VecRow> (&(alfa3[0]), alfa3.size()) ) <<std::endl;
 
 	Rcpp::Rcout<<"----- Testing std::vector<double> -------"<<std::endl;
 	sample::rdirichlet<std::vector<double>> 	Dir_vector; 
@@ -159,7 +170,66 @@ void TestGSL(){
 			std::cout<<__v<<", ";
 		std::cout<<std::endl;
 
+	Rcpp::Rcout<<"Return std::vector<double>, input std::vector wrapped as Eigen, defaulted engine"<<std::endl;
+	theta_dir = Dir_vector(Eigen::Map<const VecCol> (&(alfa3[0]), alfa3.size()) );
+		for(auto __v : theta_dir)
+			std::cout<<__v<<", ";
+		std::cout<<std::endl;
+
+	Rcpp::Rcout<<std::endl<<std::endl;
+
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<" Multinomial distribution  " <<std::endl;
+	Rcpp::Rcout<<"##########################"<<std::endl;
+
+	int K = 3; //number of levels
+
+	Rcpp::Rcout<<"----- Testing VecUnsRow -------"<<std::endl;
+	sample::rmultinomial<VecUnsRow> 	Multi_vecrow; //return a vector of unsigned int
+ 
+	VecRow weights(K);
+	weights<< 0.75,0.2,0.05;
+	Rcpp::Rcout<<"weights values: "<<weights<<std::endl;
+
+	Rcpp::Rcout<<"Return VecUnsRow, input VecRow: "<<std::endl;
+	Rcpp::Rcout<< Multi_vecrow(engine1, 5, weights) <<std::endl;
+
+	Rcpp::Rcout<<"----- Testing std::vector<unsigned int> -------"<<std::endl;
+	sample::rmultinomial<std::vector<unsigned int>> 	Multi_vector; 
+	
+
+	Rcpp::Rcout<<"Return std::vector<unsigned int>, input VecRow: "<<std::endl;
+	std::vector<unsigned int> n_sample_multi = Multi_vector(engine1, 5, weights);
+		for(auto __v : n_sample_multi)
+			std::cout<<__v<<", ";
+		std::cout<<std::endl;
+
+	Rcpp::Rcout<<"----- Testing un-normalized weights -------"<<std::endl;
+	VecRow unnorm_weights(K);
+	unnorm_weights<< 3.0,1.5,0.5;
+	Rcpp::Rcout<<"weights values: "<<unnorm_weights<<std::endl;
+	Rcpp::Rcout<< Multi_vecrow(engine1, 5, unnorm_weights) <<std::endl;	
+
+	Rcpp::Rcout<<std::endl<<std::endl;
+
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<"       sample index       " <<std::endl;
+	Rcpp::Rcout<<"##########################"<<std::endl;
+
+	sample::sample_index my_sample;
+	Rcpp::Rcout<<"Sample one index from 0 to "<<K-1<<" with weights equal to "<<weights<<std::endl;
+	Rcpp::Rcout<<my_sample(engine2, weights)<<std::endl;
+	Rcpp::Rcout<<"Sample one index from 0 to "<<K-1<<" with un-normalized weights equal to "<<unnorm_weights<<std::endl;
+	Rcpp::Rcout<<my_sample(engine2, unnorm_weights)<<std::endl;
+	Rcpp::Rcout<<"Sample one index from 0 to "<<K-1<<" with uniform weights"<<std::endl;
+	Rcpp::Rcout<<my_sample(engine2, K)<<std::endl;
+
+
+
+
+
 
 }
+
 
 #endif

@@ -103,7 +103,9 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 			return gsl_rng_uniform(engine()); //gsl_rng_uniform is a function, nothing has to be de-allocated
 		}
 		double operator()()const{
-			return runif()(GSL_RNG ()); 
+			return this->operator()(GSL_RNG ()); 
+			//return runif()(GSL_RNG ())
+
 			/*GSL_RNG () creates a GSL_RNG obj calling the default constructor and than calls it call operator. 
 			In other words, it generates a random number generator, generates a number and destroys the generator.
 			It is equivalent to return gsl_rng_uniform( GSL_RNG ()() ).
@@ -118,7 +120,7 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 			return gsl_rng_uniform_int(engine(), N); //gsl_rng_uniform_int is a function, nothing has to be de-allocated.
 		}
 		unsigned int operator()(unsigned int const & N)const{
-			return runif_int()(GSL_RNG (), N);
+			return this->operator()(GSL_RNG (), N);
 			/*GSL_RNG () creates a GSL_RNG obj calling the default constructor and than calls it call operator. 
 			In other words, it generates a random number generator, generates a number and destroys the generator*/
 		}
@@ -143,7 +145,7 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 		//Engine defaulted
 		//N(mean,sd)
 		double operator()(double const & mean, double const & sd)const{
-			return rnorm()(GSL_RNG (), mean, sd);
+			return this->operator()(GSL_RNG (), mean, sd);
 		}
 
 		//Engine defaulted
@@ -187,12 +189,26 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 		}
 	};
 
+	//Callable object to draw a sample from Poisson(lambda). 
+	struct rpoisson{
+
+		//Gets the engine
+		//Poisson(lambda)		
+		double operator()(GSL_RNG const & engine, double const & lambda)const{
+			return gsl_ran_poisson(engine(),lambda);
+		}
+
+		//Engine defaulted
+		//Poisson(lambda)
+		double operator()(double const & lambda)const{
+			return gsl_ran_poisson(GSL_RNG ()(), lambda);
+		}
+	};
 
 	//Callable object to draw a sample from Dirichlet(alpha[0],...,alpha[K-1]). 
 	//Both input and output Type are template parameters. Return type of a template function can not be template(not sure). For sure, it can be if the template parameter RetType describes the class
 	//as in this case.
-	// --> NB: Keep record of tested types! It is very challenging to check the type in the code. For example, alpha can not be a std::vector but I you do not get any compiler error if
-	//		you insert a matrix. For sure, VecCol and VecRow works well, other types may be dangerous (not tested). <--
+	// --> NB: Keep record of tested types! It is very challenging to check the type in the code. static_assert does help but undesired behaviours are difficult to be predicted <--
 	template<typename RetType = VecCol> 
 	struct rdirichlet{
 		
@@ -204,27 +220,40 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 						   std::is_same_v<RetType, std::vector<double> >  ,
 						  "______ ERROR, invalid Return Type requested in rdirichlet. Can handle only VecRow, VecCol and std::vector<double> _____");			
 		}
+
 		//Gets the engine
 		//Dirichlet(alpha[0],...,alpha[K-1])
 		template<typename Derived>
 		RetType operator()(GSL_RNG const & engine, Eigen::MatrixBase<Derived> const & alpha)const{
+
+			//Check the type of alpha. This makes sure that only eigen vectors are passed or objects that are wrapped into eigen vector by Eigen::Map.
+			static_assert( std::is_same_v<Derived, VecCol> || 
+						   std::is_same_v<Derived, VecRow> ||
+						   std::is_same_v<Derived, Eigen::Map<VecCol>> ||
+						   std::is_same_v<Derived, Eigen::Map<const VecCol>> ||
+						   std::is_same_v<Derived, Eigen::Map<VecRow>> ||
+						   std::is_same_v<Derived, Eigen::Map<const VecRow>> ,
+						  "______ ERROR, invalid Input Type requested in rdirichlet. Can handle only VecRow, VecCol  _____");
 
 			unsigned int dim = alpha.size();
 			if(dim < 1){
 				throw std::runtime_error("length of alpha (concentration parameter) in rdirichlet has to be positive");
 			}
 
-			//Declare return objec
+			//Declare return object
 
 			RetType return_obj;
 			if constexpr(std::is_same_v<RetType, VecCol> || std::is_same_v<RetType, VecRow> ){
 
 				return_obj = RetType::Zero(dim);				//Eigen obj that has to be returned
 			}
-			else if constexpr(std::is_same_v<RetType, std::vector<double> >){ //static_assert avoids any other possibility
+			else if constexpr(std::is_same_v<RetType, std::vector<double> >){ //static_assert in the constructor avoids any other possibility
 				
 				return_obj.resize(dim);
 				return_obj = std::vector<double>(dim, 0.0);		//std::vector<double> that has to be returned
+			}
+			else{
+				throw std::runtime_error("______ ERROR, invalid Return Type requested in rdirichlet. Can handle only VecRow, VecCol and std::vector<double> _____");			
 			}
 			gsl_ran_dirichlet(engine(), dim, alpha.derived().data(), return_obj.data());
 			//Return 
@@ -235,10 +264,127 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 		//Dirichlet(alpha[0],...,alpha[K-1])		
 		template<typename Derived>
 		RetType operator()(Eigen::MatrixBase<Derived> const & alpha)const{
-			return rdirichlet<RetType>()(GSL_RNG (), alpha);
+			return this->operator()(GSL_RNG (), alpha);
+		}
+	};
+
+	//Callable object to draw a sample from Multinomial(N;K,weights[0],...,weights[K-1]). 
+	/*  What is a sample from Multinomial(N;K,weights[0],...,weights[K-1]) ? 
+		It draws a K-dimensional vector (n[0],...,n[K-1]) such that n[0]+...+n[K-1] = N. It is like sampling N times K different colors. Each n[j] counts how may times color j has been selected.
+		At each draw, probabilities of the K colors are given by weights. 
+
+		Watch out: 
+		- K is not passed by the user, it is deduced by the length of weights.
+		- weights can be normalizied (i.e, they sum up to 1) or not. In the latter case, they are normalized inside gsl_ran_multinomial. 
+		- it is not checking that weights are non negative and that they are not all 0s.
+	*/
+	//Both input and output Type are template parameters. 
+	// --> NB: Keep record of tested types! <--
+	template<typename RetType = VecCol> 
+	struct rmultinomial{
+		
+		//Default constructor, used to check that Return
+		rmultinomial(){
+			//Check for Return Type
+			static_assert( std::is_same_v<RetType, VecUnsCol> || 
+						   std::is_same_v<RetType, VecUnsRow> ||
+						   std::is_same_v<RetType, std::vector<unsigned int> >  ,
+						  "______ ERROR, invalid Return Type requested in rmultinomial. Can handle only VecUnsRow, VecUnsCol and std::vector<unsigned int> _____");			
+		}
+		//Gets the engine
+		//Multinomial(N;K,weights[0],...,weights[K-1])
+		template<typename Derived>
+		RetType operator()(GSL_RNG const & engine, unsigned int const & N, Eigen::MatrixBase<Derived> const & weights)const{
+
+			//Check the type of weights. This makes sure that only eigen vectors are passed or objects that are wrapped into eigen vector by Eigen::Map.
+			static_assert( std::is_same_v<Derived, VecCol> || 
+						   std::is_same_v<Derived, VecRow> ||
+						   std::is_same_v<Derived, Eigen::Map<VecCol>> ||
+						   std::is_same_v<Derived, Eigen::Map<const VecCol>> ||
+						   std::is_same_v<Derived, Eigen::Map<VecRow>> ||
+						   std::is_same_v<Derived, Eigen::Map<const VecRow>> ,
+						  "______ ERROR, invalid Input Type requested in rmultinomial. Can handle only VecRow, VecCol  _____");
+
+			unsigned int K = weights.size();
+			if(K < 1){
+				throw std::runtime_error("length of weights in rmultinomial has to be positive");
+			}
+
+			//Declare return object
+
+			RetType return_obj;
+			if constexpr(std::is_same_v<RetType, VecUnsCol> || std::is_same_v<RetType, VecUnsRow> ){
+
+				return_obj = RetType::Zero(K);				//Eigen obj that has to be returned
+			}
+			else if constexpr(std::is_same_v<RetType, std::vector<unsigned int> >){ //static_assert in the constructor avoids any other possibility
+				
+				return_obj.resize(K);
+				return_obj = std::vector<unsigned int>(K, 0.0);		//std::vector<double> that has to be returned
+			}
+			else{
+				throw std::runtime_error("______ ERROR, invalid Return Type requested in rmultinomial. Can handle only VecUnsRow, VecUnsCol and std::vector<unsigned int> _____");			
+			}
+			gsl_ran_multinomial(engine(), K, N, weights.derived().data(), return_obj.data());
+			//Return 
+			return(return_obj);
 		}
 
+		//Engine defaulted
+		//Multinomial(N;K,weights[0],...,weights[K-1])		
+		template<typename Derived>
+		RetType operator()(unsigned int const & N, Eigen::MatrixBase<Derived> const & weights)const{
+			return this->operator()(GSL_RNG (), N,weights);
+		}
 	};
+
+	// Callable object to draw an index from 0 to M-1 with weights given in weights.
+	// Watch out ---> two versions are available.
+	// - 1) gets the weights and sets M = weights.size(), i.e the length of the weights decides the number of possible indices
+	// - 2) gets the number of indices and sets uniform weights.
+	struct sample_index{
+
+		//Gets the engine and the weights
+		template<typename Derived>
+		unsigned int operator()(GSL_RNG const & engine, Eigen::MatrixBase<Derived> const & weights)const{
+
+			std::vector<unsigned int> n_multinomial_sample = Multinomial(engine, 1, weights); //sample 1 draw form a Multinomial having that weights.
+				
+			vector_ui_citerator it( std::find(n_multinomial_sample.cbegin(), n_multinomial_sample.cend(), 1) ); //find the only index that is equal to one.
+			
+			if(it == n_multinomial_sample.cend()){ //check 
+				throw std::runtime_error("Error in sample_index, it is not possible that no level has been selected.");
+			}
+			else{ //return the position
+				return(it - n_multinomial_sample.cbegin());
+			}
+		}
+
+		//Gets the engine and number of indices
+		unsigned int operator()(GSL_RNG const & engine, unsigned int const & M)const{
+
+			if(M <= 0){
+				throw std::runtime_error("Error in sample_index, the number of possible indices must be positive");
+			}
+
+			VecCol weights = VecCol::Constant(M,1/double(M));
+			return this->operator()(engine, weights);
+		}
+
+		template<typename Derived>
+		unsigned int operator()(Eigen::MatrixBase<Derived> const & weights)const{
+			return this->operator()(GSL_RNG (), weights);
+		}
+
+		//Gets the engine and number of indices
+		unsigned int operator()(unsigned int const & M)const{
+			return this->operator()(GSL_RNG (), M);
+		}
+
+		private:
+			rmultinomial<std::vector<unsigned int>> Multinomial;
+	};
+
 }
 
 #endif
