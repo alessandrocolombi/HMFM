@@ -206,8 +206,7 @@ namespace sample{ //use the sample:: namespace to aviod clashes with R or oterh 
 	};
 
 	//Callable object to draw a sample from Dirichlet(alpha[0],...,alpha[K-1]). 
-	//Both input and output Type are template parameters. Return type of a template function can not be template(not sure). For sure, it can be if the template parameter RetType describes the class
-	//as in this case.
+	//Both input and output Type are template parameters. Return type may be different from Input Type
 	// --> NB: Keep record of tested types! It is very challenging to check the type in the code. static_assert does help but undesired behaviours are difficult to be predicted <--
 	template<typename RetType = VecCol> 
 	struct rdirichlet{

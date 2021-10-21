@@ -8,6 +8,13 @@ try_rcpp <- function(x) {
     .Call(`_GDFMM_try_rcpp`, x)
 }
 
+#' Eigen library usage example
+#'
+#' @export
+EigenTest <- function() {
+    invisible(.Call(`_GDFMM_EigenTest`))
+}
+
 #' Testing GSL wrappers
 #'
 #' @export
