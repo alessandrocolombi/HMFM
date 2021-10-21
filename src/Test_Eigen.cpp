@@ -63,11 +63,23 @@ void EigenTest(){
 	Rcpp::Rcout<<"ones + I1.diagonal() = :"<<std::endl<<ones + I1.diagonal() <<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<"    Cast Eigen matrix    " <<std::endl;
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<"It is possible to cast eigen objects into a new type."<<std::endl;
+	Rcpp::Rcout<<"Cast a matrix of int into double"<<std::endl;
+	MatIntRow Aint(MatIntRow::Constant(p,p,5));
+	Rcpp::Rcout<<"I1*Aint.cast<double>():"<<std::endl<<I1*Aint.cast<double>()<<std::endl;
 
+	Rcpp::Rcout<<std::endl<<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
 	Rcpp::Rcout<<"     Basic operations     " <<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
 
+	Rcpp::Rcout<<"---- Access elements ----"<<std::endl;
+	Rcpp::Rcout<<"Use call operator() to access elements"<<std::endl;
+	std::cout<<"M4(1,1):"<<std::endl<<M4(1,1)<<std::endl;
+	Rcpp::Rcout<<"ones(1):"<<std::endl<<ones(1)<<std::endl;
 	//get dimensions for matrix
 	Rcpp::Rcout<<"---- get dimensions ----"<<std::endl;
 	Rcpp::Rcout<<"Example for matrices"<<std::endl;
@@ -87,7 +99,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"n_cols"<<n_cols<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Transpose operation"<<std::endl;
+	Rcpp::Rcout<<"---- Transpose operation ----"<<std::endl;
 	MatCol M5 = M4.transpose(); //ok
 	Rcpp::Rcout<<"M4:"<<std::endl<<M4<<std::endl;
 	Rcpp::Rcout<<"M5 = M4.transpose():"<<std::endl<<M5<<std::endl;
@@ -100,7 +112,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"M5:"<<std::endl<<M5<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Linear Algebra operations"<<std::endl;
+	Rcpp::Rcout<<"---- Linear Algebra operations ----"<<std::endl;
 	Rcpp::Rcout<<"Can mix RowMajor and ColMajor. It is possible but may be inefficient, choose carefully the storage method"<<std::endl;
 	MatCol res = 3*M1 + 4*I1; 
 	Rcpp::Rcout<<"res = 3*M1 + 4*I1 :"<<std::endl<<res<<std::endl;
@@ -111,7 +123,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"res_vec = M2*ones :"<<std::endl<<res_vec<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Eigen Reductions, from Eigen object to scalar."<<std::endl<<"See https://eigen.tuxfamily.org/dox/group__TutorialReductionsVisitorsBroadcasting.html for more"<<std::endl;
+	Rcpp::Rcout<<"----Eigen Reductions, from Eigen object to scalar ----"<<std::endl<<"See https://eigen.tuxfamily.org/dox/group__TutorialReductionsVisitorsBroadcasting.html for more"<<std::endl;
 	Rcpp::Rcout<<"They works for matrices and vectors the same way"<<std::endl;
 	Rcpp::Rcout<<"sum"<<std::endl;
 	Rcpp::Rcout<<"M5.sum() = :"<<std::endl<<M5.sum()<<std::endl;
@@ -134,7 +146,7 @@ void EigenTest(){
 	Rcpp::Rcout<<std::endl<<std::endl;
 
 
-	Rcpp::Rcout<<"Norms and absolute value"<<std::endl;
+	Rcpp::Rcout<<"---- Norms and absolute value ----"<<std::endl;
 	Rcpp::Rcout<<"M5:"<<std::endl<<M5<<std::endl;
 	Rcpp::Rcout<<"Norm 1 = max_j sum_i (|a_ij|)"<<std::endl;
 	Rcpp::Rcout<<"M5.lpNorm<1>():"<<std::endl<<M5.lpNorm<1>()<<std::endl;
@@ -148,7 +160,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"v_positive = v_negative.cwiseAbs():"<<std::endl<<v_positive<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Eigen PartialReduction, from Matrix to vector. They are operations done row by row or columns by columns"<<std::endl;
+	Rcpp::Rcout<<"---- Eigen PartialReduction, from Matrix to vector. ----"<<std::endl<<"They are operations done row by row or columns by columns"<<std::endl;
 	Rcpp::Rcout<<".colwise() means that the operation has to be done in each column. Same for .rowwise()"<<std::endl;
 	Rcpp::Rcout<<"M5:"<<std::endl<<M5<<std::endl;
 	Rcpp::Rcout<<"M5.rowwise().maxCoeff():"<<std::endl<<M5.rowwise().maxCoeff()<<std::endl;
@@ -181,13 +193,27 @@ void EigenTest(){
 	//This is like writing I1[idx_rows,idx_cols] in R.
 	MatRow SubI = utils::SubMatrix(I1,idx_rows,idx_cols);
 	Rcpp::Rcout<<"SubI = "<<std::endl<<SubI<<std::endl;
+	//MatRow SubI_2 = utils::SubMatrix(I1,{0,1},idx_cols); //this does not work
+	MatRow SubI_2 = utils::SubMatrix(I1,2,idx_cols); 
+	Rcpp::Rcout<<"SubI_2 = I1[2,idx_cols] = "<<std::endl<<SubI_2<<std::endl;
+	MatCol SubI_3 = utils::SubMatrix(I1,idx_rows,1); 
+	Rcpp::Rcout<<"SubI_3 = I1[idx_rows,1] = "<<std::endl<<SubI_3<<std::endl;
 
 	Rcpp::Rcout<<"SubMatrix extraction (ColMajor input and output):"<<std::endl<<"M4 = "<<std::endl<<M4<<std::endl;
 	MatCol SubM4 = utils::SubMatrix(M4,idx_rows,idx_cols);
 	Rcpp::Rcout<<"SubM4 = "<<std::endl<<SubM4<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Block Operations for matrices"<<std::endl;
+	Rcpp::Rcout<<"Works also for vectors, just set equal to 0 one of the indicies."<<std::endl;
+	VecCol r1(VecCol::Random(p));
+	std::cout<<"r1:"<<std::endl<<r1<<std::endl;
+	std::cout<<"utils::SubMatrix(r1,idx_rows,0):"<<std::endl<<utils::SubMatrix(r1,idx_rows,0)<<std::endl;
+	VecRow r2(VecRow::Random(p));
+	Rcpp::Rcout<<"r2:"<<std::endl<<r2<<std::endl;
+	std::cout<<"utils::SubMatrix(r2,0,idx_cols):"<<std::endl<<utils::SubMatrix(r2,0,idx_cols)<<std::endl;
+	
+
+	Rcpp::Rcout<<"---- Block Operations for matrices (SubMatrix is better) ----"<<std::endl;
 	Rcpp::Rcout<<"A.block(i,j,dim_row,dim_col) -> gets a pxq sub_matrix starting from element (i,j), which is the top left element. Examples:"<<std::endl;
 	Rcpp::Rcout<<"M4.block(1,0,3,2):"<<std::endl<<M4.block(1,0,3,2)<<std::endl;
 	Rcpp::Rcout<<"There are shortcuts if the block starts in corner of the matrix. Top/Bottom and Left/Right corner"<<std::endl;
@@ -202,7 +228,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"M5.rightCols(2):"<<std::endl<<M5.rightCols(2)<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
 
-	Rcpp::Rcout<<"Block Operations for vectors"<<std::endl;
+	Rcpp::Rcout<<"---- Block Operations for vectors ----"<<std::endl;
 	VecRow v6(VecRow::Random(p));
 	std::cout<<"v6:"<<std::endl<<v6<<std::endl;
 	Rcpp::Rcout<<"v.segment(i,n) -> gets n elements starting from element i"<<std::endl;
@@ -219,10 +245,34 @@ void EigenTest(){
 	MatRow Irow(MatRow::Identity(p,p));
 	MatRow A(MatRow::Random(p,p));
 	Rcpp::Rcout<<"A:"<<std::endl<<A<<std::endl;
-	MatRow InvA = A.llt().solve(Irow); //Computed the Cholesky decomposition of A and solves a linear system. Does not change much if I ir RowMajor or ColMajor and if A is Row/ColMajor
+	MatRow InvA = A.inverse(); //uses LU factorization 
 	Rcpp::Rcout<<"InvA:"<<std::endl<<InvA<<std::endl;
-	InvA = A.inverse(); //uses LU factorization and it is usually slower than the Cholesky
-	Rcpp::Rcout<<"InvA:"<<std::endl<<InvA<<std::endl;
+	Rcpp::Rcout<<"If A is symmetric positive definite, it is better to use the Cholesky decomposition. More efficient than LU"<<std::endl;
+	/*
+		InvA = A.llt().solve(Irow); //Computed the Cholesky decomposition of A and solves a linear system. Does not change much if I ir RowMajor or ColMajor and if A is Row/ColMajor
+		Rcpp::Rcout<<"InvA:"<<std::endl<<InvA<<std::endl;
+	*/
+
+	Rcpp::Rcout<<std::endl<<std::endl;
+	
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	Rcpp::Rcout<<"     Useful Example     " <<std::endl;
+	Rcpp::Rcout<<"##########################"<<std::endl;
+	int r(5);
+	int n(10);
+	MatCol data(MatCol::Random(r,n)); //rxn matrix. Think of data as a matrix of n r-dimensional variables. y_1,...,y_n where y_i is in R^r
+	Rcpp::Rcout<<"data:"<<std::endl<<data<<std::endl;
+	Rcpp::Rcout<<"C = A.cwiseProduct(B) does the component wise product of matricies A and B, i.e c_ij = a_ij*b_ij"<<std::endl;
+	//std::cout<<"data.cwiseProduct(data):"<<std::endl<<data.cwiseProduct(data)<<std::endl;
+	Rcpp::Rcout<<"It is useful to combine operations to get efficient results without saving any partial results. "<<std::endl;
+	Rcpp::Rcout<<"For example: data.cwiseProduct(data).sum() = "<<data.cwiseProduct(data).sum()<<std::endl<< "is the sum of all the elements squared that is the same of computing sum_i( t(data[,i])*data[,i] ) = sum_i(<y_i,y_i>), where <,> is the inner product ."<<std::endl;
+	Rcpp::Rcout<<"Indeed, compute the same with the for loop.."<<std::endl;
+	double S = 0.0;
+	for(int i = 0; i < n; ++i){
+		S += data.col(i).dot(data.col(i));
+	}
+	Rcpp::Rcout<<"S = sum_i(data.col(i).dot(data.col(i))):"<<std::endl<<S<<std::endl;
+	Rcpp::Rcout<<"Avoid for loop and use eigen operations!"<<std::endl;
 }
 
 

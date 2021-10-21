@@ -85,15 +85,24 @@ namespace utils{
 					   std::is_same_v<Derived_cols, Eigen::Map<const VecUnsRow>> ,
 					  "______ ERROR, invalid Input Type requested in SubMatrix. Can handle only VecUnsRow, VecCol  _____");
 
-		if(idx_rows.size() >= M.rows() || idx_cols.size() >= M.cols()) //Check dimension
+		if(idx_rows.size() > M.rows() || idx_cols.size() > M.cols()) //Check dimension
 			throw std::runtime_error("Indeces exceed matrix dimension");
 
 		Derived_mat res = indexing(M, idx_rows, idx_cols);
 		return res;
 	} 
 	
+	//Function overload for different specifications
+	template<typename Derived_mat, typename Derived_cols>
+	Derived_mat SubMatrix(Eigen::MatrixBase<Derived_mat> const & M, unsigned int const & idx_rows, Eigen::MatrixBase<Derived_cols> const & idx_cols){
+		VecUnsRow eigen_idx_row(VecUnsRow::Constant(1, idx_rows));
+		return SubMatrix(M, eigen_idx_row, idx_cols);
+	}
 
-
+	template<typename Derived_mat, typename Derived_rows>
+	Derived_mat SubMatrix(Eigen::MatrixBase<Derived_mat> const & M, Eigen::MatrixBase<Derived_rows> const & idx_rows, unsigned int const & idx_cols){
+		return SubMatrix(M, idx_rows, Eigen::Map<const VecUnsCol> (&idx_cols, 1));
+	}
 }
 
 #endif
