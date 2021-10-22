@@ -14,5 +14,5 @@ This folder contains all c++ and Rcpp files, the ones to be compiled. There are 
 # man/
 This folder contains the Rmarkdown files for the documentation. Do not edit by hand.
 
-**The workflow**
+# The workflow
 TODO
