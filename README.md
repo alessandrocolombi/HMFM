@@ -56,4 +56,21 @@ you can analyze the differences between the status of your local repo and the sh
 A me git non piace (perché non lo so usare bene). Io di solito mi tengo i file salvati normalmente e quando raggiungo uno stato che mi piace faccio commit di tutto e immediatamente dopo il push. Non è una sana abitudine perché si perdono appunto i benefici del commit che ho scritto sopra, però così evito di fare casini. Spero siate più bravi di me, usate git come preferite ma usatelo, non tenete i file salvati in qualche vostra cartella condivisa tipo OneDrive. Siete in 5 e ognuno modificherà parti e file diverse, se state attenti e lo usate facendo operazioni semplici e con attenzione, git è uno strumento molto potente che vi impedisce di fare casini ed è integrato molto bene con il sistema di pacchetti di R. 
 
 # The workflow
-TODO
+What are the benefits of an `R` package with compiled code? This is a nice solution to get the flexibility and simplicity of the `R` language to manipulate data, table and to visualize plots, without giving up efficient code for the computationally intense operations.<br/>
+The idea is to write in c++ the classes needed to run the sampler. It may useful to use write c++ code also to compute posterior expectations and posterior manipulations, this  may depend on the specific problem. Everything else can be written in R. Use the src/ folder to add all the c++ files where you define the classes needed to define the sampler. You may think to this folder as an independent c++ library (actually, a dynamic c++ library is created). Let us assume that you created a complex c++ class called GDFMM_sampling_strategy. It is unlikely that the inputs needed by such a class are simple built-in types but it probably needs to get other c++ custom classes. In this example, you need to pass the classes where you defined the likelihoos, the priors, the clustering mechanism and so on.
+However, an package is effective if the user can run the sampler in the simplest possible way. Usually one has just a matrix (or data.frame) where data are stored and some input parameters (number of iterations, hyperparameters, initial values). This mean that it is not straightforward to write an R function that gets such inputs and is able to call the run method define inside the GDFMM_sampling_strategy class. We need an intermediate step. This is where the Rcpp sytax kicks in.
+In the src/ folder, more precisely in the GDFMM_exports.cpp file, we define a custom Rcpp function that is a bridge from R data to c++ types. An Rcpp function is a c++ function (you are using c++, not R) that uses the Rcpp library which defines many types that are very similar to the R syntax (for example Rcpp::List). Such a language is created to let R and c++ to comunicate. The workflow is the following:
+1. Create an R function that takes the data. Pre-process data with simple operations that can be done in R.
+2. Inside such a function, call the Rcpp function that takes the pre-processed data from R and create all the c++ object and classes you need. Within this function, you have all you need to create a GDFMM_sampling_strategy, run its main method, collect the result and return them in R.
+
+
+
+
+
+
+
+
+
+
+
+
