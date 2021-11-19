@@ -35,6 +35,25 @@ How to pull? You the blu arrow you see in Rstudio in the Git window. The corresp
 ```shell
 $ git pull
 ```
-2. **commit:** the idea of the commit action is to "save safely" your local changes, but do not share them with the others. For example, you change something in file.R and save the file (i.e you save the R file the usual way). The 
+2. **commit:** the idea of the commit action is to "save safely" your local changes, but do not share them with the others. For example, you change something in file.R and save the file (i.e you save the R file the usual way). By doing so, the file has been saved but it is local to your pc, if something happens, you may lose it. By committing a file, you save it in the git (but not in github) file manager system. Your are able to recover it whenever you want. But not only, if some times later your are not satisfied by your change, you can recover the older version of the file. In other words, by committing files it is very difficult to mess up you work. That is why it is considered a "safe save". <br/> How to commit? When you create a new file or modify an existing file, the name of the file appears in the Git window in R. Check the box next to the files you want to commit and then click the commit button. Note that every commit has to be associated to a meaningful message, so that your are able to remeber what was the stage of your work at that time. The corresponding commands are
+```shell
+$ git add --all
+$ git commit -m "message"
+```
+By doing so, you commit all the modified files. If you want to commit only specific files, you can substitute --all with the name of the files.
+3. **push:** this is the dual action of pull. You push the previously committed files to the shared repo in github. Note that you always have to commit the files before pushing them. When you push files, everyone else is able to "download" them using the pull command.<br/>
+How to push? You the green arrow you see in Rstudio in the Git window. The corresponding command is 
+```shell
+$ git push
+```
+4. **status:** Using the following command
+```shell
+$ git status
+```
+you can analyze the differences between the status of your local repo and the shared one, also called master. If the master is ahead, you need to pull. If your repo is ahead, you can push. The status keeps track of the modified files, check it frequently. **Always check the status before using pull, commit and push!**
+5. **merge:** if you are not careful, conflicts may happen. The most common case is when you modify some files before pulling. Or when you push without a previous pull. In those cases, you need to solve the conflict by editing files (usually this is done by hand).<br/>
+
+A me git non piace (perché non lo so usare bene). Io di solito mi tengo i file salvati normalmente e quando raggiungo uno stato che mi piace faccio commit di tutto e immediatamente dopo il push. Non è una sana abitudine perché si perdono appunto i benefici del commit che ho scritto sopra, però così evito di fare casini. Spero siate più bravi di me, usate git come preferite ma usatelo, non tenete i file salvati in qualche vostra cartella condivisa tipo OneDrive. Siete in 5 e ognuno modificherà parti e file diverse, se state attenti e lo usate facendo operazioni semplici e con attenzione, git è uno strumento molto potente che vi impedisce di fare casini ed è integrato molto bene con il sistema di pacchetti di R. 
+
 # The workflow
 TODO
