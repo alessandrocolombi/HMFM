@@ -2,7 +2,7 @@
 
 export(EigenTest)
 export(TestGSL)
-export(hello)
+export(example_GDFMM_sampler)
 export(hello2)
 export(try_rcpp)
 importFrom(Rcpp,sourceCpp)
