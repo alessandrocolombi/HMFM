@@ -57,7 +57,7 @@ A me git non piace (perché non lo so usare bene). Io di solito mi tengo i file 
 
 # The workflow
 
-## Subsection 1
+## R package code organization
 What are the benefits of an `R` package with compiled code? This is a nice solution to get the flexibility and simplicity of the `R` language to manipulate data, table and to visualize plots, without giving up efficient code for the computationally intense operations.<br/>
 The idea is to write in c++ the classes needed to run the sampler. It may useful to use write c++ code also to compute posterior expectations and posterior manipulations, this  may depend on the specific problem. Everything else can be written in R. Use the src/ folder to add all the c++ files where you define the classes needed to define the sampler. You may think to this folder as an independent c++ library (actually, a dynamic c++ library is created). Let us assume that you created a complex c++ class called GDFMM_sampling_strategy. It is unlikely that the inputs needed by such a class are simple built-in types but it probably needs to get other c++ custom classes. In this example, you need to pass the classes where you defined the likelihoos, the priors, the clustering mechanism and so on.
 However, an package is effective if the user can run the sampler in the simplest possible way. Usually one has just a matrix (or data.frame) where data are stored and some input parameters (number of iterations, hyperparameters, initial values). This mean that it is not straightforward to write an R function that gets such inputs and is able to call the run method define inside the GDFMM_sampling_strategy class. We need an intermediate step. This is where the Rcpp sytax kicks in.
@@ -65,12 +65,37 @@ In the src/ folder, more precisely in the GDFMM_exports.cpp file, we define a cu
 1. Create an R function that takes the data. Pre-process data with simple operations that can be done in R.
 2. Inside such a function, call the Rcpp function that takes the pre-processed data from R and create all the c++ object and classes you need. Within this function, you have all you need to create a GDFMM_sampling_strategy, run its main method, collect the result and return them in R.<br/>
 
-The workflow presented above is valid for those functions that require complex or custom c++ objects as input. As explained in [src/](#src/), you may also have c++ functions that takes "simple" c++ objects as input. Those objects that can automatically converted from R language to c++ thaks to the Rcpp package, such as: int, double, strings, lists and matrices. If so, it is enough to implement the Rcpp function without creating the R counterpart. Finally, remember that most of the data manipulation operations can be implemented in R, without speeding up the code using c++.  
+The workflow presented above is valid for those functions that require complex or custom c++ objects as input. As explained in [src/](#src/), you may also have c++ functions that takes "simple" c++ objects as input. Those objects that can automatically converted from R language to c++ thaks to the Rcpp package, such as: int, double, strings, lists and matrices. If so, it is enough to implement the Rcpp function without creating the R counterpart. Finally, remember that most of the data manipulation operations can be implemented in R, without speeding up the code using c++.  <br/>
 
-## Subsection 2
-prova
+A couple of examples are reported.
 
+## Compile, document, build and run
+Whenever you want to test or check your code, you need to compile it. As we are dealing with an R package, this step involves several substeps. Fortunately, most of the operations happens under the hood. Most of the times, you compile your code when you are inside the GDFMM.Rproj. If so, run  <br/>
+`ctrl+shift+D` and then `ctrl+shift+B` . <br/>
+The first command compile the c++ code (it creates the GDFMM.so library actually) and update the documentation. The second one simulate the building of the R package. This second part requires a deeper knowledge of R packages to be properly understood, in practice what it does is to compile the code again and install the package. Of course, if no files is modifies after running `ctrl+shift+D`, there is nothing to be compiled and this second step is much faster. Once it is completed, you have a test version of your package installed, you may check it in the package window. It works as all other R packages, you can check the available functions, the documentation and run all the exported functions (those whose name appears in the NAMESPACE at least). You can test whatever you want.<br/>
+**Remark:** the c++ compiler you have in R in not as friendly as the one you have in a pure c++ environments. Error messages are ugly and long. Use the usual rule to trust and fix only the first one that is printed. Moreover, R is very bad in failure handling. That is, runtime errors such as segmentation fault or similar do not give you meaningful messages but results in R abort (that is why R session aborts are so frequent!) If so, be patient when debugginig.
 
+## Install the package
+When the work is done, or whenever you want to install packages that have been published only on github and on the CRAN, you can install the package. The difference with respect to the previous section is that this step is not done when you are inside the GDFMM.Rproj. Therefore it is not local to the project but you make the package available in all your R system.
+There are several ways to install a github package. The procedures presented here are valid in general, not only for GDFMM.
+1. clone the repo as explained in [# Getting started](# Getting started). Open R and set the repo as working directory (select the folder where there is the .Rproj file). Run
+```R
+devtools::install()
+```
+2. Sometimes one does not want to clone the repo of the package. If so, just open R and run
+```R
+devtools::install_github("author_github_name/package_name") #for example devtools::install_github("alessandrocolombi/GDFMM")
+```
+The drawback for those cases, is that the repo has to be public or at least you have access to it.
+3. Another possibility, is that the creator of the package builds the tar.gz file of the package, send it to the user which can install it. The tar.gz file can be created by running 
+```shell
+$ cd package_repo
+$ R CMD build package_name
+```
+from command line. (Questo funziona in linux, non ho mai creato il tar.gz in window). Once that the file is sent to the user, the latter just need to open R, set the working directory to match the file location and run
+```R
+install.package("package_name.tar.gz", repos = NULL )
+```
 
 
 
