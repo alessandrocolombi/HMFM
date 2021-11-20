@@ -22,6 +22,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// example_GDFMM_sampler_c
+Rcpp::List example_GDFMM_sampler_c(Eigen::MatrixXd const& data, Rcpp::String P0_prior_name);
+RcppExport SEXP _GDFMM_example_GDFMM_sampler_c(SEXP dataSEXP, SEXP P0_prior_nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd const& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type P0_prior_name(P0_prior_nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(example_GDFMM_sampler_c(data, P0_prior_name));
+    return rcpp_result_gen;
+END_RCPP
+}
 // EigenTest
 void EigenTest();
 RcppExport SEXP _GDFMM_EigenTest() {
@@ -43,6 +55,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_try_rcpp", (DL_FUNC) &_GDFMM_try_rcpp, 1},
+    {"_GDFMM_example_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_example_GDFMM_sampler_c, 2},
     {"_GDFMM_EigenTest", (DL_FUNC) &_GDFMM_EigenTest, 0},
     {"_GDFMM_TestGSL", (DL_FUNC) &_GDFMM_TestGSL, 0},
     {NULL, NULL, 0}

@@ -8,6 +8,10 @@ try_rcpp <- function(x) {
     .Call(`_GDFMM_try_rcpp`, x)
 }
 
+example_GDFMM_sampler_c <- function(data, P0_prior_name) {
+    .Call(`_GDFMM_example_GDFMM_sampler_c`, data, P0_prior_name)
+}
+
 #' Eigen library usage example
 #'
 #' @export

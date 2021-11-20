@@ -14,5 +14,5 @@ GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
 
 # Setting Package Flags
 PKG_CXXFLAGS +=  $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                 -D_REENTRANT $(GSL_INC) -I'.' -fopenmp 
-PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") $(GSL_LIBS) -lz -fopenmp $(NOCRANFLAGS)
+                 -D_REENTRANT $(GSL_INC) -I'.' -fopenmp $(NOCRANFLAGS)
+PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") $(GSL_LIBS) -lz -fopenmp 

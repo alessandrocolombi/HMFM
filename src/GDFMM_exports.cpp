@@ -19,7 +19,7 @@ int try_rcpp(int x){
 	return x+10;
 }
 
-/*
+
 // [[Rcpp::export]]
 Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, Rcpp::String P0_prior_name){
 
@@ -60,5 +60,5 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, Rcpp::String P
 	else
 		throw std::runtime_error("Runtime error. This avoid R session to abort in favour of a meaningful error.");
 }
-*/
+
 #endif

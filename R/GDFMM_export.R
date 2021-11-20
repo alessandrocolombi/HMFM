@@ -33,8 +33,7 @@ example_GDFMM_sampler <- function(data, niter, burnin, thin, P0.prior = "Normal-
 
   cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
   # This is just an example, of course you can save the c++ output and perform further operations in R
-  return (1)
-  #return( GDFMM:::example_GDFMM_sampler_c(data, P0.prior)   )
+  return( GDFMM:::example_GDFMM_sampler_c(data, P0.prior)   )
 }
 
 
