@@ -96,7 +96,12 @@ from command line. (Questo funziona in linux, non ho mai creato il tar.gz in win
 ```R
 install.package("package_name.tar.gz", repos = NULL )
 ```
-
+# Guidelines
+1. Siete liberi di sviluppare il codice come preferite. Se quando fate esperienza con R imparate un modo diverso per chiamare le funzioni ben venga. L'importante è che per l'user sia tutto il più semplice possibile. Serve flessibilità nel passare i dati in forme diverse e pochi input da decidere.
+2. Commentate per bene tutto il codice! Non solo all'inizio della funzione, idealmente per ogni scope serve una breve descrizione che dice cosa state facendo.
+3. Documentate bene le funzioni che esportate.
+4. Usate nomi significativi, usate tante typedef e definitele nel file che vi ho indicato sopra.
+5. Le regole di buon coding dicono di usare sostantivi come nomi degli oggetti e verbi per le funzioni. Se riuscite, meglio.
 
 
 
