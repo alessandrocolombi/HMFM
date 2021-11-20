@@ -49,7 +49,8 @@ $ git push
 4. **status:** Using the following command
 ```shell
 $ git status
-``` you can analyze the differences between the status of your local repo and the shared one, also called master. If the master is ahead, you need to pull. If your repo is ahead, you can push. The status keeps track of the modified files, check it frequently. **Always check the status before using pull, commit and push!**
+``` 
+you can analyze the differences between the status of your local repo and the shared one, also called master. If the master is ahead, you need to pull. If your repo is ahead, you can push. The status keeps track of the modified files, check it frequently. **Always check the status before using pull, commit and push!**<br/>
 5. **merge:** if you are not careful, conflicts may happen. The most common case is when you modify some files before pulling. Or when you push without a previous pull. In those cases, you need to solve the conflict by editing files (usually this is done by hand).<br/>
 
 A me git non piace (perché non lo so usare bene). Io di solito mi tengo i file salvati normalmente e quando raggiungo uno stato che mi piace faccio commit di tutto e immediatamente dopo il push. Non è una sana abitudine perché si perdono appunto i benefici del commit che ho scritto sopra, però così evito di fare casini. Spero siate più bravi di me, usate git come preferite ma usatelo, non tenete i file salvati in qualche vostra cartella condivisa tipo OneDrive. Siete in 5 e ognuno modificherà parti e file diverse, se state attenti e lo usate facendo operazioni semplici e con attenzione, git è uno strumento molto potente che vi impedisce di fare casini ed è integrato molto bene con il sistema di pacchetti di R. 
@@ -85,7 +86,7 @@ devtools::install()
 ```R
 devtools::install_github("author_github_name/package_name") #for example devtools::install_github("alessandrocolombi/GDFMM")
 ```
-The drawback for those cases, is that the repo has to be public or at least you have access to it.
+The drawback for those cases, is that the repo has to be public or at least you have access to it.<br/>
 3. Another possibility, is that the creator of the package builds the tar.gz file of the package, send it to the user which can install it. The tar.gz file can be created by running 
 ```shell
 $ cd package_repo
