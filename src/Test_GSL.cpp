@@ -1,7 +1,6 @@
 #ifndef __TESTGSL_HPP__
 #define __TESTGSL_HPP__
 
-
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::depends(RcppParallel)]]
 #define STRICT_R_HEADERS
@@ -89,7 +88,7 @@ void TestGSL(){
 		Rcpp::Rcout<<" "<<Gamma(10.0,0.25)<<" ||";
 	}
 	Rcpp::Rcout<<std::endl<<std::endl;
-	
+
 	Rcpp::Rcout<<"##########################"<<std::endl;
 	Rcpp::Rcout<<" Chi-squared distribution " <<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
@@ -120,11 +119,11 @@ void TestGSL(){
 	int k = 5; //number of dirichelt components
 
 	Rcpp::Rcout<<"----- Testing VecCol -------"<<std::endl;
-	sample::rdirichlet<VecCol> 	Dir_veccol; 
-	sample::rdirichlet<VecCol> 	Dir_veccol2; //same as before 
+	sample::rdirichlet<VecCol> 	Dir_veccol;
+	sample::rdirichlet<VecCol> 	Dir_veccol2; //same as before
 
 	VecCol alfa1 = VecCol::Constant(k,10.0); //alfa1[0]=alfa1[1]=alfa1[2]=10.0
-	VecRow alfa2 = VecRow::Constant(k,10.0); 
+	VecRow alfa2 = VecRow::Constant(k,10.0);
 	std::vector<double> alfa3(k, 10.0);
 	MatCol alfa4 = MatCol::Constant(k,k,10.0);
 
@@ -141,7 +140,7 @@ void TestGSL(){
 	//Rcpp::Rcout<< Dir_veccol(engine1, alfa4) <<std::endl;
 
 	Rcpp::Rcout<<"----- Testing VecRow -------"<<std::endl;
-	sample::rdirichlet<VecRow> 	Dir_vecrow; 
+	sample::rdirichlet<VecRow> 	Dir_vecrow;
 
 	Rcpp::Rcout<<"Return VecRow, input VecCol: "<<std::endl;
 	Rcpp::Rcout<< Dir_vecrow(engine1, alfa1) <<std::endl;
@@ -151,7 +150,7 @@ void TestGSL(){
 	Rcpp::Rcout<< Dir_vecrow(engine1, Eigen::Map<const VecRow> (&(alfa3[0]), alfa3.size()) ) <<std::endl;
 
 	Rcpp::Rcout<<"----- Testing std::vector<double> -------"<<std::endl;
-	sample::rdirichlet<std::vector<double>> 	Dir_vector; 
+	sample::rdirichlet<std::vector<double>> 	Dir_vector;
 	std::vector<double> theta_dir(k,0.0);
 
 	Rcpp::Rcout<<"Return std::vector<double>, input VecCol: "<<std::endl;
@@ -186,7 +185,7 @@ void TestGSL(){
 
 	Rcpp::Rcout<<"----- Testing VecUnsRow -------"<<std::endl;
 	sample::rmultinomial<VecUnsRow> 	Multi_vecrow; //return a vector of unsigned int
- 
+
 	VecRow weights(K);
 	weights<< 0.75,0.2,0.05;
 	Rcpp::Rcout<<"weights values: "<<weights<<std::endl;
@@ -195,8 +194,8 @@ void TestGSL(){
 	Rcpp::Rcout<< Multi_vecrow(engine1, 5, weights) <<std::endl;
 
 	Rcpp::Rcout<<"----- Testing std::vector<unsigned int> -------"<<std::endl;
-	sample::rmultinomial<std::vector<unsigned int>> 	Multi_vector; 
-	
+	sample::rmultinomial<std::vector<unsigned int>> 	Multi_vector;
+
 
 	Rcpp::Rcout<<"Return std::vector<unsigned int>, input VecRow: "<<std::endl;
 	std::vector<unsigned int> n_sample_multi = Multi_vector(engine1, 5, weights);
@@ -208,7 +207,7 @@ void TestGSL(){
 	VecRow unnorm_weights(K);
 	unnorm_weights<< 3.0,1.5,0.5;
 	Rcpp::Rcout<<"weights values: "<<unnorm_weights<<std::endl;
-	Rcpp::Rcout<< Multi_vecrow(engine1, 5, unnorm_weights) <<std::endl;	
+	Rcpp::Rcout<< Multi_vecrow(engine1, 5, unnorm_weights) <<std::endl;
 
 	Rcpp::Rcout<<std::endl<<std::endl;
 

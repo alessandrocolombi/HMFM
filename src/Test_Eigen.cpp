@@ -45,8 +45,8 @@ void EigenTest(){
 	VecUnsRow v3(VecUnsRow::Constant(p,5)); //vectors of unsigned intergers
 	VecUnsCol v4(VecUnsCol::Constant(p,5));	//vectors of unsigned intergers
 
-	
-	Rcpp::Rcout<<"Resize and fill by hand"<<std::endl;	
+
+	Rcpp::Rcout<<"Resize and fill by hand"<<std::endl;
 	Rcpp::Rcout<<"v3 = "<<v3<<std::endl;
 	Rcpp::Rcout<<"v4 = "<<v4<<std::endl;
 	v3.resize(2); //resize the vector and delete olds elements
@@ -54,7 +54,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"v3 = "<<v3<<std::endl; //values are trash
 	Rcpp::Rcout<<"v4 = "<<v4<<std::endl;
 	//Fill vectors by hands (works also for matrices)
-	v3<<0,1; 
+	v3<<0,1;
 	v4<<0,2;
 	Rcpp::Rcout<<"v3 = "<<v3<<std::endl;
 	Rcpp::Rcout<<"v4 = "<<v4<<std::endl;
@@ -114,7 +114,7 @@ void EigenTest(){
 
 	Rcpp::Rcout<<"---- Linear Algebra operations ----"<<std::endl;
 	Rcpp::Rcout<<"Can mix RowMajor and ColMajor. It is possible but may be inefficient, choose carefully the storage method"<<std::endl;
-	MatCol res = 3*M1 + 4*I1; 
+	MatCol res = 3*M1 + 4*I1;
 	Rcpp::Rcout<<"res = 3*M1 + 4*I1 :"<<std::endl<<res<<std::endl;
 	Rcpp::Rcout<<"Products"<<std::endl;
 	MatCol res2 = M2*M4;
@@ -194,9 +194,9 @@ void EigenTest(){
 	MatRow SubI = utils::SubMatrix(I1,idx_rows,idx_cols);
 	Rcpp::Rcout<<"SubI = "<<std::endl<<SubI<<std::endl;
 	//MatRow SubI_2 = utils::SubMatrix(I1,{0,1},idx_cols); //this does not work
-	MatRow SubI_2 = utils::SubMatrix(I1,2,idx_cols); 
+	MatRow SubI_2 = utils::SubMatrix(I1,2,idx_cols);
 	Rcpp::Rcout<<"SubI_2 = I1[2,idx_cols] = "<<std::endl<<SubI_2<<std::endl;
-	MatCol SubI_3 = utils::SubMatrix(I1,idx_rows,1); 
+	MatCol SubI_3 = utils::SubMatrix(I1,idx_rows,1);
 	Rcpp::Rcout<<"SubI_3 = I1[idx_rows,1] = "<<std::endl<<SubI_3<<std::endl;
 
 	Rcpp::Rcout<<"SubMatrix extraction (ColMajor input and output):"<<std::endl<<"M4 = "<<std::endl<<M4<<std::endl;
@@ -211,7 +211,7 @@ void EigenTest(){
 	VecRow r2(VecRow::Random(p));
 	Rcpp::Rcout<<"r2:"<<std::endl<<r2<<std::endl;
 	std::cout<<"utils::SubMatrix(r2,0,idx_cols):"<<std::endl<<utils::SubMatrix(r2,0,idx_cols)<<std::endl;
-	
+
 
 	Rcpp::Rcout<<"---- Block Operations for matrices (SubMatrix is better) ----"<<std::endl;
 	Rcpp::Rcout<<"A.block(i,j,dim_row,dim_col) -> gets a pxq sub_matrix starting from element (i,j), which is the top left element. Examples:"<<std::endl;
@@ -237,7 +237,7 @@ void EigenTest(){
 	Rcpp::Rcout<<"v6.head(2):"<<std::endl<<v6.head(2)<<std::endl;
 	Rcpp::Rcout<<"v6.tail(2):"<<std::endl<<v6.tail(2)<<std::endl;
 	Rcpp::Rcout<<std::endl<<std::endl;
-	
+
 	Rcpp::Rcout<<"##########################"<<std::endl;
 	Rcpp::Rcout<<"     Matrix Inversion     " <<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
@@ -245,7 +245,7 @@ void EigenTest(){
 	MatRow Irow(MatRow::Identity(p,p));
 	MatRow A(MatRow::Random(p,p));
 	Rcpp::Rcout<<"A:"<<std::endl<<A<<std::endl;
-	MatRow InvA = A.inverse(); //uses LU factorization 
+	MatRow InvA = A.inverse(); //uses LU factorization
 	Rcpp::Rcout<<"InvA:"<<std::endl<<InvA<<std::endl;
 	Rcpp::Rcout<<"If A is symmetric positive definite, it is better to use the Cholesky decomposition. More efficient than LU"<<std::endl;
 	/*
@@ -254,7 +254,7 @@ void EigenTest(){
 	*/
 
 	Rcpp::Rcout<<std::endl<<std::endl;
-	
+
 	Rcpp::Rcout<<"##########################"<<std::endl;
 	Rcpp::Rcout<<"     Useful Example     " <<std::endl;
 	Rcpp::Rcout<<"##########################"<<std::endl;
