@@ -3,6 +3,6 @@
 
 #include "include_headers.h"
 
-using GS_parameters = std::map<std::string, std::vector<std::vector<double>> >;
+typedef std::map<std::string, std::vector<std::vector<double>> > GS_parameters;
 
 #endif
