@@ -6,9 +6,12 @@
 class FC_Lambda : public FullConditional{
 private:
     /* data */
+    a2;
+    b2;
 public:
-    FC_Lambda : public FullConditional(/* args */);
-    ~FC_Lambda : public FullConditional();
+    FC_Lambda(/* args */);
+    ~FC_Lambda();
+    void update(GS_parameters& param, sample::GSL_RNG engine) override;
 };
 
 #endif

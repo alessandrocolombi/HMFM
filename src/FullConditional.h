@@ -3,9 +3,8 @@
 #include "GSL_wrappers.h"
 
 class FullConditional{
-    std::map< std::string, double> hyper_param;
-
+    
 public :
-    virtual void update(GS_parameters& param) = 0;
-    bool binary_decision(double p1);
+    virtual void update(GS_parameters& param, sample::GSL_RNG engine) = 0;
+    bool binary_decision(double p1, sample::GSL_RNG engine);
 };
