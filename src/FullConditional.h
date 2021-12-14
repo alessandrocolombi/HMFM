@@ -1,8 +1,11 @@
-#include GDFMM_types.h
+#include "include_headers.h"
+#include "GDFMM_types.h"
+#include "GSL_wrappers.h"
 
 class FullConditional{
-    int a = 1;
+    std::map< std::string, double> hyper_param;
 
 public :
-    update(std::map<std::string, std::vector<)    
+    virtual void update(GS_parameters& param) = 0;
+    bool binary_decision(double p1);
 };
