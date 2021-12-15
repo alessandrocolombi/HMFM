@@ -12,7 +12,9 @@ struct GS_data{
     unsigned int Mstar; // number of NON-allocated component
     unsigned int M; // total number of component
     double lambda; // M|lambda ~ Poi(lambda)
+    double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     // vectors
+    std::vector<unsigned int> n_j; // number of elements for each group (dimension: d)
     std::vector<double> U; // auxiliary variable
     std::vector<double> gamma; // vector of d gamma, one for each group
     std::vector<double> mu; // vector of the mean for each component
@@ -22,9 +24,11 @@ struct GS_data{
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     //-----------------------------------------------------------//
+    /* CONSTRUCTOR */
     /* METHODS */
     void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);
+    void update_log_sum();
 };
 
 #endif

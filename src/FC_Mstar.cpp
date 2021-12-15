@@ -7,16 +7,13 @@ void FC_Mstar::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     double lambda = gs_data.lambda;
     std::vector<double> gamma = gs_data.gamma; // CHIEDERE A COLMBI SE ABBIAMO d gamma UGUALI o d gamma[j]
     std::vector<double> U = gs_data.U;
+    double log_sum = gs_data.log_sum;
 
     // Random sampler is created
     sample::rpoisson Poisson;
 
     // Update routine
-    double log_sum = 0.0;
 
-    for(size_t j=0; j<d; j++){
-        log_sum += log(U[j]+1)*gamma[j];
-    }
     // Computation of the weight for the traslated Poisson ?? CHIEDERE A COLOMBI CHIARIMENTO 
     double p0 = lambda/( lambda + k*exp(-log_sum)); // CHIEDERE A COLMBI SE VA BENE COSI'
     // Select, via extraction from a uniform, which distribution sample from

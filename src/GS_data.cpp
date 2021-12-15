@@ -7,3 +7,10 @@ void GS_data::initialize_tau(unsigned int M){
     mu = std::vector<double>(M, 0.0);
     sigma = std::vector<double>(M, 0.0);
 }
+
+void GS_data::update_log_sum(){
+    log_sum = 0.0;
+    for(size_t j=0; j<d; j++){
+        log_sum += log(U[j]+1)*gamma[j];
+    }
+}

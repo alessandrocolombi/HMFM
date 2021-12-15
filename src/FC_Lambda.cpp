@@ -6,6 +6,7 @@ void FC_Lambda::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     unsigned int d = gs_data.d;
     std::vector<double> gamma = gs_data.gamma; // CHIEDERE A COLMBI SE ABBIAMO d gamma UGUALI O d gamma[j]
     std::vector<double> U = gs_data.U;
+    double log_sum = gs_data.log_sum;
 
     // Random sampler is created
     sample::rgamma Gamma;
@@ -13,11 +14,6 @@ void FC_Lambda::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     // Update routine
     double a2_star = static_cast<double>( d*(k-1) ) + a2; 
 
-    double log_sum = 0.0;
-
-    for(size_t j=0; j<d; j++){
-        log_sum += log(U[j]+1)*gamma[j];
-    }
     // Computation of the weight for the "first" gamma distr.
     double p0 = (a2_star)/((a2_star-k)+k*(b2+1)*exp(log_sum));
     // Select, via extraction from a uniform, which distribution sample from
