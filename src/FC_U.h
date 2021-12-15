@@ -2,6 +2,7 @@
 #define GDFMM_FC_U_H
 
 #include "FullConditional.h"
+#include "recurrent_traits.h"
 
 class FC_U : public FullConditional{
 
