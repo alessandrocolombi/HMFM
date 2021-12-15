@@ -1,4 +1,5 @@
 #include "include_headers.h"
+#include "recurrent_traits.h"
 #include "GS_data.h"
 #include "GSL_wrappers.h"
 

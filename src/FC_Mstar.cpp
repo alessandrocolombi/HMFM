@@ -3,7 +3,7 @@
 void FC_Mstar::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     // From gs_data all needed variable are retrived
     unsigned int d = gs_data.d;
-    unsigned int k = gs_data.k;
+    unsigned int k = gs_data.K;
     double lambda = gs_data.lambda;
     std::vector<double> gamma = gs_data.gamma; // CHIEDERE A COLMBI SE ABBIAMO d gamma UGUALI o d gamma[j]
     std::vector<double> U = gs_data.U;
@@ -28,5 +28,9 @@ void FC_Mstar::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
         gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum));
     
     // Update M in the Gibbs Sampler
-    gs_data.M = k + gs_data. Mstar;
+    gs_data.M = k + gs_data.Mstar;
+    // Initialize S according to new M
+    gs_data.initialize_S(gs_data.M);
+    // Initialize tau according to new M
+    gs_data.initialize_tau(gs_data.M);
 }

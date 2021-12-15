@@ -2,7 +2,7 @@
 
 void FC_Lambda::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     // From gs_data all needed variable are retrived
-    unsigned int k = gs_data.k;
+    unsigned int k = gs_data.K;
     unsigned int d = gs_data.d;
     std::vector<double> gamma = gs_data.gamma; // CHIEDERE A COLMBI SE ABBIAMO d gamma UGUALI O d gamma[j]
     std::vector<double> U = gs_data.U;
