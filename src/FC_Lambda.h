@@ -6,12 +6,12 @@
 class FC_Lambda : public FullConditional{
 private:
     /* data */
-    a2;
-    b2;
+    double a2;
+    double b2;
 public:
     FC_Lambda(/* args */);
     ~FC_Lambda();
-    void update(GS_parameters& param, sample::GSL_RNG engine) override;
+    void update(GS_data& gs_data, sample::GSL_RNG gs_engine) override;
 };
 
 #endif
