@@ -5,7 +5,7 @@
 
 class FC_Lambda : public FullConditional{
 private:
-    /* data */
+    /* hyper parameters */
     double a2;
     double b2;
 public:
