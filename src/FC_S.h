@@ -1,6 +1,7 @@
 #ifndef GDFMM_FC_S_H
 #define GDFMM_FC_S_H
 
+#include "FullConditional.h"
 #include "recurrent_traits.h"
 
 
