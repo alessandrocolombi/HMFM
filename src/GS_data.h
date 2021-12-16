@@ -7,7 +7,8 @@
 struct GS_data{
     /* DATA */
     // single values
-    unsigned int d; // number of groups
+    unsigned int d;
+    unsigned int iterations;// number of groups
     unsigned int K; // number of allocated component ==> number of clusters
     unsigned int Mstar; // number of NON-allocated component
     unsigned int M; // total number of component
