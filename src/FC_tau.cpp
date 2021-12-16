@@ -23,8 +23,8 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
              float sigma2_na=1 / Gamma(gs_engine, nu_0/2, (nu_0)*((sigma_0)/2)); // vardellecomponenti
              float mu_na=rnorm( mu_0, std::sqrt(sigma2_na / k_0)); // mediadellecomponenti
 
-             GS_data::mu.pushback(mu_na);
-             GS_data::sigma.pushback(sigma2_na);
+             gs_data.mu.pushback(mu_na);
+             gs_data.sigma.pushback(sigma2_na);
         }
          //tau-allocate
         for (int k= 0; k <K; ++k) {
@@ -49,9 +49,10 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
             sigma2_n_clust = (nu_0 * (sigma_0 ^ 2) + (N_k[k] - 1) * s2_clust+ k_0 * N_k[k]  *(y_bar_clust - mu_0) ^ 2 / (lpk));
 
             //Campionamento
-            sigma2_a <- 1 / rgamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
-            mu_a<- rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
-            tau_a[k,] <- c(mu_a[k], sigma2_a[k]);
+            sigma2_a = 1 / rgamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
+            mu_a=rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
+            gs_data.mu.pushback(mu_a);
+            gs_data.sigma.pushback(sigma2_a);
         }
 
 

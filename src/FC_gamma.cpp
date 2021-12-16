@@ -15,6 +15,8 @@ void FC_gamma::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     double ln_new;
     double gamma_new;
     double ln_acp;
+    std::gamma_distribution<double> d(int alpha,int beta);
+
 
     for (int j;j<d;j++) {
         gamma_old= gamma[j];
@@ -32,27 +34,27 @@ void FC_gamma::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
             gamma[j] = gamma_new;
             acc = acc + 1;
         } else {
-            gamma[j] = gamma_old
+            gamma[j] = gamma_old;
         }
 
-        double ww_g = (iter + 1) ^ (- hyp2)
+        double ww_g = (iter + 1) ^ (- hyp2);
 
 
-        adapt_var_pop_gamma<- adapt_var_pop_gamma * std::exp(ww_g *(std::exp(std::min(0, ln_acp)) -hyp1))
+        adapt_var_pop_gamma= adapt_var_pop_gamma * std::exp(ww_g *(std::exp(std::min(0, ln_acp)) -hyp1));
 
         if (adapt_var_pop_gamma< 10 ^ (-10)){
-            adapt_var_pop_gamma<- 10 ^ (-10)
+            adapt_var_pop_gamma= 10 ^ (-10);
         }
-        if (adapt_var_pop_gamma > 10 ^ (10)){
-            adapt_var_pop_gamma <- 10 ^ 10
+        else{adapt_var_pop_gamma = 10 ^ 10;
         }
 
     }
 
     double  FC_gamma::log_full_gamma(double x, double Lambda, int a1, int b1, int k, double M_na, double n_jk) {
-        double out =dgamma(x, a1, b1, log = T) + lgamma(x * (M_na + k)) -
-             std::log(rgamma(x *(M_na + k) + std::sum(n_jk)) - k * std::log(gamma(x) +
-             std::sum(lgamma(n_jk + x))
+        double out =  d(x) + std::log(d(x * (M_na + k)) -
+                std::log(d(x *(M_na + k) + std::sum(n_jk),a1,b1)) - k * std::log(d(x,a1,b1)) +
+             std::sum(std::log(d(n_jk + x,a1,b1)));
         return out
     }
+
 }
