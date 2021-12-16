@@ -14,17 +14,17 @@ void FC_S::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
     sample::rgamma Gamma;
 
     // Update routine
-    for (j in 1:d) { //per ogni livello
+    for (unsigned j=0; j<d; j++) { //per ogni livello
         //S ALLOCATE
-        for (k in 1:K) {//per ogni comp allocata
+        for (unsigned k=0; k<K; k++) {//per ogni comp allocata
             S(j, k) = Gamma(1, N(j, k) + gamma[j], U[j] + 1);
         }
 
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             // S_na <- matrix(0, ncol = M_na, nrow = d)
-            for (m_star in 1:Mstar) {
-                S(j, m_star) = Gamma(1, gamma[j], U[j] + 1);
+            for (unsigned mstar=0; m_star<Mstar; mstar++) {
+                S(j, mstar) = Gamma(1, gamma[j], U[j] + 1);
             }
         }
     }
