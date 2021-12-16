@@ -7,9 +7,11 @@
 class Partition{
 private:
   /* hyper parameters */
-  std::vector< std::vector<double>> C;
+
 public:
-  Partition(std::vector<std::vector<double>> C);
+    std::vector<unsigned int> clust_out;
+    std::vector< std::vector<unsigned int>> C;
+    Partition(std::vector<std::vector<double>> C);
   ~Partition();
   void updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine);
 };

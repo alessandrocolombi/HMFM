@@ -1,0 +1,26 @@
+
+#ifndef GDFMM_FC_GAMMA_H
+#define GDFMM_FC_GAMMA_H
+#include "FullConditional.h"
+
+class FC_gamma: public FullConditional {
+private:
+    float hyp1=0.234;
+    float hyp2=0.7;
+    double Mna = Gs_data::Mstar;
+    double iter=GS_data::iterations //da aggiungere in gs data
+    double Lambda;
+    unsigned int K=GS_data::K
+    float adapt_pop_gamma;
+    double  log_full_gamma(double x, double Lambda, int a1 = 1, int b1 = 1, int k, double M_na, double n_jk);
+
+public:
+    FC_gamma(/* args */);
+    ~FC_gamma();
+    void update(GS_data& gs_data, sample::GSL_RNG gs_engine) override;
+
+
+};
+
+
+#endif //GDFMM_FC_GAMMA_H

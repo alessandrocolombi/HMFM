@@ -11,7 +11,6 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
   std::vector<double> sigma=gs_data.sigma;
   std::vector<std::vector<unsigned int>> probs;
   std::set<unsigned int> s;
-  std::vector<unsigned int> clust_out;
   double probs_max;
 
   //Bisogna definire data preso da Gibbs Sampler
