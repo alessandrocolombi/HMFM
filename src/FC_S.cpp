@@ -23,7 +23,7 @@ void FC_S::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             // S_na <- matrix(0, ncol = M_na, nrow = d)
-            for (unsigned mstar=0; m_star<Mstar; mstar++) {
+            for (unsigned mstar=0; mstar<Mstar; mstar++) {
                 S(j, mstar) = Gamma(1, gamma[j], U[j] + 1);
             }
         }
