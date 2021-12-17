@@ -86,4 +86,4 @@ double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j){
  }
 
 
-
+// mean e var vanno bene qui e poi si possono chiamare tranquillamente da dentro senza definire il namespace?
