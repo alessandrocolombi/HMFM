@@ -8,7 +8,6 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
   double probs_max;
   Eigen::Matrix S = gs_data.S; // Matrix of weights
   std::vector<unsigned int> n_j = gs_data.n_j;// number of observation per group
-  std::vector<unsigned int> clust_out;
   std::vector<double> mu=gs_data.mu; // Vector of means
   std::vector<double> sigma=gs_data.sigma; // Vector of standard deviations
   std::vector<std::vector<unsigned int>> probs; // matrix of probability 
