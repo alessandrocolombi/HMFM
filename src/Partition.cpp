@@ -4,26 +4,29 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
   // From gs_data all needed variable are retrived
   unsigned int k = gs_data.K; // number of cluster
   unsigned int d = gs_data.d; // number of group
-  std::vector<unsigned int> n_j = gs_data.n_j;//number of observation per group
-  unsigned int M = gs_data.M;
-  Eigen::Matrix S = gs_data.S;
-  std::vector<double> mu=gs_data.mu;
-  std::vector<double> sigma=gs_data.sigma;
-  std::vector<std::vector<unsigned int>> probs;
-  std::set<unsigned int> s;
+  unsigned int M = gs_data.M; // number of components
   double probs_max;
+  Eigen::Matrix S = gs_data.S; // Matrix of weights
+  std::vector<unsigned int> n_j = gs_data.n_j;// number of observation per group
+  std::vector<unsigned int> clust_out;
+  std::vector<double> mu=gs_data.mu; // Vector of means
+  std::vector<double> sigma=gs_data.sigma; // Vector of standard deviations
+  std::vector<std::vector<unsigned int>> probs; // matrix of probability 
+  std::set<unsigned int> s; // A set which will be useful for cluster
 
-  //Bisogna definire data preso da Gibbs Sampler
+  // Define data taken from gs_data
+  std::vector<std::vector<double>> data=gs_data.data;
 
-  // Genero il vettore probs che mi servirà per il sample
+  // Generate matrix of 
   for(unsigned j=0; j<d; j++){
     std::vector<unsigned int> v(n_j[j]);
-    probs.push_back(v); //Create a vector for every J
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
         std::normal_distribution<double> d{mu[m],sigma[m]*sigma[m]};
-        v.push_back(log(S(j,m) + log(d(data[j][i])); //in every and for every component put the lo likelihood
-      }//control if S(j,) is correct
+        v.push_back(log(S(j,m) + log(d(data[j][i])); 
+        //in every and for every component put the log likelihood
+      }
+      probs.push_back(v); //Create a vector for every J
       probs_max=std::max(probs[i])
       for(unsigned m=0; m<M; m++){
         probs[i][m] <- exp(probs[i][m] - probs_max);
@@ -39,7 +42,7 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++)) {
-          std::discrete_distribution<> d(probs[i].begin, probs[i].end); //
+          std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
           C[j][i]=d(gs_engine);
       }
     }/* per ogni dato nel livello j
@@ -55,6 +58,6 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
       clust_out.assign(s.begin(),s.end());
     }
   }
-  K=size(clust_out)
+  K=clust_out.size()
   GS_data::set_k(K) //secondo me è necessario un set_K
 }
