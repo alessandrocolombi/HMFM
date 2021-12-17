@@ -4,16 +4,16 @@
 
 
 void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c, Partition& p) {
-    unsigned int Mna = gs_data.Mstar;
-    unsigned int d = gs_data.d;
-    unsigned int K=gs_data.K;
-    std::vector<unsigned int> n_j= gs_data.n_j;
-    std::vector< std::vector<unsigned int>> C=p.C;
-    std::vector<unsigned int> clust_out= p.clust_out;
-    GDFMM_Traits::MatUnsCol N=gs_data.N;
-    std::vector<unsigned int> ind_i;
-    std::vector<unsigned int> ind_j;
-    std::vector< std::vector<unsigned int>> Ctilde=p.Ctilde;
+    unsigned int Mna = gs_data.Mstar; // number of unallocated components 
+    unsigned int d = gs_data.d; // number of groups
+    unsigned int K=gs_data.K; //number of clusters
+    std::vector<unsigned int> n_j= gs_data.n_j; // number of observations per group
+    std::vector< std::vector<unsigned int>> C=p.C; // C matrix of partition
+    std::vector<unsigned int> clust_out= p.clust_out; // Vector of clusters
+    GDFMM_Traits::MatUnsCol N=gs_data.N; // Matrix of observation oper cluster per group
+    std::vector<unsigned int> ind_i; // i index of C elements
+    std::vector<unsigned int> ind_j;// j index of C elements
+    std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition 
 
     if (c == 'normal-inverse-gamma') {
         //tau-nonallocate
@@ -38,7 +38,7 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
                     }
                 }
             }
-
+//set Ctilde in partition 
             nu_n_clust = nu_0 + N_k[k];
 
             lpk = k_0 + N_k[k];
