@@ -39,9 +39,8 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++)) {
-          std::discrete_distribution<> d(probs[i]); //non so se funziona con i dato che devo accedere
-          C[j][i]=std::sample(vec.begin,vec.end(),std::back_inserter(out),1, gs_engine);
-          // da mettere anche prob = probs[[j]][i, 1:M],replace = T)
+          std::discrete_distribution<> d(probs[i].begin, probs[i].end); //
+          C[j][i]=d(gs_engine);
       }
     }/* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
