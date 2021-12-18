@@ -10,12 +10,10 @@
 #include <gsl/gsl_cdf.h> 	 //For cumulative density functions
 #include <gsl/gsl_bspline.h> //For spline operations
 #include <gsl/gsl_linalg.h>
-#include "stdlib.h"
-#include "stdio.h"
-#include "string"
-#include "vector"
-#include "map"
+#include "include_headers.h"
+#include "recurrent_traits.h"
 #include "FullConditional.h"
+#include "GS_data.h"
 
 typedef std::vector<float> params;
 using std::string;
@@ -31,10 +29,12 @@ public:
     ~GibbsSampler();
 
 private:
-    std::map<string, params(n_iter)> output_data;
-    std::map<string, float> parameters;
+    sample::GSL_RNG random_engine;
+    GS_data gs_data;
+    std::map<string, params(n_iter)> output_data;  // Da decidere
+    std::map<string, float> parameters;   // Forse sostituito da Gs_data
     string model;
-    std::map<string, float> initial_values;
+    std::map<string, float> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
     std::vector<FullConditional*> FullConditionals;
 
     void store_params_values();

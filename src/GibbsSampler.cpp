@@ -6,8 +6,8 @@
 
 
 void GibbsSampler::GS_Step() {
-    for(auto full_cond in FullConditionals){
-        full_cond.update_params(Parameters);
+    for(FullConditional* full_cond: this->FullConditionals){ // mettere prima update della partition (da aggiungere anche prima)
+        full_cond->update(gs_data, random_engine);
     }
 }
 
