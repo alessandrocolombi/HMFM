@@ -1,6 +1,6 @@
 #include "Partition.h"
 
-void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
+void Partition::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
   // From gs_data all needed variable are retrived
   unsigned int k = gs_data.K; // number of cluster
   unsigned int d = gs_data.d; // number of group
