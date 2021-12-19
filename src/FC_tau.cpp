@@ -15,6 +15,7 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
     std::vector<unsigned int> ind_j;// j index of C elements
     std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
     std::vector<std::vector<double>> data=gs_data.data; //matrix of data
+    std::string c=gs_data.prior;
     if (c == 'normal-inverse-gamma') {
 
 
@@ -23,25 +24,24 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
 
         //tau-nonallocate
 
-        for (int m=0;m<Mna;++m){
+        for (int m = K; m < M; ++m){
              float sigma2_na=1 / Gamma(gs_engine, nu_0/2, (nu_0)*((sigma_0)/2)); // Non allocated Components' variance
              float mu_na=rnorm( mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
-
-             gs_data.mu.push_back(mu_na);
-             gs_data.sigma.push_back(sigma2_na);
+             gs_data.mu[m]=mu_na;
+             gs_data.sigma[m]=sigma2_na;
         }
 
 
          //tau-allocate
 
-        for (int k= 0; k <K; ++k) {
+        for (int m = 0; m < K; ++m) {
             for (int j = 0; j <d ; ++j) {
                 for (int i = 0; i <n_j[j] ; ++i) {
-                    if(C[j][i]==clust_out[k]){
+                    if(C[j][i]==clust_out[m]){
                         N(j,k)++;
                         ind_i.push_back(i);
                         ind_j.push_back(j);
-                        Ctilde[j][k]=k;
+                        Ctilde[j][k]=m;
                     }
                 }
 //set Ctilde in partition
@@ -56,8 +56,8 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
             //Campionamento
             sigma2_a = 1 / rgamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
             mu_a=rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
-            gs_data.mu.pushback(mu_a);
-            gs_data.sigma.pushback(sigma2_a);
+            gs_data.mu[m]=mu_a;
+            gs_data.sigma[m]=sigma2_a;
         }
 
 
