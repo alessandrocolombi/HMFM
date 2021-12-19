@@ -55,8 +55,8 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
 //set Ctilde in partition
             double nu_n_clust = nu_0 + N_k[m];
             double lpk = k_0 + N_k[m];
-            double y_bar_clust= mean(ind_i, ind_j);
-            double s2_clust= var(y_bar_clust, ind_i, ind_j);
+            double y_bar_clust= mean(ind_i, ind_j, data);
+            double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
 //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
             double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
             double sigma2_n_clust = (nu_0 * (sigma_0 * sigma_0) + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
