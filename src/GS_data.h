@@ -23,6 +23,7 @@ struct GS_data{
     std::vector<double> mu; // vector of the mean for each component
     std::vector<double> sigma; // vector of the variance for each component
                                // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
+    std::string prior; //Which prior are we using for tau? noga or normal inverse gamma?
     // matrix or vector of vectors
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0

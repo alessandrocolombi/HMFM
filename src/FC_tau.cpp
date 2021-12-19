@@ -3,8 +3,8 @@
 
 
 
-void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c, Partition& p) {
-    unsigned int Mna = gs_data.Mstar; // number of unallocated components 
+void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
+    unsigned int Mna = gs_data.Mstar; // number of unallocated components
     unsigned int d = gs_data.d; // number of groups
     unsigned int K=gs_data.K; //number of clusters
     std::vector<unsigned int> n_j= gs_data.n_j; // number of observations per group
@@ -13,16 +13,16 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
     GDFMM_Traits::MatUnsCol N=gs_data.N; // Matrix of observation oper cluster per group
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
-    std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition 
+    std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
     std::vector<std::vector<double>> data=gs_data.data; //matrix of data
     if (c == 'normal-inverse-gamma') {
-        
-        
+
+
         sample::rgamma Gamma;
         sample::rnorm rnorm;
-        
+
         //tau-nonallocate
-        
+
         for (int m=0;m<Mna;++m){
              float sigma2_na=1 / Gamma(gs_engine, nu_0/2, (nu_0)*((sigma_0)/2)); // Non allocated Components' variance
              float mu_na=rnorm( mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
@@ -30,10 +30,10 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
              gs_data.mu.push_back(mu_na);
              gs_data.sigma.push_back(sigma2_na);
         }
-        
-        
+
+
          //tau-allocate
-        
+
         for (int k= 0; k <K; ++k) {
             for (int j = 0; j <d ; ++j) {
                 for (int i = 0; i <n_j[j] ; ++i) {
@@ -44,7 +44,7 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c
                         Ctilde[j][k]=k;
                     }
                 }
-//set Ctilde in partition 
+//set Ctilde in partition
             nu_n_clust = nu_0 + N_k[k];
             lpk = k_0 + N_k[k];
             y_bar_clust= mean(ind_i, ind_j);
