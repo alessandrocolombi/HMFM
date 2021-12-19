@@ -36,7 +36,7 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
     //If M==1 populate C matrix with ones
     if (M == 1){
       for (unsigned i=0; i<n_j[j]; i++){
-        C[j][i] <- 1;
+        C[j][i] = 1;
       }
     }
     else{
@@ -57,6 +57,8 @@ void Partition::updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine){
       clust_out.assign(s.begin(),s.end());
     }
   }
-  K=clust_out.size()
-  GS_data::set_k(K) //secondo me è necessario un set_K
+  k=clust_out.size();                     
+  gs_data.K=k; // updating K in the struct gs_data
+
+                        
 }
