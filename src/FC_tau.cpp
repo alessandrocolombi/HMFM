@@ -8,7 +8,7 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
     unsigned int Mna = gs_data.Mstar; // number of unallocated components
     unsigned int M = gs_data.M;
     unsigned int d = gs_data.d; // number of groups
-    unsigned int K=gs_data.K; //number of clusters
+    unsigned int K = gs_data.K; //number of clusters
     Partition p;
     std::vector<unsigned int> n_j= gs_data.n_j; // number of observations per group
     std::vector< std::vector<unsigned int>> C=p.C; // C matrix of partition
@@ -17,9 +17,11 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
     std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
+    std::vector<unsigned int> N_k=gs_data.N_k;
     std::vector<std::vector<double>> *data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
-    std::string c=gs_data.prior;
-    if (c == 'normal-inverse-gamma') {
+    char c[]=gs_data.prior;
+
+    if (std::strcmp(c,"normal-inverse-gamma")) {
 
 
         sample::rgamma Gamma;
@@ -39,7 +41,7 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
 
         for (int m = 0; m < K; ++m) {
             for (int j = 0; j <d ; ++j) {
-                for (int i = 0; i <n_j[j] ; ++i) {
+                for (int i = 0; i < n_j[j] ; ++i) {
                     if(C[j][i]==clust_out[m]){
                         N(j,m)++;
                         ind_i.push_back(i);
@@ -47,18 +49,21 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
                         Ctilde[j][m]=m;
                     }
                 }
+                N_k[m]=N(j,m)+N_k[m];
+            }
+
 //set Ctilde in partition
-            double nu_n_clust = nu_0 + N_k[m]; //manca da definire N_k[]
+            double nu_n_clust = nu_0 + N_k[m];
             double lpk = k_0 + N_k[m];
             double y_bar_clust= mean(ind_i, ind_j);
             double s2_clust= var(y_bar_clust, ind_i, ind_j);
 //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
-            mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
-            sigma2_n_clust = (nu_0 * (sigma_0 * sigma_0) + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
+            double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
+            double sigma2_n_clust = (nu_0 * (sigma_0 * sigma_0) + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
 
             //Campionamento
-            sigma2_a = 1 / rgamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
-            mu_a=rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
+            double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
+            double mu_a=rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
             gs_data.mu[m]=mu_a;
             gs_data.sigma[m]=sigma2_a;
         }
@@ -68,21 +73,21 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
 }
 }
 
-double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j){
+double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j, const std::vector<std::vector<double>>  &data){
     int count=0;
     double sum=0;
     for (int m = 0; m <ind_i.size(); ++m) {
-        sum+=data->at(ind_j[m])->at(ind_i[m]);
+        sum+=data.at(ind_j[m]).at(ind_i[m]);
         count++;
-
     }
     return sum/count;
 }
- double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j){
+ double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>  &data){
+
     double var;
     int count=0;
      for (int m = 0; m <ind_i.size() ; ++m) {
-         var+=(data->at(ind_j[m])->at(ind_i[m]) - mean) * (data->at(ind_j[m])->at()ind_i[m]) - mean)) ;
+         var+=(data.at(ind_j[m]).at(ind_i[m]) - mean) * (data.at(ind_j[m]).at(ind_i[m]) - mean) ;
          count++;
      }
      return var/count;
