@@ -13,5 +13,5 @@ public:
     std::vector< std::vector<unsigned int>> C;
     Partition(std::vector<std::vector<double>> C);
   ~Partition();
-  void updatePart(GS_data& gs_data, sample::GSL_RNG gs_engine);
+  void update(GS_data& gs_data, sample::GSL_RNG gs_engine);
 };

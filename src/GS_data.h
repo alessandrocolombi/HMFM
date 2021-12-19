@@ -3,6 +3,7 @@
 
 #include "include_headers.h"
 #include "recurrent_traits.h"
+#include "Partition.h"
 
 struct GS_data{
     /* DATA */
@@ -15,7 +16,7 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     // vectors
-    std::vector<std::vector<double>> data // our data, y_ji
+    std::vector<std::vector<double>> data; // our data, y_ji
     std::vector< std::vector<unsigned int>> Ctilde; //output partition
     std::vector<unsigned int> n_j; // number of elements for each group (dimension: d)
     std::vector<double> U; // auxiliary variable
@@ -28,7 +29,7 @@ struct GS_data{
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     // Partition
-    Partition::Partition p;
+    Partition::Partition p();
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     /* METHODS */
