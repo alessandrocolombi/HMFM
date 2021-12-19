@@ -29,7 +29,7 @@ struct GS_data{
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     // Partition
-    Partition::Partition p();
+    Partition p;
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     /* METHODS */

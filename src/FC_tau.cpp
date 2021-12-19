@@ -1,5 +1,6 @@
 
 #include "FC_tau.h"
+#include "Partition.h"
 
 
 
@@ -8,9 +9,10 @@ void FC_tau::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
     unsigned int M = gs_data.M;
     unsigned int d = gs_data.d; // number of groups
     unsigned int K=gs_data.K; //number of clusters
+    Partition p;
     std::vector<unsigned int> n_j= gs_data.n_j; // number of observations per group
     std::vector< std::vector<unsigned int>> C=p.C; // C matrix of partition
-    std::vector<unsigned int> clust_out= p.clust_out; // Vector of clusters
+    std::vector<unsigned int> clust_out = p.clust_out; // Vector of clusters
     GDFMM_Traits::MatUnsCol N=gs_data.N; // Matrix of observation oper cluster per group
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements

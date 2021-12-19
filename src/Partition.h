@@ -10,8 +10,8 @@ private:
 
 public:
     std::vector<unsigned int> clust_out;
-    std::vector< std::vector<unsigned int>> C;
-    Partition(std::vector<std::vector<double>> C);
+    GDFMM_Traits::MatRow C;
+    Partition();
   ~Partition();
   void update(GS_data& gs_data, sample::GSL_RNG gs_engine);
 };

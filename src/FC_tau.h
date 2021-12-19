@@ -19,7 +19,7 @@
     public:
         FC_tau(/* args */);
         ~FC_tau();
-        void update(GS_data& gs_data, sample::GSL_RNG gs_engine, const string &c, Partition& p) override;
+        void update(GS_data& gs_data, sample::GSL_RNG gs_engine) override;
 
 
 
