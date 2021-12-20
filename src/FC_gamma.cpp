@@ -37,7 +37,7 @@ void FC_gamma::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
             gamma[j] = gamma_old;
         }
 
-        double ww_g = (iter + 1) ^ (- hyp2);
+        double ww_g = pow(iter + 1,- hyp2);
 
 
         double adapt_var_pop_gamma= adapt_var_pop_gamma * std::exp(ww_g *(std::exp(std::min(0, ln_acp)) -hyp1));
