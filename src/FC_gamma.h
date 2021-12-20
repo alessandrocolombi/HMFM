@@ -17,6 +17,8 @@ private:
     int alpha;
     int beta;
     double  log_full_gamma(double x, double Lambda, int k, double M_na, double n_jk);
+    int a1;
+    int b1;
 
 public:
     FC_gamma(/* args */);
