@@ -51,9 +51,9 @@ void FC_gamma::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     }
 
     double  FC_gamma::log_full_gamma(double x, double Lambda, int a1, int b1, int k, double M_na, double n_jk) {
-        double out =  distr(x) + std::log(d(x * (M_na + k)) -
-                std::log(d(x *(M_na + k) + std::sum(n_jk),a1,b1)) - k * std::log(d(x,a1,b1)) +
-             std::sum(std::log(d(n_jk + x,a1,b1)));
+        double out =  distr(x) + std::log(distr(x * (M_na + k)) -
+                std::log(distr(x *(M_na + k) + std::sum(n_jk))) - k * std::log(distr(x)) +
+             std::sum(std::log(d(n_jk + x)));
         return out
     }
 
