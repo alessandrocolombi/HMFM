@@ -6,6 +6,6 @@
 class FullConditional{
     
 public :
-    virtual void update(GS_data& gs_data, sample::GSL_RNG gs_engine) = 0;
-    bool binary_decision(double p1, sample::GSL_RNG engine);
+    virtual void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) = 0;
+    bool binary_decision(double p1, const sample::GSL_RNG& engine) const;
 };
