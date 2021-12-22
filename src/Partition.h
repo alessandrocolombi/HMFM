@@ -13,5 +13,5 @@ public:
     GDFMM_Traits::MatRow C;
     Partition();
   ~Partition();
-  void update(GS_data& gs_data, sample::GSL_RNG gs_engine);
+  void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine);
 };

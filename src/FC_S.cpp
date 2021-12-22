@@ -1,14 +1,13 @@
 #include "FC_S.h"
 
-void FC_S::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
-    unsigned int d = gs_data.d;
-    unsigned int K = gs_data.K;
-    unsigned int Mstar = gs_data.Mstar;
-    std::vector<double> U = gs_data.U;
-    std::vector<double> gamma = gs_data.gamma;
-    GDFMM_Traits::MatRow & S = gs_data.S;
-    GDFMM_Traits::MatUnsCol N = gs_data.S;
-
+void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
+    const unsigned int& d = gs_data.d;
+    const unsigned int& K = gs_data.K;
+    const unsigned int& Mstar = gs_data.Mstar;
+    const std::vector<double>& U = gs_data.U;
+    const std::vector<double>& gamma = gs_data.gamma;
+    const GDFMM_Traits::MatUnsCol& N = gs_data.N;
+    GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it 
 
     // Random sampler is created
     sample::rgamma Gamma;
@@ -22,7 +21,6 @@ void FC_S::update(GS_data& gs_data, sample::GSL_RNG gs_engine) {
 
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
-            // S_na <- matrix(0, ncol = M_na, nrow = d)
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
                 S(j, mstar) = Gamma(1, gamma[j], U[j] + 1);
             }

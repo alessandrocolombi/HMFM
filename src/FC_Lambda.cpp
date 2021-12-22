@@ -1,18 +1,18 @@
 #include "FC_Lambda.h"
 
-void FC_Lambda::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
+void FC_Lambda::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // From gs_data all needed variable are retrived
-    unsigned int k = gs_data.K;
-    unsigned int d = gs_data.d;
-    std::vector<double> gamma = gs_data.gamma; // CHIEDERE A COLMBI SE ABBIAMO d gamma UGUALI O d gamma[j]
-    std::vector<double> U = gs_data.U;
-    double log_sum = gs_data.log_sum;
+    const unsigned int& k = gs_data.K;
+    const unsigned int& d = gs_data.d;
+    const std::vector<double>& gamma = gs_data.gamma;
+    const std::vector<double>& U = gs_data.U;
+    const double& log_sum = gs_data.log_sum;
 
     // Random sampler is created
     sample::rgamma Gamma;
     
-    // Update routine
-    double a2_star = static_cast<double>( d*(k-1) ) + a2; 
+    // UPDATE ROUTINE
+    double a2_star = std::static_cast<double>( d*(k-1) ) + a2; 
 
     // Computation of the weight for the "first" gamma distr.
     double p0 = (a2_star)/((a2_star-k)+k*(b2+1)*exp(log_sum));

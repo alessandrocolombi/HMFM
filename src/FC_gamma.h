@@ -9,7 +9,7 @@ class FC_gamma: public FullConditional {
 private:
     /* MEMBERS */
     double hyp1 = 0.234;
-    ddouble hyp2 = 0.7;
+    double hyp2 = 0.7;
     double Mna = Gs_data::Mstar;
     double iter = GS_data::iterations;
     double Lambda;

@@ -1,22 +1,23 @@
 #include "Partition.h"
 
-void Partition::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
+void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   // From gs_data all needed variable are retrived
   unsigned int k = gs_data.K; // number of cluster
   unsigned int d = gs_data.d; // number of group
   unsigned int M = gs_data.M; // number of components
-  double probs_max;
-  Eigen::Matrix S = gs_data.S; // Matrix of weights
+  const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
   std::vector<unsigned int> n_j = gs_data.n_j;// number of observation per group
-  std::vector<double> mu=gs_data.mu; // Vector of means
-  std::vector<double> sigma=gs_data.sigma; // Vector of standard deviations
+  const std::vector<double>& mu = gs_data.mu; // Vector of means
+  const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
   std::vector<std::vector<unsigned int>> probs; // matrix of probability 
   std::set<unsigned int> s; // A set which will be useful for cluster
 
   // Define data taken from gs_data
-  std::vector<std::vector<double>> data=gs_data.data;
+  const std::vector<std::vector<double>>& data = gs_data.data;
+  // Initialization of probs_max
+  double probs_max;
 
-  // Generate matrix of 
+  // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<unsigned int> v(n_j[j]);
     for(unsigned i=0; i<n_j[j]; i++){
@@ -41,6 +42,7 @@ void Partition::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++)) {
+          // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO. POI NON SO SE GS_ENGINE PUO' ESSERE MESSO LI'
           std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
           C[j][i]=d(gs_engine);
       }
@@ -57,8 +59,7 @@ void Partition::update(GS_data& gs_data, sample::GSL_RNG gs_engine){
       clust_out.assign(s.begin(),s.end());
     }
   }
-  k=clust_out.size();                     
-  gs_data.K=k; // updating K in the struct gs_data
-
-                        
+  k = clust_out.size();                     
+  gs_data.K = k; // updating K in the struct gs_data
+  gs_data.initialize_N(); // initialize N according to new K                 
 }
