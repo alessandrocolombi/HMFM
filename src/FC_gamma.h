@@ -14,7 +14,7 @@ private:
     double iter = GS_data::iterations;
     double Lambda;
     unsigned int K = GS_data::K;
-    double adapt_pop_gamma;
+    double adapt_var_pop_gamma;
     int alpha;
     int beta;
     /* METHODS */
