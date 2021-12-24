@@ -2,26 +2,26 @@
 #include "Partition.h"
 
 void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
-    //Retrive all data needed from gs_data 
+    //Retrive all data needed from gs_data
     const unsigned int& Mna = gs_data.Mstar; // number of unallocated components
     const unsigned int& M = gs_data.M;
     const unsigned int& d = gs_data.d; // number of groups
     const unsigned int& K = gs_data.K; //number of clusters
     std::vector<unsigned int>& n_j= gs_data.n_j; // number of observations per group
     GDFMM_Traits::MatUnsCol& N = gs_data.N; // Matrix of observation oper cluster per group
-    std::vector< std::vector<unsigned int>>& Ctilde; // matrix of partition
+    std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
     Partition& p = gs_data.p; // actual partition of the data
     std::vector< std::vector<unsigned int>>& C=p.C; // C matrix of partition
     std::vector<unsigned int>& clust_out = p.clust_out; // Vector of clusters
     // RICONTROLLARE E CAPIRE DOVE METTERE CONST
-    char prior[]=gs_data.prior; // identifier of the prior adopted for the model
+    std::string prior=gs_data.prior; // identifier of the prior adopted for the model
     // Initialize ind_i, ind_j
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
 
-    if (std::strcmp(prior,"normal-inverse-gamma")) {
+    if (prior.compare("normal-inverse-gammaS")) {
 
         sample::rgamma Gamma;
         sample::rnorm rnorm;
@@ -72,16 +72,16 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 }
 
 // Function to compute the mean of the data (y_mean) for a group
-double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j, 
+double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
         const std::vector<std::vector<double>>& data){
-    
+
     int count = 0;
     double sum = 0.0;
     for (int ii = 0; ii <ind_i.size(); ++ii) {
         sum += data.at(ind_j[ii]).at(ind_i[ii]);
         count++;
     }
-    return sum/count; 
+    return sum/count;
 }
 // Function to compute the variance of the data
 double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j,
@@ -90,7 +90,7 @@ double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>
     double var;
     int count=0;
      for (int ii = 0; ii <ind_i.size() ; ++ii) {
-         var += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) * 
+         var += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) *
                 (data.at(ind_j[ii]).at(ind_i[ii]) - mean) ;
          count++;
      }
