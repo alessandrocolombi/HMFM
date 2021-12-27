@@ -1,4 +1,3 @@
-
 #ifndef GDFMM_FC_GAMMA_H
 #define GDFMM_FC_GAMMA_H
 #include "FullConditional.h"
@@ -10,17 +9,15 @@ private:
     /* MEMBERS */
     double hyp1 = 0.234;
     double hyp2 = 0.7;
-    double Mna = Gs_data::Mstar;
-    double iter = GS_data::iterations;
     double Lambda;
-    unsigned int K = GS_data::K;
     double adapt_var_pop_gamma;
     int alpha;
     int beta;
     /* METHODS */
-    double log_full_gamma(double x, double Lambda, int k, double M_na, double n_jk) const; 
+    double log_full_gamma(double x, double Lambda, int k, double M_na, GDFMM_Traits::MatUnsCol n_jk) const;
+    double  sumlgamma(double x, GDFMM_Traits::MatUnsCol n_jk) const;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ DA RIVEDERE
-        
+
 public:
     FC_gamma(/* args */);
     ~FC_gamma();

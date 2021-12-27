@@ -4,7 +4,7 @@ void GS_data::initialize_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
 }
 void GS_data::initialize_N(unsigned int K){
-    K = GDFMM_Traits::MatUnsCol(d, K);
+    N = GDFMM_Traits::MatUnsCol(d, K);
 }
 void GS_data::initialize_tau(unsigned int M){
     mu = std::vector<double>(M, 0.0);

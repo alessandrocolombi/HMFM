@@ -9,7 +9,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   std::vector<unsigned int> n_j = gs_data.n_j;// number of observation per group
   const std::vector<double>& mu = gs_data.mu; // Vector of means
   const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
-  std::vector<std::vector<unsigned int>> probs; // matrix of probability 
+  std::vector<std::vector<unsigned int>> probs; // matrix of probability
   std::set<unsigned int> s; // A set which will be useful for cluster
 
   // Define data taken from gs_data
@@ -23,7 +23,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
         std::normal_distribution<double> d{mu[m],sigma[m]*sigma[m]};
-        v.push_back(log(S(j,m) + log(d(data[j][i])); 
+        v.push_back(log(S(j,m) + log(d(data[j][i])); //potrebbe essere sbagliato anche questo
         //in every and for every component put the log likelihood
       }
       probs.push_back(v); //Create a vector for every J
@@ -59,7 +59,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       clust_out.assign(s.begin(),s.end());
     }
   }
-  k = clust_out.size();                     
+  k = clust_out.size();
   gs_data.K = k; // updating K in the struct gs_data
-  gs_data.initialize_N(); // initialize N according to new K                 
+  gs_data.initialize_N(); // initialize N according to new K
 }

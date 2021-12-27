@@ -1,5 +1,4 @@
 #include "FC_tau.h"
-#include "Partition.h"
 
 void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Retrive all data needed from gs_data
@@ -12,9 +11,9 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
-    Partition& p = gs_data.p; // actual partition of the data
-    std::vector< std::vector<unsigned int>>& C=p.C; // C matrix of partition
-    std::vector<unsigned int>& clust_out = p.clust_out; // Vector of clusters
+    Partition *p = gs_data.p; // actual partition of the data
+    std::vector< std::vector<unsigned int>> C=p->C; // C matrix of partition
+    std::vector<unsigned int>& clust_out = p->clust_out; // Vector of clusters
     // RICONTROLLARE E CAPIRE DOVE METTERE CONST
     std::string prior=gs_data.prior; // identifier of the prior adopted for the model
     // Initialize ind_i, ind_j

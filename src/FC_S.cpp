@@ -7,7 +7,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const std::vector<double>& U = gs_data.U;
     const std::vector<double>& gamma = gs_data.gamma;
     const GDFMM_Traits::MatUnsCol& N = gs_data.N;
-    GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it 
+    GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it
 
     // Random sampler is created
     sample::rgamma Gamma;
@@ -30,8 +30,6 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 }
 
 
-
-}
 
 
 

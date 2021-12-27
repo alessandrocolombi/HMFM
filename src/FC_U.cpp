@@ -10,7 +10,7 @@ void FC_U::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
     const std::vector<unsigned int>& n_j = gs_data.n_j;
     const GDFMM_Traits::MatRow& S = gs_data.S;
     // T_j is computed for each group (T_j = sum of S_ji over i for each group j)
-    std::vector<double> T = S.rowwise().sum();
+    Eigen::Vector3d T = S.rowwise().sum();
     // Sampler for new U
     sample::rgamma Gamma;
 
