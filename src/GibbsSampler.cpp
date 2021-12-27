@@ -11,14 +11,14 @@ void GibbsSampler::GS_Step() {
     }
 }
 
-
+//Per compilare ho commentato tutto quello che non era GS_step
 void GibbsSampler::store_params_values() {
-    for(std::map<string,std::vector<float>>::iterator iter = output_data.begin(); iter != output_data.end(); ++iter)
+    for(std::map<string,std::vector<double>>::iterator iter = output_data.begin(); iter != output_data.end(); ++iter)
         output_data[iter->first].append(parameters[iter->first]);
 }
 
 
-std::map<string, std::vector<float>> GibbsSampler::sample() {
+std::map<string, std::vector<double>> GibbsSampler::sample() {
     for(unsigned int it; it<burn_in + n_iter * thin; it++){
         this->GS_Step();
         if(it>burn_in && it%thin == 0){

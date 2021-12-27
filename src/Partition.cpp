@@ -23,13 +23,13 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
         std::normal_distribution<double> d{mu[m],sigma[m]*sigma[m]};
-        v.push_back(log(S(j,m) + log(d(data[j][i])); //potrebbe essere sbagliato anche questo
+        v.push_back(log(S(j,m) + log(d(data[j][i])))); //potrebbe essere sbagliato anche questo
         //in every and for every component put the log likelihood
       }
       probs.push_back(v); //Create a vector for every J
-      probs_max=std::max(probs[i])
+      probs_max=*max_element(probs[i].begin(), probs[i].end());
       for(unsigned m=0; m<M; m++){
-        probs[i][m] <- exp(probs[i][m] - probs_max);
+        probs[i][m] = exp(probs[i][m] - probs_max);
         }
     }
 
@@ -41,7 +41,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       }
     }
     else{
-      for (unsigned i=0; i<n_j[j]; i++)) {
+      for (unsigned i=0; i<n_j[j]; i++) {
           // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO. POI NON SO SE GS_ENGINE PUO' ESSERE MESSO LI'
           std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
           C[j][i]=d(gs_engine);
@@ -61,5 +61,5 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   }
   k = clust_out.size();
   gs_data.K = k; // updating K in the struct gs_data
-  gs_data.initialize_N(); // initialize N according to new K
+  gs_data.initialize_N(k); // initialize N according to new K
 }

@@ -15,26 +15,26 @@
 #include "FullConditional.h"
 #include "GS_data.h"
 
-typedef std::vector<float> params;
+typedef std::vector<double> params;
 using std::string;
-
+// BISOGNA METTERE UN IF SEED IMPOSTATO DA UTENTE
 class GibbsSampler {
 public:
     static unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
 
-    std::map<string, std::vector<float>> sample();
+    std::map<string, std::vector<double>> sample();
     GibbsSampler(*args);
     ~GibbsSampler();
 
 private:
     sample::GSL_RNG random_engine;
     GS_data gs_data;
-    std::map<string, params(n_iter)> output_data;  // Da decidere
-    std::map<string, float> parameters;   // Forse sostituito da Gs_data
+    //std::map<string, params(n_iter)> output_data;  // Commentato perchè interrompeva la compilazione
+    std::map<string, double> parameters;   // Forse sostituito da Gs_data
     string model;
-    std::map<string, float> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
+    std::map<string, double> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
     std::vector<FullConditional*> FullConditionals;
 
     void store_params_values();
