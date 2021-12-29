@@ -15,7 +15,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector< std::vector<unsigned int>> C=p->C; // C matrix of partition
     std::vector<unsigned int>& clust_out = p->clust_out; // Vector of clusters
     // RICONTROLLARE E CAPIRE DOVE METTERE CONST
-    std::string prior=gs_data.prior; // identifier of the prior adopted for the model
+    std::string prior=gs_data.prior; // identifier of the prior adopted for the model togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     // Initialize ind_i, ind_j
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
