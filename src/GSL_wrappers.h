@@ -118,18 +118,42 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 		}
 	};
 
-	//Callable object to draw a sample from Unif({0,...,N-1})
 	struct runif_int
 	{
-		unsigned int operator()(GSL_RNG const & engine, unsigned int const & N)const{
-			return gsl_rng_uniform_int(engine(), N); //gsl_rng_uniform_int is a function, nothing has to be de-allocated.
-		}
-		unsigned int operator()(unsigned int const & N)const{
-			return this->operator()(GSL_RNG (), N);
-			/*GSL_RNG () creates a GSL_RNG obj calling the default constructor and than calls it call operator.
-			In other words, it generates a random number generator, generates a number and destroys the generator*/
-		}
+	  unsigned int operator()(GSL_RNG const & engine, unsigned int const & N)const{
+	    return gsl_rng_uniform_int(engine(), N); //gsl_rng_uniform_int is a function, nothing has to be de-allocated.
+	  }
+	  unsigned int operator()(unsigned int const & N)const{
+	    return this->operator()(GSL_RNG (), N);
+	    /*GSL_RNG () creates a GSL_RNG obj calling the default constructor and than calls it call operator.
+	     In other words, it generates a random number generator, generates a number and destroys the generator*/
+	  }
 	};
+	//Callable object to draw a sample from Unif({0,...,N-1})
+	//Callable object to draw a sample from Gamma(shape,scale).
+	// --> NB  Watch out notation! gsl uses the scale parameter, in Europe we are used to the rate parameter (rate = 1/scale) <--
+	struct discrete{
+
+	  	  //Gets the engine
+	  //Discrete(p)
+	  //OCIO perchè P è un array e non un vector
+	  double operator()(GSL_RNG const & engine, const double *P) const{
+	    size_t K=sizeof(P);
+	    //NEEDS PREPROCESSING FOR THE WEIGHTS
+	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);
+	    return gsl_ran_discrete(engine(),&g);
+	  }
+
+	  //Engine defaulted
+	  //Discrete (P)
+	  double operator()(const double *P) const{
+	    size_t K=sizeof(P);
+	    //NEEDS PREPROCESSING FOR THE WEIGHTS
+	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);
+	    return gsl_ran_discrete(GSL_RNG ()(),&g);
+	  }
+	};
+
 
 	//Callable object to draw a sample from N(mean,sd).
 	// --> NB  it takes the standard deviation as input! <--

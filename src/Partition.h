@@ -16,6 +16,7 @@ public:
     Partition();
   ~Partition();
   void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
+  double normpdf(double x, double u, double s);
 };
 
 #endif

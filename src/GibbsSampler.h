@@ -31,7 +31,7 @@ public:
 private:
     sample::GSL_RNG random_engine;
     GS_data gs_data;
-    //std::map<string, params(n_iter)> output_data;  // Commentato perchè interrompeva la compilazione
+    std::map<string, std::vector<double>> output_data;  // Commentato perchè interrompeva la compilazione
     std::map<string, double> parameters;   // Forse sostituito da Gs_data
     string model;
     std::map<string, double> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
