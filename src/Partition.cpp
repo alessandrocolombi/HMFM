@@ -16,12 +16,13 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   // Initialization of probs_max
   double probs_max;
 
+  sample::discrete Discrete;
+
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<double> v(n_j[j]);
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
-        std::normal_distribution<double> d{mu[m],sigma[m]*sigma[m]};
         v.push_back(log(S(j,m)+log(normpdf(data[j][i],mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
         //in every and for every component put the log likelihood
       }
@@ -30,6 +31,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       for(unsigned m=0; m<M; m++){
         probs[i][m] = exp(probs[i][m] - probs_max);
         }
+
     }
 
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
@@ -41,9 +43,10 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++) {
+          double* arrayprobs = &probs[i][0];
           // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO. POI NON SO SE GS_ENGINE PUO' ESSERE MESSO LI'
-          std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
-          //C[j][i]=d(gs_engine);
+          //std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
+          C[j][i]=Discrete(gs_engine, arrayprobs);
       }
     }/* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
