@@ -25,14 +25,15 @@ public:
     unsigned int thin;
 
     std::map<string, std::vector<double>> sample();
-    GibbsSampler(*args);
+    GibbsSampler(/*args*/);
     ~GibbsSampler();
 
 private:
     sample::GSL_RNG random_engine;
     GS_data gs_data;
-    std::map<string, std::vector<double>> output_data;  // Commentato perchè interrompeva la compilazione
-    std::map<string, double> parameters;   // Forse sostituito da Gs_data
+    std::vector<double> vec;
+    std::map<string, std::vector<double>> output_data{{"M", vec}, {"M*", vec}, {"K", vec}}; // Commentato perchè interrompeva la compilazione
+    std::map<string, double> parameters{{"M", 0.0}, {"M*", 0.0}, {"K", 0.0}};// Forse sostituito da Gs_data
     string model;
     std::map<string, double> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
     std::vector<FullConditional*> FullConditionals;

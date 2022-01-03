@@ -17,7 +17,7 @@ struct GS_data{
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     // vectors
     std::vector<std::vector<double>> data; // our data, y_ji
-    std::vector< std::vector<unsigned int>> Ctilde; //output partition ANDRE: DIMENSIONI?
+    std::vector< std::vector<unsigned int>> Ctilde; //output partition ANDRE: DIMENSIONI? definito apposta dinamicamente
     std::vector<unsigned int> n_j; // number of elements in  each group (dimension: d)
     std::vector<unsigned int> N_k; // number of elements in each cluster
     std::vector<double> U; // auxiliary variable

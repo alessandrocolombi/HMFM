@@ -9,6 +9,7 @@
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
+#include "GibbsSampler.h"
 
 //' Title Rcpp function
 //'
@@ -21,13 +22,18 @@ int try_rcpp(int x){
 
 
 // [[Rcpp::export]]
-Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, Rcpp::String P0_prior_name){
+Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n_iter, unsigned int burn_in, unsigned int thin , Rcpp::String P0_prior_name){
 
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
 	// Do not use deafult values here
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
+  GibbsSampler Gibbs;
+  std::map<string, std::vector<double>> out=Gibbs.sample();
+  std::vector<double> M=out["M"];
+  std::vector<double> Mstar=out["M*"];
+  std::vector<double> K=out["K"];
 
 
     // Parameters param(niter, burnin, thin);   // example of another class that stores useful options
@@ -44,10 +50,10 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, Rcpp::String P
 
 		//Post-processing and return
 
-		//you can mix types in Rcpp lists!
-		return Rcpp::List::create ( Rcpp::Named("return_1")= data,
-                                  	Rcpp::Named("return_2")= 10,
-                                  	Rcpp::Named("return_3")= "string" );
+		//you can mix types in Rcpp lists
+		return Rcpp::List::create ( Rcpp::Named("M")=M,
+                                  	Rcpp::Named("M*")= Mstar,
+                                  	Rcpp::Named("K")= K );
 
 	}
 	else if (P0_prior_name == "Normal-Gamma")

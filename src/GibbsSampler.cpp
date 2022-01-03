@@ -22,6 +22,9 @@ std::map<string, std::vector<double>> GibbsSampler::sample() {
     for(unsigned int it; it<burn_in + n_iter * thin; it++){
         this->GS_Step();
         if(it>burn_in && it%thin == 0){
+            parameters["M"]=gs_data.M;
+            parameters["M*"]=gs_data.Mstar;
+            parameters["K"]=gs_data.K;
             this->store_params_values();
         }
     }
