@@ -18,7 +18,7 @@ for (j in 1:d) {
 }
 
 
-example_GDFMM_sampler(data1,6000,2000,2)
+example_GDFMM_sampler(data1,2000,2000,2)
 
 
 

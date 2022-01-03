@@ -37,9 +37,10 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
   Gibbs.burn_in=burn_in;
   Gibbs.thin=thin;
   GS_data gsData;
-  std::vector<double> v;
-  for (unsigned int j = 0; j < 100; ++j) {
-        for (unsigned int i = 0; i <32 ; ++i) {
+
+  for (unsigned int j = 0; j < dat.rows(); ++j) {
+        std::vector<double> v;
+        for (unsigned int i = 0; i <dat.cols() ; ++i) {
             if(!isnan(dat(j,i))){
              v.push_back(dat(j,i));
             }
