@@ -2,7 +2,7 @@
 // Created by pietr on 12/12/2021.
 //
 
-#ifndef GDFMM_GIBBSSAMPLER_H
+#ifndef GDFMM_GIBBaaaaAASSAMPLER_H
 #define GDFMM_GIBBSSAMPLER_H
 
 #include <gsl/gsl_rng.h>     //For random number generators
@@ -25,8 +25,8 @@ public:
     unsigned int thin;
 
     std::map<string, std::vector<double>> sample();
-    GibbsSampler() {};
-    ~GibbsSampler() {};
+    GibbsSampler(/*args*/){};
+    ~GibbsSampler(){};
 
 private:
     sample::GSL_RNG random_engine;

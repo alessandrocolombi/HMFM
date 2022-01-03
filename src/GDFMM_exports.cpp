@@ -25,7 +25,7 @@ int try_rcpp(int x){
 
 // [[Rcpp::export]]
 
-Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n_iter, unsigned int burn_in, unsigned int thin , Rcpp::String P0_prior_name){
+Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin , Rcpp::String P0_prior_name){
 
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
@@ -36,23 +36,16 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n
   Gibbs.n_iter=n_iter;
   Gibbs.burn_in=burn_in;
   Gibbs.thin=thin;
-
   GS_data gsData;
-
-    for (unsigned int j = 0; j <data.rows() ; ++j) {
-        for (unsigned int i = 0; i <data.cols() ; ++i) {
-            if(!isnan(data(j,i))){
-             gsData.data[j][i] = data(j,i);
-
+  std::vector<double> v;
+  for (unsigned int j = 0; j < 100; ++j) {
+        for (unsigned int i = 0; i <32 ; ++i) {
+            if(!isnan(dat(j,i))){
+             v.push_back(dat(j,i));
+            }
         }
-
-    }
-    }
-
-
-
-
-
+        gsData.data.push_back(v);
+  }
 
   std::map<string, std::vector<double>> out=Gibbs.sample();
   std::vector<double> M=out["M"];
@@ -77,13 +70,14 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n
 		//you can mix types in Rcpp lists
 		return Rcpp::List::create ( Rcpp::Named("M")= M,
                                   	Rcpp::Named("Mstar")= Mstar,
-                                  	Rcpp::Named("K")= K );
+                                  	Rcpp::Named("K")= K,
+                                  	Rcpp::Named("Data")=dat);
 
 	}
 	else if (P0_prior_name == "Normal-Gamma")
 	{
 		//Similar as before
-		return Rcpp::List::create ( Rcpp::Named("return_1")= data,
+		return Rcpp::List::create ( Rcpp::Named("return_1")= dat,
 		                            Rcpp::Named("return_2")= 10,
 		                            Rcpp::Named("return_3")= "string" );
 	}
