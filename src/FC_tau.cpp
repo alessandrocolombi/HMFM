@@ -76,7 +76,7 @@ double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
 
     int count = 0;
     double sum = 0.0;
-    for (int ii = 0; ii <ind_i.size(); ++ii) {
+    for (size_t ii = 0; ii<ind_i.size(); ++ii) {
         sum += data.at(ind_j[ii]).at(ind_i[ii]);
         count++;
     }
@@ -88,7 +88,7 @@ double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>
 
     double var;
     int count=0;
-     for (int ii = 0; ii <ind_i.size() ; ++ii) {
+     for (size_t ii = 0; ii <ind_i.size() ; ++ii) {
          var += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) *
                 (data.at(ind_j[ii]).at(ind_i[ii]) - mean) ;
          count++;
