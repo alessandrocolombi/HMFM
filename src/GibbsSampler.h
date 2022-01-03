@@ -20,7 +20,7 @@ using std::string;
 // BISOGNA METTERE UN IF SEED IMPOSTATO DA UTENTE
 class GibbsSampler {
 public:
-    static unsigned int n_iter;
+    unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
 

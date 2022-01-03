@@ -14,9 +14,10 @@
         double sigma_0;
         double mu_0;
         double k_0;
+
+    public:
         double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
         double mean(std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
-    public:
         FC_tau(/* args */);
         ~FC_tau();
         void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;

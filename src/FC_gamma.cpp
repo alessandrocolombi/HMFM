@@ -8,6 +8,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     sample::rnorm rnorm;
     sample::runif runif;
     sample::rgamma rgamma;
+
     // Data from G_stat
     std::vector<double>& gamma = gs_data.gamma;
     const unsigned int & d = gs_data.d;
@@ -62,11 +63,11 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
 
 double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na, GDFMM_Traits::MatUnsCol n_jk)const{
         // Gamma Distribution to compute new proposal
-      double gsl_ran_gamma_pdf(double x,int alpha, int beta);
+    sample::pdfgamma pdfgamma;
         // Computation of the output
-        double out =  gsl_ran_gamma_pdf(x,alpha,beta) + lgamma(x * (M_na + k)) -
+        double out =  pdfgamma(x,alpha,beta) + lgamma(x * (M_na + k)) -
                 lgamma(x *(M_na + k) + n_jk.sum()) -
-                k * lgamma(x) + sumlgamma(x, n_jk); //sbagliato
+                k * lgamma(x) + sumlgamma(x, n_jk);
         return out;
     }
 

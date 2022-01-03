@@ -36,9 +36,9 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         //Allocated tau
 
-        for (int m = 0; m < K; ++m) {
-            for (int j = 0; j <d ; ++j) {
-                for (int i = 0; i < n_j[j] ; ++i) {
+        for (unsigned int m = 0; m < K; ++m) {
+            for (unsigned int j = 0; j <d ; ++j) {
+                for (unsigned int i = 0; i < n_j[j] ; ++i) {
                     if(C[j][i] == clust_out[m]){
                         N(j,m)++;
                         ind_i.push_back(i);
@@ -52,7 +52,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //set Ctilde in partition
             double nu_n_clust = nu_0 + N_k[m];
             double lpk = k_0 + N_k[m];
-            double y_bar_clust= mean(ind_i, ind_j, data);
+            double y_bar_clust= mean(ind_i,ind_j,data);
             double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
             double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
@@ -86,14 +86,13 @@ double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
 double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j,
         const std::vector<std::vector<double>>& data){
 
-    double var;
+    double vari=0.0;
     int count=0;
      for (size_t ii = 0; ii <ind_i.size() ; ++ii) {
-         var += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) *
-                (data.at(ind_j[ii]).at(ind_i[ii]) - mean) ;
+         vari += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) *(data.at(ind_j[ii]).at(ind_i[ii]) - mean) ;
          count++;
      }
-     return var/count;
+     return vari/count;
 }
 
 // mean e var vanno bene qui e poi si possono chiamare tranquillamente da dentro senza definire il namespace?

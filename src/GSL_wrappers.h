@@ -200,7 +200,12 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 			return gsl_ran_gamma(GSL_RNG ()(),shape,scale);
 		}
 	};
+    struct pdfgamma{
 
+        double operator()(double x, int alpha, int beta)const{
+            return gsl_ran_gamma_pdf( x,  alpha, beta);
+        }
+    };
 	//Callable object to draw a sample from Chi-squared(k).
 	// --> NB  k is the degree of freedom. Chi-squared(k) = Gamma(shape = k/2, scale = 2) <--
 	struct rchisq{

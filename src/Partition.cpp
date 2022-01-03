@@ -23,7 +23,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector<double> v(n_j[j]);
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
-        v.push_back(log(S(j,m)+log(normpdf(data[j][i],mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
+        v.push_back(log(S(j,m)+log(Partition::normpdf(data[j][i],mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
         //in every and for every component put the log likelihood
       }
       probs.push_back(v); //Create a vector for every J

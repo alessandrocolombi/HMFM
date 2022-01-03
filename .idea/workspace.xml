@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/GDFMM.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeCache.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeCCompiler.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeCXXCompiler.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeDetermineCompilerABI_C.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeDetermineCompilerABI_CXX.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeRCCompiler.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CMakeSystem.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CompilerIdC/CMakeCCompilerId.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CompilerIdC/a.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/3.14.5/CompilerIdCXX/a.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/CMakeOutput.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/clion-environment.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/clion-log.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/cmake.check_cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/feature_tests.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/feature_tests.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cmake-build-debug/CMakeFiles/feature_tests.cxx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GS_data.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Makevars" beforeDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="GDFMM" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IgnoredFileRootStore">
+    <option name="generatedRoots">
+      <set>
+        <option value="C:\Users\ilari\CLionProjects\GDFMM\.idea" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectId" id="22KKBXu26zqEvBiP7CO0U4HYKfK" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/CMakeLists.txt" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="" />
+      <created>1639580703765</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1639580703765</updated>
+      <workItem from="1639580704899" duration="4851000" />
+      <workItem from="1639644939335" duration="11228000" />
+      <workItem from="1639658392104" duration="423000" />
+      <workItem from="1639670174450" duration="4854000" />
+      <workItem from="1639992315468" duration="738000" />
+      <workItem from="1640614073291" duration="1250000" />
+      <workItem from="1640795798744" duration="2172000" />
+      <workItem from="1641204908694" duration="6628000" />
+    </task>
+    <task id="LOCAL-00001" summary="gamma tau">
+      <created>1639658526317</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1639658526317</updated>
+    </task>
+    <task id="LOCAL-00002" summary="gamma tau">
+      <created>1639674502427</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1639674502427</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="gamma tau" />
+    <option name="LAST_COMMIT_MESSAGE" value="gamma tau" />
+  </component>
+</project>
