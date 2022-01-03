@@ -11,6 +11,8 @@
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
 
+
+
 //' Title Rcpp function
 //'
 //' @export
@@ -22,6 +24,7 @@ int try_rcpp(int x){
 
 
 // [[Rcpp::export]]
+
 Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n_iter, unsigned int burn_in, unsigned int thin , Rcpp::String P0_prior_name){
 
 	// Note that there is not the //' @export command. The user can not call this function.
@@ -30,6 +33,27 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
   GibbsSampler Gibbs;
+  Gibbs.n_iter=n_iter;
+  Gibbs.burn_in=burn_in;
+  Gibbs.thin=thin;
+
+  GS_data gsData;
+
+    for (unsigned int j = 0; j <data.rows() ; ++j) {
+        for (unsigned int i = 0; i <data.cols() ; ++i) {
+            if(!isnan(data(j,i))){
+             gsData.data[j][i] = data(j,i);
+
+        }
+
+    }
+    }
+
+
+
+
+
+
   std::map<string, std::vector<double>> out=Gibbs.sample();
   std::vector<double> M=out["M"];
   std::vector<double> Mstar=out["M*"];
@@ -51,8 +75,8 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & data, unsigned int n
 		//Post-processing and return
 
 		//you can mix types in Rcpp lists
-		return Rcpp::List::create ( Rcpp::Named("M")=M,
-                                  	Rcpp::Named("M*")= Mstar,
+		return Rcpp::List::create ( Rcpp::Named("M")= M,
+                                  	Rcpp::Named("Mstar")= Mstar,
                                   	Rcpp::Named("K")= K );
 
 	}

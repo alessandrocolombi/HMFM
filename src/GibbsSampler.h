@@ -25,8 +25,8 @@ public:
     unsigned int thin;
 
     std::map<string, std::vector<double>> sample();
-    GibbsSampler(/*args*/);
-    ~GibbsSampler();
+    GibbsSampler() {};
+    ~GibbsSampler() {};
 
 private:
     sample::GSL_RNG random_engine;

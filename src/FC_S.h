@@ -8,8 +8,8 @@
 class FC_S : public FullConditional{
 
 public:
-    FC_S(/* args */);
-    ~FC_S();
+    FC_S(/* args */) {};
+    ~FC_S() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 
 };
