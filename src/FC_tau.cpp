@@ -71,7 +71,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 }
 
 // Function to compute the mean of the data (y_mean) for a group
-double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
+double FC_tau::mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
         const std::vector<std::vector<double>>& data){
 
     int count = 0;
@@ -83,7 +83,7 @@ double mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
     return sum/count;
 }
 // Function to compute the variance of the data
-double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j,
+double FC_tau::var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j,
         const std::vector<std::vector<double>>& data){
 
     double vari=0.0;

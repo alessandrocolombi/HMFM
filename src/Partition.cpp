@@ -69,7 +69,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 
 
-double normpdf(double x, double u, double s) {
+double Partition::normpdf(double x, double u, double s) const {
   const double ONE_OVER_SQRT_2PI = 0.39894228040143267793994605993438;
   return (ONE_OVER_SQRT_2PI/s)*exp(-0.5*(x-u)*(x-u)/s);
 }
