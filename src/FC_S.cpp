@@ -7,7 +7,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const std::vector<double>& U = gs_data.U;
     const std::vector<double>& gamma = gs_data.gamma;
     const GDFMM_Traits::MatUnsCol& N = gs_data.N;
-    GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it 
+    GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it
 
     // Random sampler is created
     sample::rgamma Gamma;
@@ -16,13 +16,13 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     for (unsigned j=0; j<d; j++) { //per ogni livello
         //S ALLOCATE
         for (unsigned k=0; k<K; k++) {//per ogni comp allocata
-            S(j, k) = Gamma(1, N(j, k) + gamma[j], U[j] + 1);
+            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], U[j] + 1);
         }
 
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
-                S(j, mstar) = Gamma(1, gamma[j], U[j] + 1);
+                S(j, mstar) = Gamma(gs_engine, gamma[j], U[j] + 1);
             }
         }
     }
@@ -30,8 +30,6 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 }
 
 
-
-}
 
 
 

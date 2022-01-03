@@ -14,8 +14,8 @@
         double sigma_0;
         double mu_0;
         double k_0;
-        double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j);
-        double mean(std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j);
+        double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
+        double mean(std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
     public:
         FC_tau(/* args */);
         ~FC_tau();

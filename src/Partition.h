@@ -1,17 +1,22 @@
-#include "include_headers.h"
-#include "recurrent_traits.h"
-#include "GS_data.h"
-#include "GSL_wrappers.h"
-#include "stdio.h"
+#ifndef __PARTITION_H__
+#define __PARTITION_H__
 
-class Partition{
+#include "FullConditional.h"
+#include "recurrent_traits.h"
+
+class FullConditional;
+
+class Partition : public FullConditional{
 private:
   /* hyper parameters */
 
 public:
     std::vector<unsigned int> clust_out;
-    GDFMM_Traits::MatRow C;
+    std::vector< std::vector<unsigned int>> C;
     Partition();
   ~Partition();
-  void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine);
+  void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
+  double normpdf(double x, double u, double s);
 };
+
+#endif

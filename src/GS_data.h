@@ -3,8 +3,8 @@
 
 #include "include_headers.h"
 #include "recurrent_traits.h"
-#include "Partition.h"
-
+//#include "Partition.h"
+class Partition;
 struct GS_data{
     /* DATA */
     // single values
@@ -25,18 +25,18 @@ struct GS_data{
     std::vector<double> mu; // vector of the mean for each component
     std::vector<double> sigma; // vector of the variance for each component
                                // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
-    char prior[]; //Which prior are we using for tau? noga or normal inverse gamma?
+    std::string prior; //Which prior are we using for tau? noga or normal inverse gamma?
     // matrix or vector of vectors
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     // Partition
-    Partition p;
+    Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     /* METHODS */
     void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);
-    void initialize_tau(unsigned int K);
+    void initialize_N(unsigned int K);
     void update_log_sum();
 };
 
