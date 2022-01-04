@@ -16,6 +16,7 @@
         double k_0;
 
     public:
+        std::string name="tau";
         double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
         double mean(std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
         FC_tau(/* args */) {};

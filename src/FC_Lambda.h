@@ -9,6 +9,7 @@ private:
     double a2;
     double b2;
 public:
+  std::string name="Lambda";
     FC_Lambda(/* args */) {};
     FC_Lambda(double a, double b): a2(a), b2(b){};
     ~FC_Lambda() {};

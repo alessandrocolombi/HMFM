@@ -6,9 +6,13 @@
 
 
 void GibbsSampler::GS_Step() {
-    for(FullConditional* full_cond: this->FullConditionals){ // mettere prima update della partition (da aggiungere anche prima)
-        full_cond->update(gs_data, random_engine);
-    }
+  for(FullConditional* full_cond: this->FullConditionals){ // mettere prima update della partition (da aggiungere anche prima)
+    std::cout<<1<<std::endl;
+    //full_cond->update(gs_data, random_engine);
+    std::cout<<full_cond->name<<std::endl;
+  }
+  //std::cout << gs_data.M << "\n";
+  //std::cout << gs_data.K << "\n";
 }
 
 void GibbsSampler::store_params_values() {

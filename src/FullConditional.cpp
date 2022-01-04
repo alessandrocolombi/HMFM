@@ -6,3 +6,7 @@ bool FullConditional::binary_decision(double p1, const sample::GSL_RNG& engine) 
 
     return u<p1;
 }
+
+void FullConditional::print() const{
+  std::cout<<name<<"\n";
+}

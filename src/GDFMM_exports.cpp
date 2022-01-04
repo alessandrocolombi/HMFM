@@ -10,8 +10,13 @@
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
-
-
+#include "FullConditional.h"
+#include "FC_tau.h"
+#include "FC_U.h"
+#include "FC_S.h"
+#include "FC_Lambda.h"
+#include "FC_Mstar.h"
+#include "FC_gamma.h"
 
 //' Title Rcpp function
 //'
@@ -33,6 +38,19 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
   GibbsSampler Gibbs;
+  FC_tau tau;
+  FC_U* U;
+  FC_S* S;
+  FC_Mstar* Mstar;
+  FC_gamma* gamma;
+  Partition* Partition;
+  FC_Lambda* lambda;
+
+  std::vector<FullConditional*> fc=Gibbs.FullConditionals{Partition, tau, U, S, Mstar, gamma,lambda};
+
+
+
+
   Gibbs.n_iter=n_iter;
   Gibbs.burn_in=burn_in;
   Gibbs.thin=thin;

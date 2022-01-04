@@ -2,6 +2,7 @@
 
 void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   // From gs_data all needed variable are retrived
+
   unsigned int k = gs_data.K; // number of cluster
   unsigned int d = gs_data.d; // number of group
   unsigned int M = gs_data.M; // number of components

@@ -2,7 +2,7 @@
 // Created by pietr on 12/12/2021.
 //
 
-#ifndef GDFMM_GIBBaaaaAASSAMPLER_H
+#ifndef GDFMM_GIBBSSAMPLER_H
 #define GDFMM_GIBBSSAMPLER_H
 
 #include <gsl/gsl_rng.h>     //For random number generators
@@ -23,7 +23,7 @@ public:
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
-
+    std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? RAGA L'HO FATTO DIVENTARE PUBBLICO PERCHÈ SERVE
     std::map<string, std::vector<double>> sample();
     GibbsSampler(/*args*/){};
     ~GibbsSampler(){};
@@ -36,8 +36,6 @@ private:
     std::map<string, double> parameters{{"M", 0.0}, {"M*", 0.0}, {"K", 0.0}};// Forse sostituito da Gs_data
     string model;
     std::map<string, double> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
-    std::vector<FullConditional*> FullConditionals;
-
     void store_params_values();
     void GS_Step();
     unsigned int seed;
