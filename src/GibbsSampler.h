@@ -14,6 +14,7 @@
 #include "recurrent_traits.h"
 #include "FullConditional.h"
 #include "GS_data.h"
+#include "out_data.h"
 
 typedef std::vector<double> params;
 using std::string;
@@ -23,19 +24,30 @@ public:
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
-    std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? RAGA L'HO FATTO DIVENTARE PUBBLICO PERCHÈ SERVE
     std::map<string, std::vector<double>> sample();
-    GibbsSampler(/*args*/){};
-    ~GibbsSampler(){};
+    GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g, std::vector<FullConditional*> fc){
+      n_iter=n;
+      burn_in=b;
+      thin=t;
+      gs_data=g;
+      FullConditionals=fc;
+      //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
+      };
 
 private:
-    sample::GSL_RNG random_engine;
-    GS_data gs_data;
-    std::vector<double> vec;
-    std::map<string, std::vector<double>> output_data{{"M", vec}, {"M*", vec}, {"K", vec}}; // Commentato perchè interrompeva la compilazione
+    std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
+    sample::GSL_RNG random_engine; // ? come lo inizializzo?
+    GS_data gs_data; // Passato
+    out_data out; // default -> idealmente questo era output_data che però è diventato una struct
+
+    //BOSCA -> PETER  peter qua io ho rimesso la struct ma non sono sicuro sia il metodo migliore
+
+    //std::map<string, std::vector<double>> output_data; // Questo diventa una struct
+
+    //BOSCA-->PETER FERRETTI MI SA CHE BISOGNA CAMBIARE UN PO' I METODI IN MODO CHE VADANO A SALVARE I PARAMETRI NELLE STRUCT
+    //se ho fatto qualcosa di poco sensato stravolgi pure tutto eh
     std::map<string, double> parameters{{"M", 0.0}, {"M*", 0.0}, {"K", 0.0}};// Forse sostituito da Gs_data
     string model;
-    std::map<string, double> initial_values;  // Non più utile perchè questi dati saranno già presenti in GS-data alla costruzione
     void store_params_values();
     void GS_Step();
     unsigned int seed;

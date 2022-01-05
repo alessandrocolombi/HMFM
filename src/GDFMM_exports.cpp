@@ -37,8 +37,21 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	// Do not use deafult values here
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
-  GibbsSampler Gibbs;
-  FC_tau tau;
+
+	//qui copio da una Eigen a una vector of vector
+	GS_data gsData;
+	for (unsigned int j = 0; j < dat.rows(); ++j) {
+	  std::vector<double> v;
+	  for (unsigned int i = 0; i <dat.cols() ; ++i) {
+	    if(!isnan(dat(j,i))){
+	      v.push_back(dat(j,i));
+	    }
+	  }
+	  gsData.data.push_back(v);
+	}
+
+	// Lista delle full conditional, se mai si volesse aggiungere un ulteriore classe fc è da aggiungere anche qui
+  FC_tau* tau;
   FC_U* U;
   FC_S* S;
   FC_Mstar* Mstar;
@@ -46,25 +59,13 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
   Partition* Partition;
   FC_Lambda* lambda;
 
-  std::vector<FullConditional*> fc=Gibbs.FullConditionals{Partition, tau, U, S, Mstar, gamma,lambda};
+  std::vector<FullConditional*> fc{tau,U,S,Mstar,gamma,lambda};
+  //fc.push_back(Partition); //Questo è un bel problema
 
 
+  GibbsSampler Gibbs(n_iter, burn_in, thin, gsData, fc);
 
 
-  Gibbs.n_iter=n_iter;
-  Gibbs.burn_in=burn_in;
-  Gibbs.thin=thin;
-  GS_data gsData;
-
-  for (unsigned int j = 0; j < dat.rows(); ++j) {
-        std::vector<double> v;
-        for (unsigned int i = 0; i <dat.cols() ; ++i) {
-            if(!isnan(dat(j,i))){
-             v.push_back(dat(j,i));
-            }
-        }
-        gsData.data.push_back(v);
-  }
 
   std::map<string, std::vector<double>> out=Gibbs.sample();
   std::vector<double> M=out["M"];

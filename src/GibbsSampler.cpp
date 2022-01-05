@@ -15,6 +15,8 @@ void GibbsSampler::GS_Step() {
   //std::cout << gs_data.K << "\n";
 }
 
+
+//in questo se si usa la struct perdiamo l'eleganza di questo ciclo ma al
 void GibbsSampler::store_params_values() {
     for(std::map<string,std::vector<double>>::iterator iter = output_data.begin(); iter != output_data.end(); ++iter)
         output_data[iter->first].push_back(parameters[iter->first]);
