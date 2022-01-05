@@ -24,15 +24,8 @@ public:
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
-    std::map<string, std::vector<double>> sample();
-    GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g, std::vector<FullConditional*> fc){
-      n_iter=n;
-      burn_in=b;
-      thin=t;
-      gs_data=g;
-      FullConditionals=fc;
-      //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
-      };
+    out_data sample();
+    GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g);
 
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato

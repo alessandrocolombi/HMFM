@@ -10,13 +10,7 @@
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
-#include "FullConditional.h"
-#include "FC_tau.h"
-#include "FC_U.h"
-#include "FC_S.h"
-#include "FC_Lambda.h"
-#include "FC_Mstar.h"
-#include "FC_gamma.h"
+
 
 //' Title Rcpp function
 //'
@@ -37,40 +31,33 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	// Do not use deafult values here
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
-
-	//qui copio da una Eigen a una vector of vector
-	GS_data gsData;
-	for (unsigned int j = 0; j < dat.rows(); ++j) {
-	  std::vector<double> v;
-	  for (unsigned int i = 0; i <dat.cols() ; ++i) {
-	    if(!isnan(dat(j,i))){
-	      v.push_back(dat(j,i));
-	    }
-	  }
-	  gsData.data.push_back(v);
-	}
-
-	// Lista delle full conditional, se mai si volesse aggiungere un ulteriore classe fc è da aggiungere anche qui
-  FC_tau* tau;
-  FC_U* U;
-  FC_S* S;
-  FC_Mstar* Mstar;
-  FC_gamma* gamma;
-  Partition* Partition;
-  FC_Lambda* lambda;
-
-  std::vector<FullConditional*> fc{tau,U,S,Mstar,gamma,lambda};
-  //fc.push_back(Partition); //Questo è un bel problema
-
-
-  GibbsSampler Gibbs(n_iter, burn_in, thin, gsData, fc);
+    GS_data gsData;
 
 
 
-  std::map<string, std::vector<double>> out=Gibbs.sample();
-  std::vector<double> M=out["M"];
-  std::vector<double> Mstar=out["M*"];
-  std::vector<double> K=out["K"];
+
+
+
+
+
+
+  for (unsigned int j = 0; j < dat.rows(); ++j) {
+        std::vector<double> v;
+        for (unsigned int i = 0; i <dat.cols() ; ++i) {
+            if(!isnan(dat(j,i))){
+             v.push_back(dat(j,i));
+            }
+        }
+        gsData.data.push_back(v);
+  };
+
+
+    Rcpp::Rcout<<"fino a qua"<<std::endl;
+    GibbsSampler Gibbs(n_iter, burn_in, thin,  gsData);
+    out_data out=Gibbs.sample();
+    std::vector<int> Mstar=out.Mstar;
+
+    std::vector<int> K=out.K;
 
 
     // Parameters param(niter, burnin, thin);   // example of another class that stores useful options
@@ -88,10 +75,9 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 		//Post-processing and return
 
 		//you can mix types in Rcpp lists
-		return Rcpp::List::create ( Rcpp::Named("M")= M,
-                                  	Rcpp::Named("Mstar")= Mstar,
-                                  	Rcpp::Named("K")= K,
-                                  	Rcpp::Named("Data")=dat);
+		return Rcpp::List::create ( Rcpp::Named("Mstar")= Mstar,
+                                  	Rcpp::Named("K")= K
+                                  	);
 
 	}
 	else if (P0_prior_name == "Normal-Gamma")

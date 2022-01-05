@@ -6,12 +6,12 @@
 struct out_data{
   /* DATA */
   // single values
-  std::vector<unsigned int> K; // number of allocated component ==> number of clusters
-  std::vector<unsigned int> Mstar; // number of NON-allocated component
+  std::vector<int> K; // number of allocated component ==> number of clusters
+  std::vector<int> Mstar; // number of NON-allocated component
   std::vector<double> lambda; // M|lambda ~ Poi(lambda)
   //vectors
   std::vector<std::vector< std::vector<unsigned int>>> Ctilde;
-  std::vector<std::vector< std::vector<double>>> S;
+  std::vector<GDFMM_Traits::MatRow> S;
   std::vector<std::vector< std::vector<double>>> tau;
   //output
   std::vector<std::vector<double>> U; // auxiliary variable
