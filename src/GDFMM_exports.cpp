@@ -41,18 +41,10 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 
 
 
-  for (unsigned int j = 0; j < dat.rows(); ++j) {
-        std::vector<double> v;
-        for (unsigned int i = 0; i <dat.cols() ; ++i) {
-            if(!isnan(dat(j,i))){
-             v.push_back(dat(j,i));
-            }
-        }
-        gsData.data.push_back(v);
-  };
 
 
-    Rcpp::Rcout<<"fino a qua"<<std::endl;
+
+
     GibbsSampler Gibbs(n_iter, burn_in, thin,  gsData);
     out_data out=Gibbs.sample();
     std::vector<int> Mstar=out.Mstar;

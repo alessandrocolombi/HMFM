@@ -38,17 +38,18 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
-      for (unsigned i=0; i<n_j[j]; i++){
-        C[j][i] = 1;
-      }
+        std::vector<unsigned int> v(n_j[j],1);
+        C.push_back(v);
+
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++) {
           double* arrayprobs = &probs[i][0];
           // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO. POI NON SO SE GS_ENGINE PUO' ESSERE MESSO LI'
           //std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
-          C[j][i]=Discrete(gs_engine, arrayprobs);
+
       }
+        C.push_back(Discrete(gs_engine, arrayprobs));
     }/* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
     dove ogni riga contiene le etichette non ordinate per ciascun dato di

@@ -8,7 +8,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const unsigned int& K = gs_data.K; //number of clusters
     std::vector<unsigned int>& n_j= gs_data.n_j; // number of observations per group
     GDFMM_Traits::MatUnsCol& N = gs_data.N; // Matrix of observation oper cluster per group
-    std::vector< std::vector<unsigned int>> Ctilde; // matrix of partition
+    std::vector< std::vector<unsigned int>> Ctilde=gs_data.Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
     Partition *p = gs_data.p; // actual partition of the data

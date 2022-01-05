@@ -23,7 +23,7 @@ GibbsSampler::GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_da
         Partition* Partition;
         FC_Lambda* lambda;
 
-    std::vector<FullConditional*> fc=FullConditionals ={Partition, tau, U, S, Mstar, gamma,lambda};
+    std::vector<FullConditional*> fc=FullConditionals ={Partition, Mstar, tau, U, S, gamma,lambda};
         FullConditionals=fc;
         //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
 
