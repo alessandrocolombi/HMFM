@@ -31,21 +31,8 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	// Do not use deafult values here
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
-    GS_data gsData;
 
-
-
-
-
-
-
-
-
-
-
-
-
-    GibbsSampler Gibbs(n_iter, burn_in, thin,  gsData);
+    GibbsSampler Gibbs(dat, n_iter, burn_in, thin);
     out_data out=Gibbs.sample();
     std::vector<int> Mstar=out.Mstar;
 

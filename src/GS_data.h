@@ -34,7 +34,7 @@ struct GS_data{
     Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
-    GS_data(unsigned int n_iter, unsigned int burnin, unsigned int thin){};
+    GS_data(Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burnin, unsigned int thin);
     /* METHODS */
     void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);

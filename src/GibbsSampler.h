@@ -15,6 +15,13 @@
 #include "FullConditional.h"
 #include "GS_data.h"
 #include "out_data.h"
+#include "FullConditional.h"
+#include "FC_tau.h"
+#include "FC_U.h"
+#include "FC_S.h"
+#include "FC_Lambda.h"
+#include "FC_Mstar.h"
+#include "FC_gamma.h"
 
 typedef std::vector<double> params;
 using std::string;
@@ -25,7 +32,7 @@ public:
     unsigned int burn_in;
     unsigned int thin;
     out_data sample();
-    GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g);
+    GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t);
 
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato

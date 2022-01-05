@@ -1,20 +1,13 @@
 //
 // Created by pietr on 12/12/2021.
 //
-#include "FullConditional.h"
-#include "FC_tau.h"
-#include "FC_U.h"
-#include "FC_S.h"
-#include "FC_Lambda.h"
-#include "FC_Mstar.h"
-#include "FC_gamma.h"
 #include "GibbsSampler.h"
 
-GibbsSampler::GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g) {
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t) {
         n_iter=n;
         burn_in=b;
         thin=t;
-        gs_data=g;
+        GS_data g(data, n,b,t);
         FC_tau* tau;
         FC_U* U;
         FC_S* S;
