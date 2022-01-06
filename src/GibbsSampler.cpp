@@ -9,16 +9,35 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         burn_in=b;
         thin=t;
         GS_data g(data, n,b,t);
+        //pensare un modo per cambiare questo
         gs_data=g;
-        FC_tau* tau;
-        FC_U* U;
-        FC_S* S;
-        FC_Mstar* Mstar;
-        FC_gamma* gamma;
-        Partition* Partition;
-        FC_Lambda* lambda;
+        /*
+        FC_tau tau;
+        FC_tau *ptau=&tau;
+        FC_U U;
+        FC_U *pU=&U;
+        FC_S S;
+        FC_S *pS=&S;
+        FC_Mstar Mstar;
+        FC_Mstar *pMstar=&Mstar;
+        FC_gamma gamma;
+        FC_gamma *pgamma=&gamma;
+        Partition partition;
+        Partition *pPartition=&partition;
+        FC_Lambda lambda;
+        FC_Lambda *plambda=&lambda;
+        */
 
-        std::vector<FullConditional*> fc=FullConditionals ={Partition, Mstar, tau, U, S, gamma,lambda};
+        FC_Mstar Mstar;
+        FC_gamma gamma;
+        FC_tau tau;
+        FC_U U;
+        FC_S S;
+        Partition partition;
+        FC_Lambda lambda;
+
+
+        std::vector<FullConditional*> fc{&partition, &Mstar, &tau, &U, &S, &gamma,&lambda};
         FullConditionals=fc;
         //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
 
@@ -27,14 +46,14 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
 void GibbsSampler::GS_Step() {
 int k=0;
   for(auto full_cond : FullConditionals){
+    std::cout<<"questo è il nome della partition di cui facciamo l'update "<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
+    //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
+    //std::cout<<full_cond->name<<std::endl;
+    std::cout<<*full_cond<<std::endl;
+    //full_cond->update(gs_data, random_engine);
     k=k+1;
     std::cout<<k<<std::endl;
-    std::cout<<"questo è il nome della partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
-    //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
-    std::cout<<&full_cond<<std::endl;
-    //std::cout<<full_cond->name<<std::endl;
-    std::cout<<1<<std::endl;
-    //full_cond->update(gs_data, random_engine);
+
   }
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";
