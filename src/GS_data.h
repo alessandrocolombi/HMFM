@@ -16,7 +16,7 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     // vectors
-    std::vector<bool> ups;
+
     std::vector<std::vector<double>> data; // our data, y_ji
     std::vector< std::vector<unsigned int>> Ctilde; //output partition ANDRE: DIMENSIONI? definito apposta dinamicamente
     std::vector<unsigned int> n_j; // number of elements in  each group (dimension: d)
@@ -26,7 +26,7 @@ struct GS_data{
     std::vector<double> mu; // vector of the mean for each component
     std::vector<double> sigma; // vector of the variance for each component
                                // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
-    std::string prior; //Which prior are we using for tau? noga or normal inverse gamma?
+    std::string prior="normal-inverse-gamma"; //Which prior are we using for tau? noga or normal inverse gamma?
     // matrix or vector of vectors
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
@@ -34,6 +34,9 @@ struct GS_data{
     Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
+    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin);
+    GS_data(){};
+    ~GS_data(){};
     /* METHODS */
     void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);

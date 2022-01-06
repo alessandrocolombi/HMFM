@@ -13,9 +13,9 @@ private:
 public:
   std::string name="Partition";
     std::vector<unsigned int> clust_out;
-    std::vector< std::vector<unsigned int>> C;
-    Partition();
-  ~Partition();
+    std::vector< std::vector<double>> C;
+    Partition(){};
+  ~Partition(){};
   void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
   double normpdf(double x, double u, double s) const;
 };

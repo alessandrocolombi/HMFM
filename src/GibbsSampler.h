@@ -15,6 +15,12 @@
 #include "FullConditional.h"
 #include "GS_data.h"
 #include "out_data.h"
+#include "FC_tau.h"
+#include "FC_U.h"
+#include "FC_S.h"
+#include "FC_Lambda.h"
+#include "FC_Mstar.h"
+#include "FC_gamma.h"
 
 typedef std::vector<double> params;
 using std::string;
@@ -24,15 +30,8 @@ public:
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
-    std::map<string, std::vector<double>> sample();
-    GibbsSampler(unsigned int n, unsigned int b, unsigned int t, GS_data g, std::vector<FullConditional*> fc){
-      n_iter=n;
-      burn_in=b;
-      thin=t;
-      gs_data=g;
-      FullConditionals=fc;
-      //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
-      };
+    out_data sample();
+    GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t);
 
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
