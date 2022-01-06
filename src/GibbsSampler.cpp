@@ -3,11 +3,12 @@
 //
 #include "GibbsSampler.h"
 
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t) {
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b, unsigned int t){
         n_iter=n;
         burn_in=b;
         thin=t;
         GS_data g(data, n,b,t);
+        gs_data=g;
         FC_tau* tau;
         FC_U* U;
         FC_S* S;

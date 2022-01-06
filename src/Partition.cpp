@@ -38,18 +38,18 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
-        std::vector<unsigned int> v(n_j[j],1);
+        std::vector<double> v(n_j[j],1.0);
         C.push_back(v);
 
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++) {
           double* arrayprobs = &probs[i][0];
-          // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO. POI NON SO SE GS_ENGINE PUO' ESSERE MESSO LI'
-          //std::discrete_distribution<> d(probs[i].begin(), probs[i].end()); //
-
-      }
-        C.push_back(Discrete(gs_engine, arrayprobs));
+          // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO.
+          //BOSCA->ANDRE: È UNA PARTE UN PO' SBATTI, PRATICAMENTE LA DISCRETE CHE HO DEFINITO IN GSL_WRAPPERS PERCHÈ NON ERA DEFINITA, PRENDE IN ENTR
+      //IN ENTRATA UN ARRAY CHE È ARRAYPROBS, HO TROVATO QUESTO MODO PER AVERE VECTOR->ARRAY MA MI SA CHE NON FUNZIONA
+        std::vector<double> dis(Discrete(gs_engine, arrayprobs), Discrete(gs_engine, arrayprobs)+M);
+        C.push_back(dis);
     }/* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
@@ -68,7 +68,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   gs_data.initialize_N(k); // initialize N according to new K
 }
 
-
+}
 
 
 double Partition::normpdf(double x, double u, double s) const {

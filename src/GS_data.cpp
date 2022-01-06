@@ -1,7 +1,7 @@
 #include "GS_data.h"
 
 
-GS_data::GS_data(Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burnin, unsigned int thin) {
+GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin) {
     d=data.size();
     iterations=burnin + n_iter * thin;
     K=1;//da cambiare
