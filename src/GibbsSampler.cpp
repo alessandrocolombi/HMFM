@@ -3,6 +3,7 @@
 //
 #include "GibbsSampler.h"
 
+
 GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b, unsigned int t){
         n_iter=n;
         burn_in=b;
@@ -17,17 +18,23 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         Partition* Partition;
         FC_Lambda* lambda;
 
-    std::vector<FullConditional*> fc=FullConditionals ={Partition, Mstar, tau, U, S, gamma,lambda};
+        std::vector<FullConditional*> fc=FullConditionals ={Partition, Mstar, tau, U, S, gamma,lambda};
         FullConditionals=fc;
         //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
 
 }
 
 void GibbsSampler::GS_Step() {
-  for(FullConditional* full_cond: this->FullConditionals){ // mettere prima update della partition (da aggiungere anche prima)
+int k=0;
+  for(auto full_cond : FullConditionals){
+    k=k+1;
+    std::cout<<k<<std::endl;
+    std::cout<<"questo è il nome della partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
+    //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
+    std::cout<<&full_cond<<std::endl;
+    //std::cout<<full_cond->name<<std::endl;
     std::cout<<1<<std::endl;
-    full_cond->update(gs_data, random_engine);
-    std::cout<<full_cond->name<<std::endl;
+    //full_cond->update(gs_data, random_engine);
   }
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";

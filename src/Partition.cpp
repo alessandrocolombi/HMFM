@@ -18,7 +18,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   double probs_max;
 
   sample::discrete Discrete;
-
+  std::cout<<1<<std::endl;
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<double> v(n_j[j]);
@@ -34,7 +34,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         }
 
     }
-
+    std::cout<<1<<std::endl;
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
@@ -55,7 +55,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
     quel livello */
   };
-
+    std::cout<<1<<std::endl;
   //create vector of allocated components
   for(unsigned j=0; j<d; j++){
     for(unsigned i=0; i<n_j[j]; i++){

@@ -35,8 +35,8 @@ struct GS_data{
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin);
-    GS_data();
-    ~GS_data();
+    GS_data(){};
+    ~GS_data(){};
     /* METHODS */
     void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);
