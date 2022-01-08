@@ -10,7 +10,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         n_iter=n;
         burn_in=b;
         thin=t;
-        GS_data g(data, n,b,t);
+        GS_data g(data, n,b,t, random_engine);
         //pensare un modo per cambiare questo
         gs_data=g;
 

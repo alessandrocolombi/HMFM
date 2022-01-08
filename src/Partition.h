@@ -11,7 +11,6 @@ private:
   /* hyper parameters */
 
 public:
- int id=1;
     std::vector<unsigned int> clust_out;
     std::vector< std::vector<double>> C;
     Partition(){};

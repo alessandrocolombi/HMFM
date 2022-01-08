@@ -3,6 +3,7 @@
 
 #include "include_headers.h"
 #include "recurrent_traits.h"
+#include "GSL_wrappers.h"
 //#include "Partition.h"
 class Partition;
 struct GS_data{
@@ -34,11 +35,11 @@ struct GS_data{
     Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
-    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin);
+    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin, const sample::GSL_RNG& gs_engine);
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
-    void initialize_S(unsigned int M);
+    void initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine);
     void initialize_tau(unsigned int M);
     void initialize_N(unsigned int K);
     void update_log_sum();
