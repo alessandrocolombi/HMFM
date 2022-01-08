@@ -137,7 +137,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 	  	  //Gets the engine
 	  //Discrete(p)
 	  //OCIO perchè P è un array e non un vector
-	  double operator()(GSL_RNG const & engine, const double *P) const{
+	  size_t operator()(GSL_RNG const & engine, const double *P) const{
 	    size_t K=sizeof(P);
 	    //NEEDS PREPROCESSING FOR THE WEIGHTS
 	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);
@@ -146,7 +146,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 
 	  //Engine defaulted
 	  //Discrete (P)
-	  double operator()(const double *P) const{
+	  size_t operator()(const double *P) const{
 	    size_t K=sizeof(P);
 	    //NEEDS PREPROCESSING FOR THE WEIGHTS
 	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);
@@ -183,7 +183,12 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 			return gsl_ran_gaussian_ziggurat(GSL_RNG ()(),1.0); //the first () is for the constructor, the second il for the call operator
 		}
 	};
+	struct pdfnorm{
 
+	  double operator()(double x, double sigma)const{
+	    return gsl_ran_gaussian_pdf( x,sigma);
+	  }
+	};
 	//Callable object to draw a sample from Gamma(shape,scale).
 	// --> NB  Watch out notation! gsl uses the scale parameter, in Europe we are used to the rate parameter (rate = 1/scale) <--
 	struct rgamma{

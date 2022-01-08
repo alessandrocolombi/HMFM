@@ -21,20 +21,16 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d=dat.rows();
-    std::cout<<d<<std::endl;
-    std::vector<unsigned int> n_j;
+    //std::cout<<d<<std::endl;
     for (unsigned int j = 0; j < dat.rows(); ++j) {
-
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
-
             if(std::isnan(dat(j,i))){
                 n_j.push_back(i);
                 break;
-
             }
             if(i==dat.cols()-1){n_j.push_back(i);}
         }
-
+    //std::cout<<n_j[j]<<std::endl;
 
     }
 
@@ -59,5 +55,5 @@ void GS_data::initialize_N(unsigned int K){
 }
 void GS_data::initialize_tau(unsigned int M){
   mu = std::vector<double>(M, 0.0);
-  sigma = std::vector<double>(M, 0.0);
+  sigma = std::vector<double>(M, 1.0);
 }

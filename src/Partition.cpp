@@ -18,6 +18,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   double probs_max;
 
   sample::discrete Discrete;
+  sample::pdfnorm pdfnorm;
   std::cout<<d<<std::endl;
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
@@ -25,13 +26,23 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::cout<<n_j[j]<<std::endl;
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
-        v.push_back(log(S(j,m)+log(Partition::normpdf(data[j][i],mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
+        v.push_back(log(S(j,m)+log(pdfnorm(data[j][i]-mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
         //in every and for every component put the log likelihood
+        std::cout<<data[j][i]-mu[m]<<std::endl;
+        //std::cout<<sigma[m]<<std::endl;
+        std::cout<<pdfnorm(data[j][i]-mu[m],sigma[m])<<std::endl;
+        //std::cout<<v[m];
       }
-      probs.push_back(v); //Create a vector for every J
+      probs.push_back(v); //Create a vector for eve       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
+      probs_max=*max_element(probs[i].begin(), probs[i].ry J
+
+
+       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
       probs_max=*max_element(probs[i].begin(), probs[i].end());
+      //std::cout<<probs_max<<std::endl;
       for(unsigned m=0; m<M; m++){
         probs[i][m] = exp(probs[i][m] - probs_max);
+        //std::cout<<probs[i][m];
         }
     }
     std::cout<<"step 2"<<std::endl;
@@ -40,36 +51,49 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     if (M == 1){
         std::vector<double> v(n_j[j],1.0);
         C.push_back(v);
-
     }
     else{
       for (unsigned i=0; i<n_j[j]; i++) {
           double* arrayprobs = &probs[i][0];
           // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO.
+          //std::cout << arrayprobs[1] << "\n";
+          //std::cout<<Discrete(gs_engine, arrayprobs);
           //BOSCA->ANDRE: È UNA PARTE UN PO' SBATTI, PRATICAMENTE LA DISCRETE CHE HO DEFINITO IN GSL_WRAPPERS PERCHÈ NON ERA DEFINITA, PRENDE IN ENTR
       //IN ENTRATA UN ARRAY CHE È ARRAYPROBS, HO TROVATO QUESTO MODO PER AVERE VECTOR->ARRAY MA MI SA CHE NON FUNZIONA
-        std::vector<double> dis(Discrete(gs_engine, arrayprobs), Discrete(gs_engine, arrayprobs)+M);
-        C.push_back(dis);
+       // std::vector<double> dis(Discrete(gs_engine, arrayprobs), Discrete(gs_engine, arrayprobs)+M);
+      // std::vector<double> dis{1,1};
+        //C.push_back(dis);
     } /* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
     quel livello */ //
   };
-    std::cout<<1<<std::endl;
+  /*  std::cout<<"step 3"<<std::endl;
   //create vector of allocated components
-  for(unsigned j=0; j<d; j++){
-    for(unsigned i=0; i<n_j[j]; i++){
+  for(unsigned int j=0; j<d; j++){
+    for(unsigned int i=0; i<n_j[j]; i++){
+      std::cout<<C[j][i];
+    }
+  }
+
+  for(unsigned int j=0; j<d; j++){
+    for(unsigned int i=0; i<n_j[j]; i++){
       s.insert(C[j][i]);
       clust_out.assign(s.begin(),s.end());
     }
   }
+  for (auto it = s.begin(); it !=
+       s.end(); ++it)
+    std::cout << ' ' << *it;
   k = clust_out.size();
+  std::cout<<"step 5"<<k<<std::endl;
   gs_data.K = k; // updating K in the struct gs_data
   gs_data.initialize_N(k); // initialize N according to new K
+
+  */
 }
 
 }
-
 
 double Partition::normpdf(double x, double u, double s) const {
   const double ONE_OVER_SQRT_2PI = 0.39894228040143267793994605993438;

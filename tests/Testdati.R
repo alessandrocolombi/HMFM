@@ -1,6 +1,7 @@
 #datapreprocessing
 library(bbricks)
 library(dplyr)
+data2<-data(hlrData)
 data1<-data(hlrData)
 df <- data.frame(hlrData$mathScore, hlrData$socioeconomicStatus, hlrData$schoolID)
 names(df) <- c('math_score', 'soc_status', 'school_id')
@@ -17,8 +18,24 @@ for (j in 1:d) {
   data1[j, 1:n_j[j]] <- data_level
 }
 
-
 example_GDFMM_sampler(data1,2000,2000,2)
 
+df1<-df %>%
+  group_by(school_id) %>%
+  mutate(avgmathscore = mean(math_score), maxms=max(math_score), minms=min(math_score))%>%as.data.frame()
+df1<-df1[order(df1$avgmathscore),]
+df1$rank<-as.integer(as.factor(df1$avgmathscore))
 
+ggplot(df1, aes(x=rank,y=math_score,group=school_id, ymin=minms, ymax=maxms)) +
+  geom_point()+geom_linerange()+labs(x = "Rank - Math score average", y = "Math Score",
+                                       title ="2002 US Math Score")
+
+library(dplyr)
+
+
+
+
+
+
+l[order(l$math_score),]
 
