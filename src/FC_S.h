@@ -8,8 +8,9 @@
 class FC_S : public FullConditional{
 
 public:
-  std::string name="S";
+
     FC_S(/* args */) {};
+    FC_S(std::string na){name=na;};
     ~FC_S() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 

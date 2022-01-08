@@ -19,7 +19,8 @@ private:
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ DA RIVEDERE
 
 public:
-  std::string name="gamma";
+
+    FC_gamma(std::string na){name=na;};
     FC_gamma(/* args */) {};
     ~FC_gamma() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
