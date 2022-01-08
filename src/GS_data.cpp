@@ -2,7 +2,6 @@
 
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin) {
-    d=data.size();
     iterations=burnin + n_iter * thin;
     K=1;//da cambiare
     //Mstar inizializzata dopo
@@ -17,17 +16,20 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
             }
         }
         data.push_back(v);
-    };
-
+    }
+    d=dat.rows();
+    std::cout<<d<<std::endl;
     std::vector<unsigned int> n_j;
     for (unsigned int j = 0; j < dat.rows(); ++j) {
 
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
+          //std::cout<<dat(j,i)<<std::endl;
             if(std::isnan(dat(j,i))){
                 n_j.push_back(i);
             }
         }
-    };
+        std::cout<<n_j[j]<<std::endl;
+    }
 
     std::vector<double> gamma(d,1.0);
     initialize_S(M);

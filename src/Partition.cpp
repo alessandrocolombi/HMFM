@@ -18,10 +18,11 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   double probs_max;
 
   sample::discrete Discrete;
-  std::cout<<1<<std::endl;
+  std::cout<<d<<std::endl;
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<double> v(n_j[j]);
+    std::cout<<n_j[j]<<std::endl;
     for(unsigned i=0; i<n_j[j]; i++){
       for(unsigned m=0; m<M; m++){
         v.push_back(log(S(j,m)+log(Partition::normpdf(data[j][i],mu[m],sigma[m])))); //potrebbe essere sbagliato anche questo e infatti è sbagliato
@@ -32,9 +33,8 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       for(unsigned m=0; m<M; m++){
         probs[i][m] = exp(probs[i][m] - probs_max);
         }
-
     }
-    std::cout<<1<<std::endl;
+    std::cout<<"step 2"<<std::endl;
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
@@ -50,10 +50,10 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       //IN ENTRATA UN ARRAY CHE È ARRAYPROBS, HO TROVATO QUESTO MODO PER AVERE VECTOR->ARRAY MA MI SA CHE NON FUNZIONA
         std::vector<double> dis(Discrete(gs_engine, arrayprobs), Discrete(gs_engine, arrayprobs)+M);
         C.push_back(dis);
-    }/* per ogni dato nel livello j
+    } /* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
-    quel livello */
+    quel livello */ //
   };
     std::cout<<1<<std::endl;
   //create vector of allocated components

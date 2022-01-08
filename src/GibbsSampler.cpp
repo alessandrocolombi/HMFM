@@ -11,50 +11,38 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         GS_data g(data, n,b,t);
         //pensare un modo per cambiare questo
         gs_data=g;
-        /*
-        FC_tau tau;
-        FC_tau *ptau=&tau;
-        FC_U U;
-        FC_U *pU=&U;
-        FC_S S;
-        FC_S *pS=&S;
-        FC_Mstar Mstar;
-        FC_Mstar *pMstar=&Mstar;
-        FC_gamma gamma;
-        FC_gamma *pgamma=&gamma;
-        Partition partition;
-        Partition *pPartition=&partition;
-        FC_Lambda lambda;
-        FC_Lambda *plambda=&lambda;
-        */
 
         FC_Mstar Mstar;
         FC_gamma gamma;
         FC_tau tau;
         FC_U U;
         FC_S S;
-        Partition partition;
+        Partition partition("Partition");
         FC_Lambda lambda;
-
-
         std::vector<FullConditional*> fc{&partition, &Mstar, &tau, &U, &S, &gamma,&lambda};
         FullConditionals=fc;
+        //partition.update(gs_data, random_engine);
+        //std::cout<< p->name<<std::endl;
+        //std::cout<< fc[1]->name<<std::endl;
         //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
 
 }
 
 void GibbsSampler::GS_Step() {
 int k=0;
-  for(auto full_cond : FullConditionals){
-    std::cout<<"questo è il nome della partition di cui facciamo l'update "<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
+//std::cout<<FullConditionals[0]->name<<std::endl;
+//FullConditionals[0]->update(gs_data, random_engine);
+ /* for(FullConditional* full_cond : FullConditionals){
+    std::cout<<"update solo partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
     //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
+    partition.update(
+    std::cout<<full_cond<<std::endl;
     //std::cout<<full_cond->name<<std::endl;
-    std::cout<<*full_cond<<std::endl;
     //full_cond->update(gs_data, random_engine);
     k=k+1;
     std::cout<<k<<std::endl;
-
   }
+  */
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";
 }
@@ -76,8 +64,8 @@ void GibbsSampler::store_params_values() {
 
 
 out_data GibbsSampler::sample() {
-    for(unsigned int it; it<burn_in + n_iter * thin; it++){
-        this->GS_Step();
+    for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
+        GS_Step();
         if(it>burn_in && it%thin == 0){
 
             this->store_params_values();
