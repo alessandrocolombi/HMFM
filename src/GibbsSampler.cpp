@@ -2,6 +2,8 @@
 // Created by pietr on 12/12/2021.
 //
 #include "GibbsSampler.h"
+#include <Rcpp.h>
+#include <RcppEigen.h>
 
 
 GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b, unsigned int t){
@@ -30,22 +32,25 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
 
 void GibbsSampler::GS_Step() {
 int k=0;
+
 //std::cout<<FullConditionals[0]->name<<std::endl;
 //FullConditionals[0]->update(gs_data, random_engine);
- /* for(FullConditional* full_cond : FullConditionals){
-    std::cout<<"update solo partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
+   for(FullConditional* full_cond: this->FullConditionals){
+       Rcpp::Rcout<<"ciao"<<std::endl;
+
+   // std::cout<<"update solo partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
     //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
-    partition.update(
-    std::cout<<full_cond<<std::endl;
+    //partition.update(
+    Rcpp::Rcout<<full_cond->name<<std::endl;}
     //std::cout<<full_cond->name<<std::endl;
     //full_cond->update(gs_data, random_engine);
-    k=k+1;
-    std::cout<<k<<std::endl;
+    //k=k+1;
+   // std::cout<<k<<std::endl;
   }
-  */
+
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";
-}
+//}
 
 
 //in questo se si usa la struct perdiamo l'eleganza di questo ciclo ma al
@@ -65,7 +70,8 @@ void GibbsSampler::store_params_values() {
 
 out_data GibbsSampler::sample() {
     for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
-        GS_Step();
+
+        this->GS_Step();
         if(it>burn_in && it%thin == 0){
 
             this->store_params_values();

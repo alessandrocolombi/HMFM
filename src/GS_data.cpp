@@ -1,7 +1,10 @@
 #include "GS_data.h"
+#include <Rcpp.h>
+#include <RcppEigen.h>
 
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin) {
+
     iterations=burnin + n_iter * thin;
     K=1;//da cambiare
     //Mstar inizializzata dopo
@@ -23,12 +26,16 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     for (unsigned int j = 0; j < dat.rows(); ++j) {
 
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
-          //std::cout<<dat(j,i)<<std::endl;
+
             if(std::isnan(dat(j,i))){
                 n_j.push_back(i);
+                break;
+
             }
+            if(i==dat.cols()-1){n_j.push_back(i);}
         }
-        std::cout<<n_j[j]<<std::endl;
+
+
     }
 
     std::vector<double> gamma(d,1.0);
