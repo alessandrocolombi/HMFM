@@ -1,4 +1,7 @@
 #include "FC_tau.h"
+#include <Rcpp.h>
+#include <RcppEigen.h>
+
 
 void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Retrive all data needed from gs_data
@@ -11,9 +14,12 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector< std::vector<unsigned int>> Ctilde=gs_data.Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
-    Partition *p = gs_data.p; // actual partition of the data
-    std::vector< std::vector<double>> C=p->C; // C matrix of partition
-    std::vector<unsigned int>& clust_out = p->clust_out; // Vector of clusters
+    Partition *p;
+    p= gs_data.p;// actual partition of the data
+    //Rcpp::Rcout<< p<<std::endl;
+    //std::vector< std::vector<double>> C=p->C; // C matrix of partition
+    Rcpp::Rcout<< p->name<<std::endl;
+    //std::vector<unsigned int>& clust_out = p->clust_out; // Vector of clusters
     // RICONTROLLARE E CAPIRE DOVE METTERE CONST
     std::string prior=gs_data.prior; // identifier of the prior adopted for the model togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     // Initialize ind_i, ind_j
@@ -36,7 +42,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         //Allocated tau
 
-        for (unsigned int m = 0; m < K; ++m) {
+        /*for (unsigned int m = 0; m < K; ++m) {
             for (unsigned int j = 0; j <d ; ++j) {
                 for (unsigned int i = 0; i < n_j[j] ; ++i) {
                     if(C[j][i] == clust_out[m]){
@@ -67,11 +73,11 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 
 
-}
+*/}
 }
 
 // Function to compute the mean of the data (y_mean) for a group
-double FC_tau::mean(std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
+double FC_tau::mean (std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
         const std::vector<std::vector<double>>& data){
 
     int count = 0;
