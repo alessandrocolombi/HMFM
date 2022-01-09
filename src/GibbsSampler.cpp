@@ -13,13 +13,14 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         GS_data g(data, n,b,t,random_engine);
         //pensare un modo per cambiare questo
         gs_data=g;
-
+        Partition partition("Partition");
+        gs_data.p=&partition;
         FC_Mstar Mstar("Mstar");
         FC_gamma gamma("gamma");
         FC_tau tau("tau");
         FC_U U("U");
         FC_S S("S");
-        Partition partition("Partition");
+
         FC_Lambda lambda("lambda");
         std::vector<FullConditional*> fc{&partition, &Mstar, &tau, &U, &S, &gamma,&lambda};
         FullConditionals=fc;
@@ -34,7 +35,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
 }
 
 void GibbsSampler::GS_Step() {
-int k=0;
 
 //std::cout<<FullConditionals[0]->name<<std::endl;
 //FullConditionals[0]->update(gs_data, random_engine);
@@ -44,18 +44,18 @@ int k=0;
    // std::cout<<"update solo partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
     //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
     //partition.update(
-    //Rcpp::Rcout<<full_cond->name<<std::endl;
+    Rcpp::Rcout<<full_cond->name<<std::endl;
 
 
 
-    //full_cond->update(gs_data, random_engine);}
+    full_cond->update(gs_data, random_engine);}
     //k=k+1;
    // std::cout<<k<<std::endl;
   }
 
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";
-}
+
 
 
 //in questo se si usa la struct perdiamo l'eleganza di questo ciclo ma al
