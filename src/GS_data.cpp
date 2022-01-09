@@ -47,13 +47,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     }
     //std::vector<double> gamma(d,1.0);
     //std::vector<double> U(d,0.0);
-    for (unsigned int m = 0; m < K; ++m) {
-        std::vector<unsigned int> v;
-        for (unsigned int j = 0; j <d ; ++j) {
-            v.push_back(0);
-        }
-        Ctilde.push_back(v);
-    };
+
 
     initialize_S(M,gs_engine);
     initialize_tau(M);

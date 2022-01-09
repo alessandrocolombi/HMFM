@@ -11,7 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_U.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_U.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FC_tau.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_tau.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/GS_data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
@@ -79,7 +78,7 @@
       <workItem from="1641648387067" duration="70000" />
       <workItem from="1641648850544" duration="1439000" />
       <workItem from="1641671109145" duration="10491000" />
-      <workItem from="1641713996887" duration="4495000" />
+      <workItem from="1641713996887" duration="10268000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>

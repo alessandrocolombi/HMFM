@@ -44,14 +44,15 @@ void GibbsSampler::GS_Step() {
    // std::cout<<"update solo partition"<<std::endl;// mettere prima update della partition (da aggiungere anche prima)
     //SI BLOCCA QUI, NON RIESCE A PRENDERE FULL COND
     //partition.update(
-    Rcpp::Rcout<<full_cond->name<<std::endl;
+    //Rcpp::Rcout<<full_cond->name<<std::endl;
 
 
 
-    full_cond->update(gs_data, random_engine);}
+    //full_cond->update(gs_data, random_engine);
     //k=k+1;
    // std::cout<<k<<std::endl;
-  }
+   }
+}
 
   //std::cout << gs_data.M << "\n";
   //std::cout << gs_data.K << "\n";
