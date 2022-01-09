@@ -33,7 +33,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         //NOT allocated tau
 
-        for (int m = K; m < M; ++m){
+        for (unsigned int m = K; m < M; ++m){
              double sigma2_na = 1 / Gamma(gs_engine, nu_0/2, (nu_0)*((sigma_0)/2)); // Non allocated Components' variance
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
@@ -43,13 +43,14 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //Allocated tau
 
         for (unsigned int m = 0; m < K; ++m) {
+            Rcpp::Rcout<<N_k[m]<<std::endl;
             std::vector<unsigned int> v;
             for (unsigned int j = 0; j <d ; ++j) {
-                Rcpp::Rcout<< "ciao"<<std::endl;
+
 
                 for (unsigned int i = 0; i < n_j[j] ; ++i) {
-                    //Rcpp::Rcout<< Ctilde[j][m];
-                    Rcpp::Rcout<< "finoa qua";
+                    //Rcpp::Rcout<< C[j][i];
+                    //Rcpp::Rcout<< clust_out[m]<<std::endl;
                     if(C[j][i] == clust_out[m]){
                         N(j,m)++;
                         ind_i.push_back(i);
@@ -57,16 +58,16 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                         v.push_back(m);
 
                     }
-
+                   // Rcpp::Rcout<< N(j,m);
                 }
                 Ctilde.push_back(v);
-                //Rcpp::Rcout<<N(j,m);
-               N_k[m]+=N(j,m);
+                //Rcpp::Rcout<<N_k[m]<<std::endl;
+               N_k[m]=N_k[m]+N(j,m);
             }
-/*
+            //Rcpp::Rcout<<N_k[m];
             //set Ctilde in partition
             double nu_n_clust = nu_0 + N_k[m];
-            Rcpp::Rcout<<nu_n_clust;
+            Rcpp::Rcout<<nu_n_clust<<std::endl;
             double lpk = k_0 + N_k[m];
             Rcpp::Rcout<<lpk;
             double y_bar_clust= mean(ind_i,ind_j,data);
@@ -88,7 +89,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 
 
-*/}
+}
     }
 }
 

@@ -10,10 +10,10 @@
 
     class FC_tau: public FullConditional {
     private:
-        double nu_0;
-        double sigma_0;
-        double mu_0;
-        double k_0;
+        double nu_0=2.5;
+        double sigma_0=40;//from data
+        double mu_0=57;//from data
+        double k_0=8;
 
     public:
 

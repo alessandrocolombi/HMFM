@@ -77,7 +77,13 @@ void GS_data::initialize_S(unsigned int M,const sample::GSL_RNG& gs_engine){
 
 }
 void GS_data::initialize_N(unsigned int K){
-  N = GDFMM_Traits::MatUnsCol(d, K);
+    N = GDFMM_Traits::MatUnsCol(d, K);
+    for(size_t j=0; j<d; j++){
+        for(size_t m=0; m<K; m++){
+            N(j,m)=0;
+        }
+    }
+
 }
 void GS_data::initialize_tau(unsigned int M){
   mu = std::vector<double>(M, 0.0);
