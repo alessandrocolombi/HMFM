@@ -11,9 +11,12 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_gamma.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FC_tau.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_tau.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_tau.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_tau.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GS_data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GDFMM_exports.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GDFMM_exports.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.h" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,6 +31,11 @@
     <favorites_list name="GDFMM" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="prova2" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IgnoredFileRootStore">
@@ -78,7 +86,9 @@
       <workItem from="1641648387067" duration="70000" />
       <workItem from="1641648850544" duration="1439000" />
       <workItem from="1641671109145" duration="10491000" />
-      <workItem from="1641713996887" duration="15995000" />
+      <workItem from="1641713996887" duration="26279000" />
+      <workItem from="1641760636309" duration="5348000" />
+      <workItem from="1642003914864" duration="3503000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>
@@ -94,7 +104,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639674502427</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="prova cambiamento full cond">
+      <created>1641746504325</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1641746504325</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -145,7 +162,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="gamma tau" />
     <MESSAGE value="changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="changes" />
+    <MESSAGE value="prova cambiamento full cond" />
+    <option name="LAST_COMMIT_MESSAGE" value="prova cambiamento full cond" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

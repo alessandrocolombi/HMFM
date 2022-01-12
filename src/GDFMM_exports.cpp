@@ -33,10 +33,10 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
 	  //GS_data g(dat, n_iter,burn_in,thin); non posso più inizializzare gsdata fuori
     GibbsSampler Gibbs(dat, n_iter, burn_in, thin);
-    out_data out=Gibbs.sample();
-    std::vector<int> Mstar=out.Mstar;
+    //out_data out=Gibbs.sample();
+    std::vector<int> Mstar=Gibbs.out.Mstar;
 
-    std::vector<int> K=out.K;
+    std::vector<int> K=Gibbs.out.K;
 
 
     // Parameters param(niter, burnin, thin);   // example of another class that stores useful options

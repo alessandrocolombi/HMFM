@@ -2,6 +2,9 @@
 #define GDFMM_FC_GAMMA_H
 #include "FullConditional.h"
 #include <gsl/gsl_randist.h>
+#include <Rcpp.h>
+#include <RcppEigen.h>
+
 
 
 class FC_gamma: public FullConditional {

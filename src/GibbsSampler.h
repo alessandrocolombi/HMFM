@@ -32,12 +32,13 @@ public:
     unsigned int thin;
     out_data sample();
     GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t);
+    out_data out;
 
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
     sample::GSL_RNG random_engine; // ? come lo inizializzo?
-    GS_data gs_data; // Passato
-    out_data out; // default -> idealmente questo era output_data che però è diventato una struct
+    //GS_data gs_data; // Passato
+     // default -> idealmente questo era output_data che però è diventato una struct
 
     //BOSCA -> PETER  peter qua io ho rimesso la struct ma non sono sicuro sia il metodo migliore
 

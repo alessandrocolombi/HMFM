@@ -10,11 +10,11 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         n_iter=n;
         burn_in=b;
         thin=t;
-        GS_data g(data, n,b,t,random_engine);
+        GS_data g(data, n_iter,burn_in,thin,random_engine);
         //pensare un modo per cambiare questo
-        gs_data=g;
+        //gs_data=g;
         Partition partition("Partition");
-        gs_data.p=&partition;
+        g.p=&partition;
         FC_Mstar Mstar("Mstar");
         FC_gamma gamma("gamma");
         FC_tau tau("tau");
@@ -24,13 +24,38 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         FC_Lambda lambda("lambda");
         std::vector<FullConditional*> fc{&partition, &Mstar, &tau, &U, &S, &gamma,&lambda};
         FullConditionals=fc;
-        partition.update(gs_data, random_engine);
-        Mstar.update(gs_data, random_engine);
+        //partition.update(gs_data, random_engine);
+       // Mstar.update(gs_data, random_engine);
 
-        tau.update(gs_data, random_engine);
+        //tau.update(gs_data, random_engine);
        // Rcpp::Rcout<< <<std::endl;
         //std::cout<< fc[1]->name<<std::endl;
-        //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
+     int k=0;   //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
+    for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
+        Rcpp::Rcout<< it<<std::endl;
+        for(FullConditional* full_cond: FullConditionals){
+       full_cond->update(g, random_engine);
+            Rcpp::Rcout<<full_cond->name<<std::endl;
+            Rcpp::Rcout<<g.M<<std::endl;
+
+        }
+
+        //Rcpp::Rcout<< "finoa qua"<<std::endl;
+        if(it>burn_in && it%thin == 0){
+            out.K.push_back(g.K);
+            out.Mstar.push_back(g.Mstar);
+            out.lambda.push_back(g.lambda);
+            out.Ctilde.push_back(g.Ctilde);
+            out.S.push_back(g.S);
+            //out.tau.push_back(gs_data.tau);
+            out.U.push_back(g.U);
+            out.gamma.push_back(g.gamma);
+            //Rcpp::Rcout<< "finoa qua"<<std::endl;
+
+        }
+        k=k+1;
+       // Rcpp::Rcout<< k;
+    }
 
 }
 
@@ -62,14 +87,14 @@ void GibbsSampler::GS_Step() {
 //in questo se si usa la struct perdiamo l'eleganza di questo ciclo ma al
 void GibbsSampler::store_params_values() {
 
-    out.K.push_back(gs_data.K);
-    out.Mstar.push_back(gs_data.Mstar);
+    /*out.K.push_back(g.K);
+    out.Mstar.push_back(g.Mstar);
     out.lambda.push_back(gs_data.lambda);
     out.Ctilde.push_back(gs_data.Ctilde);
     out.S.push_back(gs_data.S);
     //out.tau.push_back(gs_data.tau);
     out.U.push_back(gs_data.U);
-    out.gamma.push_back(gs_data.gamma);
+    out.gamma.push_back(gs_data.gamma);*/
 
 }
 
