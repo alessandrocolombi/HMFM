@@ -6,10 +6,12 @@
 #include <RcppEigen.h>
 
 
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b, unsigned int t){
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b,
+                            unsigned int t, unsigned int seed):random_engine(seed){
         n_iter=n;
         burn_in=b;
         thin=t;
+        sample::GSL_RNG rng()
         GS_data g(data, n_iter,burn_in,thin,random_engine);
         //pensare un modo per cambiare questo
         //gs_data=g;
@@ -34,7 +36,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
     for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
         Rcpp::Rcout<< it<<std::endl;
         for(FullConditional* full_cond: FullConditionals){
-       full_cond->update(g, random_engine);
+            full_cond->update(g, random_engine);
             Rcpp::Rcout<<full_cond->name<<std::endl;
             Rcpp::Rcout<<g.M<<std::endl;
 
