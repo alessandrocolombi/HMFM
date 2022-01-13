@@ -23,7 +23,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         FC_S S("S");
 
         FC_Lambda lambda("lambda");
-        std::vector<FullConditional*> fc{&partition, &Mstar, &tau, &U, &S, &gamma,&lambda};
+        std::vector<FullConditional*> fc{&U, &partition, &Mstar,&gamma,  &S, &tau, &lambda};
         FullConditionals=fc;
         //partition.update(gs_data, random_engine);
        // Mstar.update(gs_data, random_engine);
@@ -35,7 +35,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
     for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
         Rcpp::Rcout<< it<<std::endl;
         for(FullConditional* full_cond: FullConditionals){
-       full_cond->update(g, random_engine);
+            full_cond->update(g, random_engine);
             Rcpp::Rcout<<full_cond->name<<std::endl;
             Rcpp::Rcout<<g.M<<std::endl;
 
