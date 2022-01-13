@@ -11,11 +11,11 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/R/GDFMM_export.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/GDFMM_export.R" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/R/RcppExports.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/RcppExports.R" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GDFMM_exports.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GDFMM_exports.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/RcppExports.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RcppExports.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_Mstar.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_Mstar.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FC_gamma.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GS_data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GS_data.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.h" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -88,7 +88,7 @@
       <workItem from="1641713996887" duration="26279000" />
       <workItem from="1641760636309" duration="5348000" />
       <workItem from="1642003914864" duration="3572000" />
-      <workItem from="1642094910674" duration="2874000" />
+      <workItem from="1642094910674" duration="6517000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>

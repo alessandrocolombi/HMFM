@@ -39,7 +39,7 @@ struct GS_data{
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
-    void initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine);
+    void initialize_S(unsigned int M);
     void initialize_tau(unsigned int M);
     void initialize_N(unsigned int K);
     void update_log_sum();

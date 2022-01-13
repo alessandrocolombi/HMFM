@@ -12,10 +12,10 @@ private:
     /* MEMBERS */
     double hyp1 = 0.234;
     double hyp2 = 0.7;
-    double Lambda;
+
     double adapt_var_pop_gamma;
-    int alpha;
-    int beta;
+    int alpha=1;
+    int beta=1;
     /* METHODS */
     double log_full_gamma(double x, double Lambda, int k, double M_na, GDFMM_Traits::MatUnsCol n_jk) const;
     double  sumlgamma(double x, GDFMM_Traits::MatUnsCol n_jk) const;

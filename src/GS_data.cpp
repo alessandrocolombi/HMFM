@@ -7,7 +7,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
 
     iterations=burnin + n_iter * thin;
     K=1;//da cambiare
-    //Mstar inizializzata dopo
+    Mstar=3;//Mstar inizializzata dopo
     M=4;//da cambiare
     lambda=2;//fixed
 
@@ -21,7 +21,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d=dat.rows();
-    std::cout<<d<<std::endl;
+    //std::cout<<d<<std::endl;
 
     for (unsigned int j = 0; j < dat.rows(); ++j) {
 
@@ -49,10 +49,10 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     //std::vector<double> U(d,0.0);
 
 
-    initialize_S(M,gs_engine);
+    initialize_S(M);
     initialize_tau(M);
     initialize_N(K);
-    Rcpp::Rcout<< p<<std::endl;
+    //Rcpp::Rcout<< p<<std::endl;
 }
 
 void GS_data::update_log_sum(){
@@ -65,24 +65,30 @@ void GS_data::update_log_sum(){
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
 }
 
-void GS_data::initialize_S(unsigned int M,const sample::GSL_RNG& gs_engine){
-    sample::rgamma rgamma;
+void GS_data::initialize_S(unsigned int M){
+    //sample::rgamma rgamma;
     S = GDFMM_Traits::MatRow(d, M);
-    for(size_t j=0; j<d; j++){
-        for(size_t m=0; m<M; m++){
-            S(j,m)=5;
-            //S(j,m)=rgamma(gs_engine,gamma[j],1); dovrebbe essere così ma non funziona
+    for (int i = 0; i <d ; ++i) {
+        for (int j = 0; j <M ; ++j) {
+            S(i,j)=1;
+
         }
+
     }
+
 
 }
 void GS_data::initialize_N(unsigned int K){
     N = GDFMM_Traits::MatUnsCol(d, K);
-    for(size_t j=0; j<d; j++){
-        for(size_t m=0; m<K; m++){
-            N(j,m)=0;
+    for (int i = 0; i <d ; ++i) {
+        for (int j = 0; j <K ; ++j) {
+            N(i,j)=1;
+
         }
+
     }
+
+
 
 }
 void GS_data::initialize_tau(unsigned int M){
