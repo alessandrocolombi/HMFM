@@ -6,7 +6,8 @@
 #include <RcppEigen.h>
 
 
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b, unsigned int t){
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b,
+             unsigned int t, unsigned int seed):random_engine(seed){
         n_iter=n;
         burn_in=b;
         thin=t;
