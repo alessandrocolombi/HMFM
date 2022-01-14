@@ -4,8 +4,6 @@ void FC_Lambda::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // From gs_data all needed variable are retrived
     const unsigned int& k = gs_data.K;
     const unsigned int& d = gs_data.d;
-    const std::vector<double>& gamma = gs_data.gamma;
-    const std::vector<double>& U = gs_data.U;
     const double& log_sum = gs_data.log_sum;
 
     // Random sampler is created

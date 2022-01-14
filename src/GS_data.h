@@ -8,6 +8,7 @@
 class Partition;
 struct GS_data{
     /* DATA */
+
     // single values
     unsigned int d;
     unsigned int iterations;// number of groups
@@ -17,9 +18,8 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     // vectors
-
     std::vector<std::vector<double>> data; // our data, y_ji
-    std::vector< std::vector<unsigned int>> Ctilde; //output partition ANDRE: DIMENSIONI? definito apposta dinamicamente
+    std::vector< std::vector<unsigned int>> Ctilde; //output partition
     std::vector<unsigned int> n_j; // number of elements in  each group (dimension: d)
     std::vector<unsigned int> N_k; // number of elements in each cluster
     std::vector<double> U; // auxiliary variable
@@ -39,10 +39,15 @@ struct GS_data{
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
+    void initialize_Ctilde(const std::vector<unsigned int>& n_j);
     void initialize_S(unsigned int M);
-    void initialize_tau(unsigned int M);
+    void initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine);
     void initialize_N(unsigned int K);
+    // update methods;
+    void update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
+                            const std::vector<unsigned int> &clust_out);
     void update_log_sum();
+    void allocate_tau(unsigned int M);
 };
 
 #endif

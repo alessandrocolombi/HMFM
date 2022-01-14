@@ -12,9 +12,9 @@ private:
 
 public:
     std::vector<unsigned int> clust_out;
-    std::vector< std::vector<double>> C;
+    std::vector< std::vector<unsigned int>> C;
     Partition(){};
-    Partition(std::string na){name=na;};
+    Partition(std::string na){name = "na";};
     ~Partition(){};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
     double normpdf(double x, double u, double s) const;

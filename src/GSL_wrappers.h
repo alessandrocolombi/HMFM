@@ -137,7 +137,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 	  	  //Gets the engine
 	  //Discrete(p)
 	  //OCIO perchè P è un array e non un vector
-	  size_t operator()(GSL_RNG const & engine, const double *P) const{
+	    size_t operator()(GSL_RNG const & engine, const double *P) const{
 	    size_t K=sizeof(P);
 	    //NEEDS PREPROCESSING FOR THE WEIGHTS
 	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);
@@ -146,7 +146,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 
 	  //Engine defaulted
 	  //Discrete (P)
-	  size_t operator()(const double *P) const{
+	    size_t operator()(const double *P) const{
 	    size_t K=sizeof(P);
 	    //NEEDS PREPROCESSING FOR THE WEIGHTS
 	    gsl_ran_discrete_t g=*gsl_ran_discrete_preproc(K, P);

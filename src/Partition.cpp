@@ -17,9 +17,11 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   // Initialization of probs_max
   double probs_max;
 
+  //sample::rmultinomial<std::vector<unsigned int>> multinomial;
   sample::discrete Discrete;
   sample::pdfnorm pdfnorm;
   std::cout<<d<<std::endl;
+
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<double> v(n_j[j]);
@@ -49,28 +51,26 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
-        std::vector<double> v(n_j[j],1.0);
+        std::vector<unsigned int> v(n_j[j], 1);
         C.push_back(v);
     }
     else{
-      std::vector<double> dis; //da cambiare in unsigned int
+      std::vector<unsigned int> dis;
       for (unsigned i=0; i<n_j[j]; i++) {
+          // VECCHIA VERSIONE
           double* arrayprobs = &probs[i][0];
-          // ANDRE: QUA NON HO CAPITO COSA STA SUCCEDENDO.
-          //std::cout << arrayprobs[1] << "\n";
+          std::cout << arrayprobs[1] << "\n";
           dis.push_back(Discrete(gs_engine, arrayprobs)+1);
-          //BOSCA->ANDRE: È UNA PARTE UN PO' SBATTI, PRATICAMENTE LA DISCRETE CHE HO DEFINITO IN GSL_WRAPPERS PERCHÈ NON ERA DEFINITA, PRENDE IN ENTR
-      //IN ENTRATA UN ARRAY CHE È ARRAYPROBS, HO TROVATO QUESTO MODO PER AVERE VECTOR->ARRAY MA MI SA CHE NON FUNZIONA
-       // std::vector<double> dis(Discrete(gs_engine, arrayprobs), Discrete(gs_engine, arrayprobs)+M);
-      // std::vector<double> dis{1,1};
-
-    }
- C.push_back(dis);
+          // NUOVA VERSIONE
+          // std::vector<unsigned int> sample(M, 0);
+          // sample = multinomial(gs_engine, 1, probs[i]);
+      }
+      C.push_back(dis);
       /* per ogni dato nel livello j
     Creiamo una matrice della stessa dimensione della matrice dei dati,
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
     quel livello */ //
-  }
+    }
   }
   std::cout<<"step 3"<<std::endl;
   //create vector of allocated components
@@ -89,10 +89,12 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   for (auto it = s.begin(); it !=
        s.end(); ++it)
     std::cout << ' ' << *it;
-  k = clust_out.size();
+  k = clust_out.size(); 
+
   std::cout<<"step 5"<<k<<std::endl;
   gs_data.K = k; // updating K in the struct gs_data
   gs_data.initialize_N(k); // initialize N according to new K
+  gs_data.update_Ctilde(C, clust_out);
 }
 
 

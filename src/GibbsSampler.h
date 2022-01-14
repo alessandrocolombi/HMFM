@@ -36,7 +36,7 @@ public:
 
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
-    sample::GSL_RNG random_engine; // ? come lo inizializzo?
+    sample::GSL_RNG random_engine;
     //GS_data gs_data; // Passato
      // default -> idealmente questo era output_data che però è diventato una struct
 

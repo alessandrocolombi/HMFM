@@ -28,5 +28,5 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Initialize S according to new M
     gs_data.initialize_S(gs_data.M);
     // Initialize tau according to new M
-    gs_data.initialize_tau(gs_data.M);
+    gs_data.allocate_tau(gs_data.M);
 }

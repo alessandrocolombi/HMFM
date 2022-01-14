@@ -14,14 +14,8 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector< std::vector<unsigned int>> Ctilde=gs_data.Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
-    Partition *p;
-    p= gs_data.p;// actual partition of the data
-    //Rcpp::Rcout<< p<<std::endl;
-    std::vector< std::vector<double>> C=p->C; // C matrix of partition
-    //Rcpp::Rcout<< p->name<<std::endl;
-    std::vector<unsigned int>& clust_out = p->clust_out; // Vector of clusters
     // RICONTROLLARE E CAPIRE DOVE METTERE CONST
-    std::string prior=gs_data.prior; // identifier of the prior adopted for the model togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
+    std::string prior = gs_data.prior; // identifier of the prior adopted for the model togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     // Initialize ind_i, ind_j
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
@@ -42,30 +36,18 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         //Allocated tau
 
-        for (unsigned int m = 0; m < K; ++m) {
-            //Rcpp::Rcout<<N_k[m]<<std::endl;
-            std::vector<unsigned int> v;
+        for (unsigned int m = 0; m < K; ++m){
+            ind_i.clear();
+            ind_j.clear();
             for (unsigned int j = 0; j <d ; ++j) {
-
-
                 for (unsigned int i = 0; i < n_j[j] ; ++i) {
-                    //Rcpp::Rcout<< C[j][i];
-                    //Rcpp::Rcout<< clust_out[m]<<std::endl;
-                    if(C[j][i] == clust_out[m]){
-                        N(j,m)++;
+                    if(Ctilde[j][i] == m){
                         ind_i.push_back(i);
                         ind_j.push_back(j);
-                        v.push_back(m);
-
                     }
-                   // Rcpp::Rcout<< N(j,m);
                 }
-                Ctilde.push_back(v);
-                //Rcpp::Rcout<<N_k[m]<<std::endl;
-               N_k[m]=N_k[m]+N(j,m);
             }
-            //Rcpp::Rcout<<N_k[m];
-            //set Ctilde in partition
+
             double nu_n_clust = nu_0 + N_k[m];
             //Rcpp::Rcout<<nu_n_clust<<std::endl;
             double lpk = k_0 + N_k[m];
@@ -84,12 +66,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
-
-
-
-
-
-}
+        }
     }
 }
 
