@@ -6,8 +6,8 @@
 class FC_Lambda : public FullConditional{
 private:
     /* hyper parameters */
-    double a2;
-    double b2;
+    double a2 = 1;
+    double b2 = 1;
 public:
 
     FC_Lambda(/* args */) {};
