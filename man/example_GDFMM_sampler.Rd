@@ -9,6 +9,7 @@ example_GDFMM_sampler(
   niter,
   burnin,
   thin,
+  seed,
   P0.prior = "Normal-InvGamma",
   option
 )
