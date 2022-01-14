@@ -58,8 +58,8 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         if (adapt_var_pop_gamma < pow(10, -power)){  
             adapt_var_pop_gamma = pow(10,-power);  
         }                                       
-        elseif (adapt_var_pop_gamma > pow(10, power)) {
-            adapt_var_pop_gamma = pow(10,powe);  
+        if(adapt_var_pop_gamma > pow(10, power)) {
+            adapt_var_pop_gamma = pow(10, power);  
         }
 
     }
