@@ -5,7 +5,7 @@
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 //#include "Partition.h"
-class Partition;
+//class Partition;
 struct GS_data{
     /* DATA */
 
@@ -32,7 +32,7 @@ struct GS_data{
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     // Partition
-    Partition *p; //Partition passed as reference because I've made a forward declaration (?)
+    // Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin, const sample::GSL_RNG& gs_engine);

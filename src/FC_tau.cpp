@@ -5,12 +5,10 @@
 
 void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Retrive all data needed from gs_data
-    const unsigned int& Mna = gs_data.Mstar; // number of unallocated components
     const unsigned int& M = gs_data.M;
     const unsigned int& d = gs_data.d; // number of groups
     const unsigned int& K = gs_data.K; //number of clusters
     std::vector<unsigned int>& n_j= gs_data.n_j; // number of observations per group
-    GDFMM_Traits::MatUnsCol& N = gs_data.N; // Matrix of observation oper cluster per group
     std::vector< std::vector<unsigned int>> Ctilde=gs_data.Ctilde; // matrix of partition
     std::vector<unsigned int>& N_k = gs_data.N_k;
     std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
@@ -28,10 +26,12 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //NOT allocated tau
 
         for (unsigned int m = K; m < M; ++m){
-             double sigma2_na = 1 / Gamma(gs_engine, nu_0/2, (nu_0)*((sigma_0)/2)); // Non allocated Components' variance
+             double sigma2_na = 1 / Gamma(gs_engine, nu_0/2, 2/(nu_0 * sigma_0)); // Non allocated Components' variance
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
              gs_data.sigma[m] = sigma2_na;
+             Rcpp::Rcout << "mu[" << m << "] = " << mu_na << std::endl;
+             Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
         }
 
         //Allocated tau
@@ -62,10 +62,12 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             double sigma2_n_clust = (nu_0 * (sigma_0 * sigma_0) + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
            // Rcpp::Rcout<<sigma2_n_clust;
             //Campionamento
-            double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, sigma2_n_clust / 2);
+            double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, 2 / sigma2_n_clust );
             double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
+            Rcpp::Rcout << "mu[" << m << "] = " << mu_a << std::endl;
+             Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_a << std::endl;
         }
     }
 }

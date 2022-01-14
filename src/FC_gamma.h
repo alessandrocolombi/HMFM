@@ -14,8 +14,8 @@ private:
     double hyp2 = 0.7;
     unsigned int power = 20;
     double adapt_var_pop_gamma;
-    int alpha=1;
-    int beta=1;
+    int alpha = 1;
+    int beta = 1;
     /* METHODS */
     double log_full_gamma(double x, double Lambda, int k, double M_na, const GDFMM_Traits::MatUnsCol & n_jk) const;
     double  sumlgamma(double x, const GDFMM_Traits::MatUnsCol& n_jk) const;

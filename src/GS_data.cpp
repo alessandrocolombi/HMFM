@@ -5,7 +5,7 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,const sample::GSL_RNG& gs_engine) {
 
-    iterations = burnin + n_iter * thin;
+    iterations = 0;
     K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
     Mstar = 3;//Mstar inizializzata dopo
     M = 7;//da cambiare
@@ -21,6 +21,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d = dat.rows();
+    Rcpp::Rcout << "d is : " << d << std::endl;
     //std::cout<<d<<std::endl;
 
     for (unsigned int j = 0; j < d; ++j) {
@@ -95,19 +96,20 @@ void GS_data::initialize_N(unsigned int K){
 
 void GS_data::initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine){
     mu = std::vector<double>(M, 0.0);
-    sigma = std::vector<double>(M, 0.0);
+    sigma = std::vector<double>(M, 1.0);
 
     sample::rgamma Gamma;
     sample::rnorm rnorm;
+
     for( size_t m = 0; m < M; m++){
-        sigma[m] =  1 / Gamma(gs_engine, 1, ((40)/2));
+        sigma[m] =  1 / Gamma(gs_engine, 2.5, 2 / (2.5*40));
         mu[m] = rnorm(gs_engine, 60, sqrt(sigma[m]));
   }
 }
 
 void GS_data::allocate_tau(unsigned int M){
     mu = std::vector<double>(M, 0.0);
-    sigma = std::vector<double>(M, 0.0);
+    sigma = std::vector<double>(M, 1.0);
 }
 
 void GS_data::update_Ctilde(const std::vector< std::vector<unsigned int>> &C,

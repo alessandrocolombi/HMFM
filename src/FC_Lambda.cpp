@@ -18,7 +18,7 @@ void FC_Lambda::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     bool select_p0 = binary_decision(p0, gs_engine);
 
     if(select_p0)
-        gs_data.lambda = Gamma(gs_engine, a2_star + 1, b2 + 1 - exp(-log_sum));
+        gs_data.lambda = Gamma(gs_engine, a2_star + 1, 1 /(b2 + 1 - exp(-log_sum)) );
     else
-        gs_data.lambda = Gamma(gs_engine, a2_star, b2 + 1 - exp(-log_sum));
+        gs_data.lambda = Gamma(gs_engine, a2_star, 1 /(b2 + 1 - exp(-log_sum)) );
 }
