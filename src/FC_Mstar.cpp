@@ -13,8 +13,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     sample::rpoisson Poisson;
 
     // UPDATE ROUTINE
-    // Computation of the weight for the traslated Poisson ?? ASPETTARE CHIARIMENTO COLOMBI
-    double p0 = lambda/( lambda + k*exp(-log_sum)); // SI PUO' SCRIVERE IN UN MODO MIGLIORE?
+    double p0 = lambda/( lambda + k*exp(-log_sum)); 
     // Select, via extraction from a uniform, which distribution sample from
     bool select_p0 = binary_decision(p0, gs_engine);
 

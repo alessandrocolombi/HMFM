@@ -55,16 +55,17 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         double adapt_var_pop_gamma = adapt_var_pop_gamma *
                                      std::exp(ww_g *(exp(std::min(0.0, ln_acp)) -hyp1));
 
-        if (adapt_var_pop_gamma < pow(10,50)){  //<--- ANDRE:
-            adapt_var_pop_gamma = pow(10,-50);  //<--- DA RIVEDERE SECONDO ME
-        }                                       //<--- DA COME HO CAPITO IO QUI SI
-        else{adapt_var_pop_gamma = pow(10,50);  //<--- DOVREBBE FARE UNA COSA DIVERSA
+        if (adapt_var_pop_gamma < pow(10, -power)){  
+            adapt_var_pop_gamma = pow(10,-power);  
+        }                                       
+        elseif (adapt_var_pop_gamma > pow(10, power)) {
+            adapt_var_pop_gamma = pow(10,powe);  
         }
 
     }
 }
 
-double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na, GDFMM_Traits::MatUnsCol n_jk)const{
+double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na,const GDFMM_Traits::MatUnsCol & n_jk)const{
         // Gamma Distribution to compute new proposal
     sample::pdfgamma pdfgamma;
         // Computation of the output
@@ -76,7 +77,7 @@ double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na, GD
     }
 
 
-double  FC_gamma::sumlgamma(double x, GDFMM_Traits::MatUnsCol n_jk) const{
+double  FC_gamma::sumlgamma(double x, const GDFMM_Traits::MatUnsCol& n_jk) const{
   double sum=0;
   for(unsigned i=0; i<n_jk.size(); i++){
    sum+=lgamma(n_jk(i)+x);
