@@ -36,7 +36,13 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         Rcpp::Rcout<< it<<std::endl;
         for(FullConditional* full_cond: FullConditionals){
             Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
+
+            auto t_start = std::chrono::high_resolution_clock::now();
             full_cond->update(g, random_engine);
+            auto t_end = std::chrono::high_resolution_clock::now();
+            double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
+            Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
+
         }
         Rcpp::Rcout<<"\nValue of M : " << g.M << " - Value of K : " << g.K <<std::endl;
         //Rcpp::Rcout<< "finoa qua"<<std::endl;
