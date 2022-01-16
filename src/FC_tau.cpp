@@ -30,8 +30,8 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
              gs_data.sigma[m] = sigma2_na;
-             Rcpp::Rcout << "mu[" << m << "] = " << mu_na << std::endl;
-             Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
+             //Rcpp::Rcout << "mu[" << m << "] = " << mu_na << std::endl;
+             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
         }
 
         //Allocated tau

@@ -10,14 +10,17 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   const std::vector<double>& mu = gs_data.mu; // Vector of means
   const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
   std::vector<std::vector<double>> probs; // matrix of probability
-  std::set<unsigned int> s; // A set which will be useful for cluster
+  std::set<unsigned int> s;// A set which will be useful for cluster
+  GDFMM_Traits::VecRow probsvec(M);
+  std::vector<GDFMM_Traits::VecRow> probsmat;
+
   // Define data taken from gs_data
   const std::vector<std::vector<double>>& data = gs_data.data;
   // Initialization of probs_max
   double probs_max;
 
   //sample::rmultinomial<std::vector<unsigned int>> multinomial;
-  sample::discrete Discrete;
+  sample::sample_index sample_index;
   // std::cout<<d<<std::endl;
 
   // Generate matrix of "probabilities" for each observation
@@ -39,12 +42,14 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       //Create a vector for eve       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
       probs_max=*max_element(probs[i].begin(), probs[i].end());
        //probs è una matrice che ha numero di righe variabile ma sempre M colonne
-      // std::cout<<probs_max<<std::endl;
+      //std::cout<<probs_max<<std::endl;
       for(unsigned m=0; m<M; m++){
-        probs[i][m] = exp(probs[i][m] - probs_max);
-        //std::cout<<probs[i][m];
+        probsvec(m)=exp(probs[i][m] - probs_max);
+       // std::cout<<probsvec(m);
         }
+      probsmat.push_back(probsvec);
     }
+
     // std::cout<<"step 2"<<std::endl;
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
@@ -54,11 +59,13 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     }
     else{
       std::vector<unsigned int> dis;
+
       for (unsigned i=0; i<n_j[j]; i++) {
           // VECCHIA VERSIONE
-          double* arrayprobs = &probs[i][0];
-          // std::cout << arrayprobs[1] << "\n";
-          dis.push_back(Discrete(gs_engine, arrayprobs)+1);
+          //double* arrayprobs = &probs[i][0];
+          //std::cout << sample_index(gs_engine, probsmat[i])<< "\n";
+
+          dis.push_back(sample_index(gs_engine, probsmat[i]));
           // NUOVA VERSIONE
           // std::vector<unsigned int> sample(M, 0);
           // sample = multinomial(gs_engine, 1, probs[i]);
@@ -89,7 +96,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   for (auto it = clust_out.begin(); it !=clust_out.end(); ++it)
     Rcpp::Rcout << ' ' << *it;
   Rcpp::Rcout << std::endl;
-  k = clust_out.size(); 
+  k = clust_out.size();
 
   // std::cout<<"step 5"<<k<<std::endl;
   gs_data.K = k; // updating K in the struct gs_data

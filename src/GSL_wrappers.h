@@ -205,7 +205,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 			return gsl_ran_gamma(GSL_RNG ()(),shape,scale);
 		}
 	};
-    struct pdfgamma{
+  struct pdfgamma{
 
         double operator()(double x, int alpha, int beta)const{
             return gsl_ran_gamma_pdf( x,  alpha, beta);
