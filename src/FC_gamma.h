@@ -12,8 +12,8 @@ private:
     /* MEMBERS */
     double hyp1 = 0.234;
     double hyp2 = 0.7;
-    unsigned int power = 20;
-    double adapt_var_pop_gamma;
+    unsigned int power = 2;
+    double adapt_var_pop_gamma=1;//valore iniziale che viene aggiornato
     int alpha = 1;
     int beta = 1;
     /* METHODS */

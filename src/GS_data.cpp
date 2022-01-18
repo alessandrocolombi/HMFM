@@ -3,6 +3,7 @@
 #include <RcppEigen.h>
 
 
+
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,const sample::GSL_RNG& gs_engine) {
 
     iterations = 0;
@@ -21,7 +22,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d = dat.rows();
-    Rcpp::Rcout << "d is : " << d << std::endl;
+    //Rcpp::Rcout << "d is : " << d << std::endl;
     //std::cout<<d<<std::endl;
 
     for (unsigned int j = 0; j < d; ++j) {
@@ -39,14 +40,15 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     }
     initialize_Ctilde(n_j);
     for (int k = 0; k < d; ++k) {
-        gamma.push_back(1.0);
-        U.push_back(0.0);
+        gamma.push_back(1);
+        U.push_back(0);
     }
+
     for (int l = 0; l <K ; ++l) {
         N_k.push_back(0);
 
     }
-    //std::vector<double> gamma(d,1.0);
+
     //std::vector<double> U(d,0.0);
 
 
@@ -87,10 +89,10 @@ void GS_data::initialize_S(unsigned int M){
 
 void GS_data::initialize_N(unsigned int K){
     N = GDFMM_Traits::MatUnsCol(d, K);
-    //for (int i = 0; i <d ; ++i) {
-    //    for (int j = 0; j<K ; ++j)
-    //        N(i,j) = 0;
-    //}---
+    for (int i = 0; i <d ; ++i) {
+      for (int j = 0; j<K ; ++j){
+        N(i,j) = 0;}
+    }
     N_k = std::vector<unsigned int>(K, 0);
 }
 

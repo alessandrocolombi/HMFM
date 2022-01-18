@@ -31,9 +31,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         //tau.update(gs_data, random_engine);
        // Rcpp::Rcout<< <<std::endl;
         //std::cout<< fc[1]->name<<std::endl;
-     int k=0;   //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
+       //out={{"M*", vec}, {"K", vec}, {"U", vec}, {"S", vec},{"tau", vec},{"gamma", vec},{"adaptvarpopgamma", vec}};
     for(unsigned int it=0; it<burn_in + n_iter * thin; it++){
-        Rcpp::Rcout<< it<<std::endl;
+       // Rcpp::Rcout<< it<<std::endl;
         for(FullConditional* full_cond: FullConditionals){
             Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
 
@@ -42,6 +42,8 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
             auto t_end = std::chrono::high_resolution_clock::now();
             double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
             Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
+            g.iterations=it;
+
 
         }
         Rcpp::Rcout<<"\nValue of M : " << g.M << " - Value of K : " << g.K <<std::endl;
@@ -59,7 +61,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
             out.U.push_back(g.U);
             out.gamma.push_back(g.gamma);
         }
-        k=k+1;
+
        // Rcpp::Rcout<< k;
     }
 

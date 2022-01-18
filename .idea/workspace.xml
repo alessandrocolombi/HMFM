@@ -11,11 +11,10 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_Mstar.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_Mstar.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FC_gamma.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/GS_data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GS_data.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -48,7 +47,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/CMakeLists.txt" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.ChangelistConflict" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -88,7 +87,10 @@
       <workItem from="1641713996887" duration="26279000" />
       <workItem from="1641760636309" duration="5348000" />
       <workItem from="1642003914864" duration="3572000" />
-      <workItem from="1642094910674" duration="6517000" />
+      <workItem from="1642094910674" duration="7227000" />
+      <workItem from="1642155078868" duration="203000" />
+      <workItem from="1642323739570" duration="27000" />
+      <workItem from="1642498167270" duration="16789000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>
@@ -164,16 +166,5 @@
     <MESSAGE value="changes" />
     <MESSAGE value="prova cambiamento full cond" />
     <option name="LAST_COMMIT_MESSAGE" value="prova cambiamento full cond" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/GS_data.cpp</url>
-          <line>5</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
