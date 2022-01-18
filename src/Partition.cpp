@@ -9,10 +9,10 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   std::vector<unsigned int> n_j = gs_data.n_j;// number of observation per group
   const std::vector<double>& mu = gs_data.mu; // Vector of means
   const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
-  std::vector<std::vector<double>> probs; // matrix of probability
+
   std::set<unsigned int> s;// A set which will be useful for cluster
   GDFMM_Traits::VecRow probsvec(M);
-  std::vector<GDFMM_Traits::VecRow> probsmat;
+
 
   // Define data taken from gs_data
   const std::vector<std::vector<double>>& data = gs_data.data;
@@ -25,19 +25,24 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
-    std::vector<double> v(n_j[j]);
+    std::vector<std::vector<double>> probs;
+    std::vector<GDFMM_Traits::VecRow> probsmat;
+    // matrix of probability we need one of them for every j
     // std::cout<<n_j[j]<<std::endl;
     for(unsigned i=0; i<n_j[j]; i++){
+      std::vector<double> vec(M);
       for(unsigned m=0; m<M; m++){
-        v.push_back(log(S(j,m)) + log_norm(data[j][i], mu[m], sigma[m]) );
+        vec[m]=log(S(j,m)) + log_norm(data[j][i], mu[m], sigma[m]);
         //in every and for every component put the log likelihood
         //std::cout<<data[j][i]-mu[m]<<std::endl;
         //std::cout<<sigma[m]<<std::endl;
         //std::cout<<log(pdfnorm(data[j][i]-mu[m],sigma[m]))<<std::endl;
         //std::cout<<log(S(j,m));
-        //std::cout<<log(S(j,m)+log(pdfnorm(data[j][i]-mu[m],sigma[m])))<<std::endl;
+        //std::cout<<log(S(j,m)) + log_norm(data[j][i], mu[m], sigma[m])<<std::endl;
       }
-      probs.push_back(v);
+
+      //std::cout<<std::endl;
+      probs.push_back(vec);
       //std::cout<<v[j];
       //Create a vector for eve       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
       probs_max=*max_element(probs[i].begin(), probs[i].end());
@@ -45,10 +50,12 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       //std::cout<<probs_max<<std::endl;
       for(unsigned m=0; m<M; m++){
         probsvec(m)=exp(probs[i][m] - probs_max);
-       // std::cout<<probsvec(m);
+       std::cout<<probsvec(m);
         }
       probsmat.push_back(probsvec);
     }
+
+
 
     // std::cout<<"step 2"<<std::endl;
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
@@ -76,6 +83,16 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     dove ogni riga contiene le etichette non ordinate per ciascun dato di
     quel livello */ //
     }
+
+
+/*
+    for(unsigned i=0; i<n_j[j]; i++){
+      for(unsigned m=0; m<M; m++){
+        std::cout<<probs[0][m];
+      }
+      std::cout<<std::endl;
+    }
+*/
   }
   // std::cout<<"step 3"<<std::endl;
   //create vector of allocated components
@@ -83,7 +100,9 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     for(unsigned int i=0; i<n_j[j]; i++){
       std::cout<<C[j][i];
     }
-  }*/
+    std::cout<<std::endl;
+  }
+   */
   // std::cout<<"step 4"<<std::endl;
   clust_out.clear() ; // svuto il vettore clust_out
   for(unsigned int j=0; j<d; j++){

@@ -49,7 +49,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
        //cpp::Rcout<<N.row(j)<<"--"<<std::endl;
 
          ln_acp = ln_acp - (log_full_gamma(gamma_old,  Lambda, K, Mna, N.row(j)) - ln_new);
-        Rcpp::Rcout<<ln_acp<<"--"<<std::endl;
+        //Rcpp::Rcout<<ln_acp<<"--"<<std::endl;
         //Rcpp::Rcout<<log_full_gamma(gamma_old,  Lambda, K, Mna, N.row(j))<<std::endl;
        // Rcpp::Rcout<<"Step 1";
         ln_u= std::log(runif(gs_engine));
@@ -63,7 +63,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
 
         ww_g = pow(iter + 1,- hyp2);
 
-       Rcpp::Rcout<<"Step 2"<<std::endl;
+       //Rcpp::Rcout<<"Step 2"<<std::endl;
        adapt_var_pop_gamma = adapt_var_pop_gamma *
                                      std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));
 
