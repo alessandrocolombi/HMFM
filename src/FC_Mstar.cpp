@@ -10,10 +10,11 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     sample::rpoisson Poisson;
 
     // UPDATE ROUTINE
-    double p0 = lambda/( lambda + k*exp(log_sum)); 
+    double p0 = lambda/( lambda + k*exp(log_sum));
     // Select, via extraction from a uniform, which distribution sample from
     bool select_p0 = binary_decision(p0, gs_engine);
-
+  Rcpp::Rcout<<"elogsum:"<<exp(log_sum)<<std::endl;
+  Rcpp::Rcout<<"p0:"<<p0<<std::endl;
     if(select_p0)
         gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum)) + 1;
     else
@@ -22,7 +23,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Update M in the Gibbs Sampler
     gs_data.M = k + gs_data.Mstar;
     // Initialize S according to new M
-    gs_data.initialize_S(gs_data.M);
+    gs_data.allocate_S(gs_data.M);
     // Initialize tau according to new M
     gs_data.allocate_tau(gs_data.M);
 }

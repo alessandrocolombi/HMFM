@@ -18,7 +18,8 @@ for (j in 1:d) {
   data1[j, 1:n_j[j]] <- data_level
 }
 
-example_GDFMM_sampler(data1,2,2,2,123)
+data2<-data1[c(67,51,79,92,100,94,5,72,17),]
+example_GDFMM_sampler(data2,2,2,2,123)
 
 df1<-df %>%
   group_by(school_id) %>%

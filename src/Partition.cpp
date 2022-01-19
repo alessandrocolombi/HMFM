@@ -22,7 +22,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   //sample::rmultinomial<std::vector<unsigned int>> multinomial;
   sample::sample_index sample_index;
   // std::cout<<d<<std::endl;
-
+  C.clear();
   // Generate matrix of "probabilities" for each observation
   for(unsigned j=0; j<d; j++){
     std::vector<std::vector<double>> probs;
@@ -46,12 +46,14 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
       //std::cout<<v[j];
       //Create a vector for eve       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
       probs_max=*max_element(probs[i].begin(), probs[i].end());
-       //probs è una matrice che ha numero di righe variabile ma sempre M colonne
+      //probs è una matrice che ha numero di righe variabile ma sempre M colonne
       //std::cout<<probs_max<<std::endl;
       for(unsigned m=0; m<M; m++){
         probsvec(m)=exp(probs[i][m] - probs_max);
-       std::cout<<probsvec(m);
-        }
+       // Rcpp::Rcout<<" p:"<<probsvec(m)<<" ";
+      //  Rcpp::Rcout<<m;
+      }
+      //Rcpp::Rcout<<" -- ";
       probsmat.push_back(probsvec);
     }
 
@@ -61,46 +63,46 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Assegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
-        std::vector<unsigned int> v(n_j[j], 1);
-        C.push_back(v);
+      std::vector<unsigned int> v(n_j[j], 1);
+      C.push_back(v);
     }
     else{
       std::vector<unsigned int> dis;
 
       for (unsigned i=0; i<n_j[j]; i++) {
-          // VECCHIA VERSIONE
-          //double* arrayprobs = &probs[i][0];
-          //std::cout << sample_index(gs_engine, probsmat[i])<< "\n";
+        // VECCHIA VERSIONE
+        //double* arrayprobs = &probs[i][0];
+        //std::cout << sample_index(gs_engine, probsmat[i])<< "\n";
 
-          dis.push_back(sample_index(gs_engine, probsmat[i]));
-          // NUOVA VERSIONE
-          // std::vector<unsigned int> sample(M, 0);
-          // sample = multinomial(gs_engine, 1, probs[i]);
+        dis.push_back(sample_index(gs_engine, probsmat[i]));
+        // NUOVA VERSIONE
+        // std::vector<unsigned int> sample(M, 0);
+        // sample = multinomial(gs_engine, 1, probs[i]);
       }
       C.push_back(dis);
       /* per ogni dato nel livello j
-    Creiamo una matrice della stessa dimensione della matrice dei dati,
-    dove ogni riga contiene le etichette non ordinate per ciascun dato di
-    quel livello */ //
+       Creiamo una matrice della stessa dimensione della matrice dei dati,
+       dove ogni riga contiene le etichette non ordinate per ciascun dato di
+       quel livello */ //
     }
 
 
-/*
-    for(unsigned i=0; i<n_j[j]; i++){
-      for(unsigned m=0; m<M; m++){
-        std::cout<<probs[0][m];
-      }
-      std::cout<<std::endl;
-    }
-*/
+    /*
+     for(unsigned i=0; i<n_j[j]; i++){
+     for(unsigned m=0; m<M; m++){
+     std::cout<<probs[0][m];
+     }
+     std::cout<<std::endl;
+     }
+     */
   }
   // std::cout<<"step 3"<<std::endl;
   //create vector of allocated components
   /*for(unsigned int j=0; j<d; j++){
-    for(unsigned int i=0; i<n_j[j]; i++){
-      std::cout<<C[j][i];
-    }
-    std::cout<<std::endl;
+   for(unsigned int i=0; i<n_j[j]; i++){
+   std::cout<<C[j][i];
+   }
+   std::cout<<std::endl;
   }
    */
   // std::cout<<"step 4"<<std::endl;
@@ -121,10 +123,13 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   gs_data.K = k; // updating K in the struct gs_data
   gs_data.initialize_N(k); // initialize N according to new K
   gs_data.update_Ctilde(C, clust_out);
+  for(unsigned m=0; m<gs_data.K; m++){
+  Rcpp::Rcout<<gs_data.N_k[m]<< " ";
+  }
 }
 
 
 double Partition::log_norm(double x, double u, double s) const {
   const double ONE_OVER_SQRT_2PI = 0.39894228040143267793994605993438;
-  return log((ONE_OVER_SQRT_2PI/sqrt(s))*exp(-0.5*(x-u)*(x-u)/s));
+  return log((ONE_OVER_SQRT_2PI/std::sqrt(s))*std::exp(-0.5*(x-u)*(x-u)/s));
 }

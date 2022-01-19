@@ -40,7 +40,8 @@ struct GS_data{
     ~GS_data(){};
     /* METHODS */
     void initialize_Ctilde(const std::vector<unsigned int>& n_j);
-    void initialize_S(unsigned int M);
+    void initialize_S(unsigned int M,  const sample::GSL_RNG& gs_engine);
+    void allocate_S(unsigned int M);
     void initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine);
     void initialize_N(unsigned int K);
     // update methods;

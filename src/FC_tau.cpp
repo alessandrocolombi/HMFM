@@ -66,8 +66,8 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
-            Rcpp::Rcout << "mu[" << m << "] = " << mu_a << std::endl;
-             Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_a << std::endl;
+            //Rcpp::Rcout << "mu[" << m << "] = " << mu_a << std::endl;
+             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_a << std::endl;
         }
     }
 }

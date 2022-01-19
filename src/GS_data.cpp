@@ -9,7 +9,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     iterations = 0;
     K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
     Mstar = 3;//Mstar inizializzata dopo
-    M = 7;//da cambiare
+    M = 4;//da cambiare
     lambda = 2;//fixed
 
     for (unsigned int j = 0; j < dat.rows(); ++j) {
@@ -52,7 +52,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     //std::vector<double> U(d,0.0);
 
 
-    initialize_S(M);
+    initialize_S(M, gs_engine);
     initialize_tau(M, gs_engine);
     initialize_N(K);
     //Rcpp::Rcout<< p<<std::endl;
@@ -77,14 +77,24 @@ void GS_data::initialize_Ctilde(const std::vector<unsigned int>& n_j){
     }
 }
 
-void GS_data::initialize_S(unsigned int M){
-    //sample::rgamma rgamma;
+void GS_data::allocate_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
     for (int i = 0; i <d ; ++i) {
         for (int j = 0; j <M ; ++j) {
-            S(i,j)=1;
+            S(i,j)=0;;
         }
     }
+}
+
+void GS_data::initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine){
+  //sample::rgamma rgamma;
+  sample::rgamma Gamma;
+  S = GDFMM_Traits::MatRow(d, M);
+  for (int i = 0; i <d ; ++i) {
+    for (int j = 0; j <M ; ++j) {
+      S(i,j)=Gamma(gs_engine, gamma[j],1);;
+    }
+  }
 }
 
 void GS_data::initialize_N(unsigned int K){

@@ -11,7 +11,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     //sample::rgamma rgamma;
 
     // Data from G_stat
-    std::vector<double>& gamma = gs_data.gamma;
+    std::vector<double> gamma = gs_data.gamma;
     const unsigned int & d = gs_data.d;
     double Lambda=gs_data.lambda;// Initialization of some variable
     double K=gs_data.K;
@@ -31,6 +31,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
        // Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
        // }
     //}
+    Rcpp::Rcout<<"iter="<<iter<<std::endl;
     for (auto j=0;j<d;j++){
         gamma_old= gamma[j];
         //Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
@@ -40,11 +41,12 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         // Update of Gamma via Adapting Metropolis Hastings
         // *computation of quantities is in logarithm for numerical reasons*
         ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma));
-        //Rcpp::Rcout<<"ln_new"<<ln_new<<std::endl;
+        Rcpp::Rcout<<"ln_new"<<ln_new;
         gamma_new = std::exp(ln_new);
        //Rcpp::Rcout<<gamma_new;
         ln_acp =log_full_gamma(gamma_new, Lambda, K, Mna, N.row(j)) - lmedia; //da rivedere il tipo
-       //Rcpp::Rcout<<ln_acp<<"--"<<std::endl;
+        Rcpp::Rcout<<" logfulgamma gn"<<log_full_gamma(gamma_new, Lambda, K, Mna, N.row(j));
+       Rcpp::Rcout<<" ln_acp"<<ln_acp<<"--"<<std::endl;
        //cpp::Rcout<<gamma_new<<"--"<<std::endl;
        //cpp::Rcout<<N.row(j)<<"--"<<std::endl;
 
@@ -54,44 +56,47 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
        // Rcpp::Rcout<<"Step 1";
         ln_u= std::log(runif(gs_engine));
         if (ln_u  < ln_acp){
-            gamma[j] = gamma_new;
+          gs_data.gamma[j] = gamma_new;
             acc = acc + 1;
         } else {
-            gamma[j] = gamma_old;
+          gs_data.gamma[j] = gamma_old;
         }
 
-
+        //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
+        //Rcpp::Rcout << "gamma_" << j << gs_data.gamma[j] << update_status << std::endl;
         ww_g = pow(iter + 1,- hyp2);
 
-       //Rcpp::Rcout<<"Step 2"<<std::endl;
+
        adapt_var_pop_gamma = adapt_var_pop_gamma *
                                      std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));
 
-        if (adapt_var_pop_gamma < 0.01){
-            adapt_var_pop_gamma = 0.01;
+        if (adapt_var_pop_gamma < 1/pow(10,power)){
+            adapt_var_pop_gamma = 1/pow(10,power);
+          Rcpp::Rcout<<"è stronzo?"<<adapt_var_pop_gamma;
 
-        } else {
+        }
+        if(adapt_var_pop_gamma > pow(10,power)){
             adapt_var_pop_gamma = pow(10,power);
         }
 
     }
 }
 
-double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na,const GDFMM_Traits::MatUnsCol & n_jk)const{
+double  FC_gamma::log_full_gamma(double gamma, double Lambda, int k, double M_na,const GDFMM_Traits::MatUnsCol & n_jk)const{
         // Gamma Distribution to compute new proposal
     sample::pdfgamma pdfgamma;
         // Computation of the output
-        double out = std::log(pdfgamma(x,alpha,beta)) + lgamma(x * (M_na + k)) -lgamma(x *(M_na + k) + n_jk.sum()) -(k * lgamma(x)) + sumlgamma(x, n_jk);
+        double out = std::log(pdfgamma(gamma,alpha,1/beta)) + lgamma(gamma * (M_na + k)) -lgamma(gamma *(M_na + k) + n_jk.sum()) -(k * lgamma(gamma)) + sumlgamma(gamma, n_jk);
     // Rcpp::Rcout<<"std::log(pdfgamma(x,alpha,beta))"<< std::log(pdfgamma(x,alpha,beta));
     //Rcpp::Rcout<<"sumlgamma"<<sumlgamma(x, n_jk);
         return out;
     }
 
 
-double  FC_gamma::sumlgamma(double x, const GDFMM_Traits::MatUnsCol& n_jk) const{
+double  FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) const{
   double sum=0;
   for(unsigned i=0; i<n_jk.size(); i++){
-   sum+=lgamma(n_jk(i)+x);
+   sum+=lgamma(n_jk(i)+gamma);
   }
     //Rcpp::Rcout<<"Step slg";
   return sum;
