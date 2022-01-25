@@ -17,9 +17,41 @@ for (j in 1:d) {
   n_j[j] <- length(data_level)
   data1[j, 1:n_j[j]] <- data_level
 }
-
 data2<-data1[c(67,51,79,92,100,94,5,72,17),]
-example_GDFMM_sampler(data2,2,2,2,123)
+
+example_GDFMM_sampler(data2,6,6,2,123)
+
+y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp
+y1_m2 = rnorm(20, 0, 1/2) # 1st level, 2nd comp
+y2_m1 = rnorm(200,-3, 1/2) # 2nd level, 1st comp
+y2_m2 = rnorm(200, 3, 1/2) # 2nd level, 2nd comp
+y3_m1 = rnorm(200,-3, 1/2) # 3nd level, 1st comp
+y3_m2 = rnorm(50, 3, 1/2) # 3nd level, 2nd comp
+y3_m3 = rnorm(200, 0, 1/2) # 3nd level, 3rd comp
+data_level1 <- c(y1_m1, y1_m2)
+data_level2 <- c(y2_m1, y2_m2)
+data_level3 <- c(y3_m1, y3_m2, y3_m3)
+data_all <- c(data_level1, data_level2,data_level3)
+
+x11()
+par(mfrow = c(2,2))
+plot(density(data_level1),main="Density - Level 1", col = 'salmon', lwd = 3,
+     xlim = c(-20,20))
+plot(density(data_level2),main="Density - Level 2", col = 'aquamarine2', lwd = 3,
+     xlim = c(-20,20))
+plot(density(data_level3),main="Density - Level 3", col = 'aquamarine2', lwd = 3,
+     xlim = c(-20,20))
+plot(density(data_all),main="Density - all levels", col = 'purple', lwd = 3,
+     xlim = c(-20,20))
+
+d=3
+ncol_data <- max(length(data_level1), length(data_level2),length(data_level3))
+dat <- matrix(NA, nrow = d, ncol = ncol_data)
+dat[1, 1:length(data_level1)] <- data_level1
+dat[2, 1:length(data_level2)] <- data_level2
+dat[3, 1:length(data_level3)] <- data_level3
+
+example_GDFMM_sampler(dat,20,20,2,123)
 
 df1<-df %>%
   group_by(school_id) %>%

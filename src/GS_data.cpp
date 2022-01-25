@@ -81,7 +81,7 @@ void GS_data::allocate_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
     for (int i = 0; i <d ; ++i) {
         for (int j = 0; j <M ; ++j) {
-            S(i,j)=0;;
+            S(i,j)=0;
         }
     }
 }

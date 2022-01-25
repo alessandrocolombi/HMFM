@@ -60,7 +60,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 
     // std::cout<<"step 2"<<std::endl;
-    // Assegno tramite il sample su probs a ogni cluster un'etichetta
+    // Asegno tramite il sample su probs a ogni cluster un'etichetta
     //If M==1 populate C matrix with ones
     if (M == 1){
       std::vector<unsigned int> v(n_j[j], 1);
@@ -73,6 +73,11 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // VECCHIA VERSIONE
         //double* arrayprobs = &probs[i][0];
         //std::cout << sample_index(gs_engine, probsmat[i])<< "\n";
+        for(unsigned m=0; m<M; m++){
+          std::cout<<"probsmat da cui" <<probsmat[i](m);
+          // Rcpp::Rcout<<" p:"<<probsvec(m)<<" ";
+          //  Rcpp::Rcout<<m;
+        }
 
         dis.push_back(sample_index(gs_engine, probsmat[i]));
         // NUOVA VERSIONE

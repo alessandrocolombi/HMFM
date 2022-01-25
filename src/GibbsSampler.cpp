@@ -23,7 +23,13 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         FC_S S("S");
 
         FC_Lambda lambda("lambda");
-        std::vector<FullConditional*> fc{&U, &partition, &Mstar, &gamma,  &S, &tau, &lambda};
+        std::vector<FullConditional*> fc{&U,
+                                         &partition,
+                                         &Mstar,
+                                         &gamma,
+                                         &S,
+                                         &tau,
+                                         &lambda};
         FullConditionals=fc;
         //partition.update(gs_data, random_engine);
        // Mstar.update(gs_data, random_engine);

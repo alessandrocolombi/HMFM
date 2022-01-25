@@ -16,9 +16,9 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   Rcpp::Rcout<<"elogsum:"<<exp(log_sum)<<std::endl;
   Rcpp::Rcout<<"p0:"<<p0<<std::endl;
     if(select_p0)
-        gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum)) + 1;
+        gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum)); //Bosca camba questo nell'ultimo push
     else
-        gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum));
+        gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum)) + 1;
 
     // Update M in the Gibbs Sampler
     gs_data.M = k + gs_data.Mstar;

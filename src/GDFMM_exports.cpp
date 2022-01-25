@@ -37,7 +37,9 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
     std::vector<int> Mstar=Gibbs.out.Mstar;
 
     std::vector<int> K=Gibbs.out.K;
-
+    std::vector<double> lambda=Gibbs.out.lambda;
+    std::vector<std::vector<double>> U=Gibbs.out.U;
+    std::vector<std::vector<double>> gamma=Gibbs.out.gamma;
 
     // Parameters param(niter, burnin, thin);   // example of another class that stores useful options
 	if (P0_prior_name == "Normal-InvGamma")
@@ -55,7 +57,10 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 
 		//you can mix types in Rcpp lists
 		return Rcpp::List::create ( Rcpp::Named("Mstar")= Mstar,
-                                  	Rcpp::Named("K")= K
+                                  	Rcpp::Named("K")= K,
+                                  	Rcpp::Named("lambda")=lambda,
+                                  	Rcpp::Named("U")= U,
+                                  	Rcpp::Named("gamma")=gamma
                                   	);
 
 	}
