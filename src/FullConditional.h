@@ -10,7 +10,6 @@
 
 class FullConditional{
 public :
-    int id;
     std::string name;
     virtual void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) = 0;
     void print() const;

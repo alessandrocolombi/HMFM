@@ -34,7 +34,8 @@ public:
     unsigned int burn_in;
     unsigned int thin;
     out_data sample();
-    GibbsSampler(Eigen::MatrixXd const & data, unsigned int n, unsigned int b, unsigned int t, unsigned int seed);
+    GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
+             unsigned int thn, unsigned int seed, Rcpp::List option) ;
     out_data out;
 
 private:

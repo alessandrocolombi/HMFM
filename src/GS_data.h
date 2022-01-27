@@ -35,14 +35,17 @@ struct GS_data{
     // Partition *p; //Partition passed as reference because I've made a forward declaration (?)
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
-    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin, const sample::GSL_RNG& gs_engine);
+    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, unsigned int Lambda0,
+                unsigned int mu0, unsigned int nu0, unsigned int sigma0);
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
     void initialize_Partition(const std::vector<unsigned int>& n_j);
     void initialize_S(unsigned int M,  const sample::GSL_RNG& gs_engine);
     void allocate_S(unsigned int M);
-    void initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine);
+    void initialize_tau(unsigned int M, double nu0, double mu0, double sigma0,
+                        const sample::GSL_RNG& gs_engine);
     // update methods;
     void allocate_N(unsigned int K);
     void update_Ctilde(const std::vector< std::vector<unsigned int>> &C,

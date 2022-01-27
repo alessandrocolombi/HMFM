@@ -24,7 +24,8 @@ int try_rcpp(int x){
 
 // [[Rcpp::export]]
 
-Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin , unsigned int seed,Rcpp::String P0_prior_name){
+Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
+			 unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, Rcpp::List option){
 
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
@@ -32,10 +33,9 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
 	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
 	  //GS_data g(dat, n_iter,burn_in,thin); non posso più inizializzare gsdata fuori
-    GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed);
+    GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed, option);
     //out_data out=Gibbs.sample();
     std::vector<int> Mstar=Gibbs.out.Mstar;
-
     std::vector<int> K=Gibbs.out.K;
     std::vector<double> lambda=Gibbs.out.lambda;
     std::vector<std::vector<double>> U=Gibbs.out.U;

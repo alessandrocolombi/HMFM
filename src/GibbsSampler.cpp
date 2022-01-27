@@ -6,29 +6,47 @@
 #include <RcppEigen.h>
 
 
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b,
-             unsigned int t, unsigned int seed):random_engine(seed){
-        n_iter=n;
-        burn_in=b;
-        thin=t;
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
+             unsigned int thn, unsigned int seed, Rcpp::List option) {
+        // Initialization of random_engine with selected seed
+        random_engine = sample::GSL_RNG(seed);
+        // Extract hyper_parameter and initialization values from option
+        n_iter = n;
+        burn_in = b_in;
+        thin = thn;
+
+        double Mstar0 = Rcpp::as<double>(option["Mstar0"]);
+        double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
+        double mu0 = Rcpp::as<double>(option["mu0"]);
+        double nu0 = Rcpp::as<double>(option["nu0"]);
+        double sigma0 = Rcpp::as<double>(option["sigma0"]);
+        double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
+        double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
+        unsigned int pow = Rcpp::as<unsigned int>(option["Adapt_MH_power_lim"]);
+        double adapt_var0 = Rcpp::as<double>(option["Adapt_MH_var0"]);
+        double k0 = Rcpp::as<double>(option["k0"]);
+        double a1 = Rcpp::as<double>(option["alpha_gamma"]);
+        double b1 = Rcpp::as<double>(option["beta_gamma"]);
+        double a2 = Rcpp::as<double>(option["alpha_lambda"]);
+        double b2 = Rcpp::as<double>(option["beta_lambda"]);
         // Initialize gs_data with the correct random seed
-        gs_data = GS_data(data, n_iter, burn_in, thin, random_engine);
+        gs_data = GS_data(data, n_iter, burn_in, thin, random_engine, Mstar0, Lambda0, mu0, nu0, sigma0);
         Partition partition("Partition");
-        // g.p=&partition;
         FC_Mstar Mstar("Mstar");
-        FC_gamma gamma("gamma");
-        FC_tau tau("tau");
+        FC_gamma gamma("gamma", h1, h2, pow, adapt_var0, a1, b1);
+        FC_tau tau("tau", nu0, sigma0, mu0, k0);
         FC_U U("U");
         FC_S S("S");
-        FC_Lambda lambda("lambda");
+        FC_Lambda lambda("lambda", a2, b2);
 
         std::vector<FullConditional*> fc{&U,
                                          &partition,
-                                         &Mstar,
-                                         &gamma,
+                                         //&Mstar,
+                                         //&gamma,
                                          &S,
-                                         &tau,
-                                         &lambda};
+                                         //&tau,
+                                         //&lambda
+                                         };
         FullConditionals=fc;
         //partition.update(gs_data, random_engine);
        // Mstar.update(gs_data, random_engine);

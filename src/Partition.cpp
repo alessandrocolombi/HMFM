@@ -74,7 +74,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //double* arrayprobs = &probs[i][0];
         //std::cout << sample_index(gs_engine, probsmat[i])<< "\n";
         for(unsigned m=0; m<M; m++){
-          std::cout<<"probsmat da cui" <<probsmat[i](m);
+          // std::cout<<"probsmat da cui" <<probsmat[i](m);
           // Rcpp::Rcout<<" p:"<<probsvec(m)<<" ";
           //  Rcpp::Rcout<<m;
         }
@@ -129,7 +129,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   gs_data.allocate_N(k); // initialize N according to new K
   gs_data.update_Ctilde(C, clust_out);
   for(unsigned m=0; m<gs_data.K; m++){
-  Rcpp::Rcout<<gs_data.N_k[m]<< " ";
+      Rcpp::Rcout<<gs_data.N_k[m]<< " ";
   }
 }
 
