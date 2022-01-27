@@ -5,7 +5,7 @@
 
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,const sample::GSL_RNG& gs_engine,
-                 unsigned int Mstar0, unsigned int Lambda0, unsigned int mu0, unsigned int nu0, unsigned int sigma0) {
+                 unsigned int Mstar0, double Lambda0, double mu0, double nu0, double sigma0) {
 
     iterations = 0;
     K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
@@ -44,7 +44,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     // Initialization of partition data structures
     initialize_Partition(n_j);
     // Initialization of gamma and U vector
-    gamma = std::vector<double>(d, 1);
+    gamma = std::vector<double>(d, 1.0);
     U = std::vector<double>(d, 0.0);
 
     /*for (int l = 0; l <K ; ++l) {

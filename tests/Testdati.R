@@ -55,7 +55,7 @@ dat[3, 1:length(data_level3)] <- data_level3
 option<-list("Mstar0"=2,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5,
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,
              "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "Adapt_MH_var0"=1)
 example_GDFMM_sampler(dat,10,10,2,123,option = option)
 
 df1<-df %>%

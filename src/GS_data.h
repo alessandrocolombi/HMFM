@@ -36,8 +36,8 @@ struct GS_data{
     //-----------------------------------------------------------//
     /* CONSTRUCTOR */
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, unsigned int Lambda0,
-                unsigned int mu0, unsigned int nu0, unsigned int sigma0);
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0,
+                double mu0, double nu0, double sigma0);
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
