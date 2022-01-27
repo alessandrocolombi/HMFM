@@ -126,7 +126,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
   // std::cout<<"step 5"<<k<<std::endl;
   gs_data.K = k; // updating K in the struct gs_data
-  gs_data.initialize_N(k); // initialize N according to new K
+  gs_data.allocate_N(k); // initialize N according to new K
   gs_data.update_Ctilde(C, clust_out);
   for(unsigned m=0; m<gs_data.K; m++){
   Rcpp::Rcout<<gs_data.N_k[m]<< " ";

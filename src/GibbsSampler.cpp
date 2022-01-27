@@ -11,9 +11,8 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         n_iter=n;
         burn_in=b;
         thin=t;
-        GS_data g(data, n_iter, burn_in, thin, random_engine);
-        //pensare un modo per cambiare questo
-        //gs_data=g;
+        // Initialize gs_data with the correct random seed
+        gs_data = GS_data(data, n_iter, burn_in, thin, random_engine);
         Partition partition("Partition");
         // g.p=&partition;
         FC_Mstar Mstar("Mstar");
@@ -21,8 +20,8 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         FC_tau tau("tau");
         FC_U U("U");
         FC_S S("S");
-
         FC_Lambda lambda("lambda");
+
         std::vector<FullConditional*> fc{&U,
                                          &partition,
                                          &Mstar,
@@ -44,28 +43,29 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
             Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
 
             auto t_start = std::chrono::high_resolution_clock::now();
-            full_cond->update(g, random_engine);
+            full_cond->update(gs_data, random_engine);
             auto t_end = std::chrono::high_resolution_clock::now();
             double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
             Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
-            g.iterations=it;
+            gs_data.iterations = it;
+
 
 
         }
-        Rcpp::Rcout<<"\nValue of M : " << g.M << " - Value of K : " << g.K <<std::endl;
+        Rcpp::Rcout<<"\nValue of M : " << gs_data.M << " - Value of K : " << gs_data.K <<std::endl;
         //Rcpp::Rcout<< "finoa qua"<<std::endl;
         if(it>burn_in && it%thin == 0){
-            out.K.push_back(g.K);
-            out.Mstar.push_back(g.Mstar);
-            out.lambda.push_back(g.lambda);
-            out.Ctilde.push_back(g.Ctilde);
-            out.S.push_back(g.S);
+            out.K.push_back(gs_data.K);
+            out.Mstar.push_back(gs_data.Mstar);
+            out.lambda.push_back(gs_data.lambda);
+            out.Ctilde.push_back(gs_data.Ctilde);
+            out.S.push_back(gs_data.S);
             std::vector< std::vector<double>> tau;
-            tau.push_back(g.mu);
-            tau.push_back(g.sigma);
+            tau.push_back(gs_data.mu);
+            tau.push_back(gs_data.sigma);
             out.tau.push_back(tau);
-            out.U.push_back(g.U);
-            out.gamma.push_back(g.gamma);
+            out.U.push_back(gs_data.U);
+            out.gamma.push_back(gs_data.gamma);
         }
 
        // Rcpp::Rcout<< k;

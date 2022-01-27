@@ -40,7 +40,7 @@ public:
 private:
     std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
     sample::GSL_RNG random_engine;
-    //GS_data gs_data; // Passato
+    GS_data gs_data; // Passato
      // default -> idealmente questo era output_data che però è diventato una struct
 
     //BOSCA -> PETER  peter qua io ho rimesso la struct ma non sono sicuro sia il metodo migliore

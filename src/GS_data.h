@@ -39,12 +39,12 @@ struct GS_data{
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
-    void initialize_Ctilde(const std::vector<unsigned int>& n_j);
+    void initialize_Partition(const std::vector<unsigned int>& n_j);
     void initialize_S(unsigned int M,  const sample::GSL_RNG& gs_engine);
     void allocate_S(unsigned int M);
     void initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine);
-    void initialize_N(unsigned int K);
     // update methods;
+    void allocate_N(unsigned int K);
     void update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
                             const std::vector<unsigned int> &clust_out);
     void update_log_sum();

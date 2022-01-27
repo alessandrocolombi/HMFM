@@ -34,27 +34,24 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
                 break;
 
             }
-            if(i == dat.cols()-1){n_j.push_back(i);}
+            if(i == dat.cols()-1){n_j.push_back(i+1);}
         }
         //Rcpp::Rcout<<n_j[j]<<std::endl;
     }
-    initialize_Ctilde(n_j);
-    for (int k = 0; k < d; ++k) {
-        gamma.push_back(1);
-        U.push_back(0);
-    }
+    // Initialization of partition data structures
+    initialize_Partition(n_j);
+    // Initialization of gamma and U vector
+    gamma = std::vector<double>(d, 1.0);
+    U = std::vector<double>(d, 0.0);
 
-    for (int l = 0; l <K ; ++l) {
+    /*for (int l = 0; l <K ; ++l) {
         N_k.push_back(0);
 
-    }
-
+    }*/
     //std::vector<double> U(d,0.0);
-
-
+    // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine);
     initialize_tau(M, gs_engine);
-    initialize_N(K);
     //Rcpp::Rcout<< p<<std::endl;
 }
 
@@ -68,19 +65,25 @@ void GS_data::update_log_sum(){
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
 }
 
-void GS_data::initialize_Ctilde(const std::vector<unsigned int>& n_j){
+void GS_data::initialize_Partition(const std::vector<unsigned int>& n_j){
     // Initialize Ctilde so that it assign every observation to the same cluster
     Ctilde.clear();
     for(size_t j = 0; j < d; j++){
         std::vector<unsigned int> row_j(n_j[j], 1);
         Ctilde.push_back(row_j);
     }
+    // Initialize Matrix N (recall that all observations are assigned to cluster 1)
+    N = GDFMM_Traits::MatUnsCol(d, K);
+    for (unsigned int j = 0; j <d ; ++j)
+        N(j,0) = n_j[j];
+    // Initialize N_k accordingly
+    N_k = std::vector<unsigned int>(1, std::accumulate(n_j.begin(), n_j.end(), 0));
 }
 
 void GS_data::allocate_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
-    for (int i = 0; i <d ; ++i) {
-        for (int j = 0; j <M ; ++j) {
+    for (unsigned int i = 0; i <d ; ++i) {
+        for (unsigned int j = 0; j <M ; ++j) {
             S(i,j)=0;
         }
     }
@@ -90,18 +93,18 @@ void GS_data::initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine){
   //sample::rgamma rgamma;
   sample::rgamma Gamma;
   S = GDFMM_Traits::MatRow(d, M);
-  for (int i = 0; i <d ; ++i) {
-    for (int j = 0; j <M ; ++j) {
-      S(i,j)=Gamma(gs_engine, gamma[j],1);;
+  for (unsigned int j = 0; j <d ; ++j) {
+    for (unsigned int m = 0; m <M ; ++m) {
+      S(j,m)=Gamma(gs_engine, gamma[j],1);
     }
   }
 }
 
-void GS_data::initialize_N(unsigned int K){
+void GS_data::allocate_N(unsigned int K){
     N = GDFMM_Traits::MatUnsCol(d, K);
-    for (int i = 0; i <d ; ++i) {
-      for (int j = 0; j<K ; ++j){
-        N(i,j) = 0;}
+    for (unsigned int j = 0; j <d ; ++j) { // Andre : penso che il ciclo for sia totalmente inutile, perchè
+      for (unsigned int k = 0; k<K ; ++k){ //         l'inizializzazione dovrebbe già avvenire a 0 --> VERIFICARE
+        N(j,k) = 0;}
     }
     N_k = std::vector<unsigned int>(K, 0);
 }
@@ -113,7 +116,7 @@ void GS_data::initialize_tau(unsigned int M, const sample::GSL_RNG& gs_engine){
     sample::rgamma Gamma;
     sample::rnorm rnorm;
 
-    for( size_t m = 0; m < M; m++){
+    for(unsigned m = 0; m < M; m++){
         sigma[m] =  1 / Gamma(gs_engine, 2.5, 2 / (2.5*40));
         mu[m] = rnorm(gs_engine, 60, sqrt(sigma[m]));
   }
