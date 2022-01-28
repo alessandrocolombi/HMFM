@@ -58,9 +58,9 @@ Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_
 		//you can mix types in Rcpp lists
 		return Rcpp::List::create ( Rcpp::Named("Mstar")= Mstar,
                                   	Rcpp::Named("K")= K,
-                                  	Rcpp::Named("lambda")=lambda,
-                                  	Rcpp::Named("U")= U,
-                                  	Rcpp::Named("gamma")=gamma
+                                  	Rcpp::Named("lambda")=lambda
+                                  	//Rcpp::Named("U")= U
+                                  	//Rcpp::Named("gamma")=gamma
                                   	);
 
 	}

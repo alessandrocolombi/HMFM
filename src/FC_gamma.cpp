@@ -26,11 +26,6 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     double ln_acp;
     double ln_u;
     double ww_g;
-    //for (int i = 1; i < 100; ++i) {
-        //for (auto j=0;j<d;j++){
-       // Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
-       // }
-    //}
     Rcpp::Rcout<<"iter="<<iter<<std::endl;
     for (auto j=0;j<d;j++){
         gamma_old= gamma[j];
