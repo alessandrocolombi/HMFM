@@ -24,7 +24,7 @@ int try_rcpp(int x){
 
 // [[Rcpp::export]]
 
-Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
+Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
 			 unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, Rcpp::List option){
 
 	// Note that there is not the //' @export command. The user can not call this function.

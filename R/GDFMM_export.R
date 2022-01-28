@@ -8,7 +8,7 @@ hello2 <- function(x) {
   return(x+10)
 }
 
-#' The R function
+#' GDFMM Gibbs Sampler, all updates
 #'
 #' @param data input data.
 #' @param niter number of iterations
@@ -18,7 +18,7 @@ hello2 <- function(x) {
 #' @param option list with initial values, hyperparameters and other options
 #' @return what it returns
 #' @export
-example_GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-InvGamma", option) {
+GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-InvGamma", option) {
 
   cat('\n This is the R function: ')
   #Data check and pre-processing
@@ -33,7 +33,7 @@ example_GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "No
 
   cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
   # This is just an example, of course you can save the c++ output and perform further operations in R
-  return( GDFMM:::example_GDFMM_sampler(data, niter, burnin, thin,seed, P0.prior, option))
+  return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option))
 }
 
 
