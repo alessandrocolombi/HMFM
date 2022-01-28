@@ -35,16 +35,19 @@ data_level2 <- c(y2_m1, y2_m2)
 data_level3 <- c(y3_m1, y3_m2, y3_m3)
 data_all <- c(data_level1, data_level2,data_level3)
 
-x11()
-par(mfrow = c(2,2))
-plot(density(data_level1),main="Density - Level 1", col = 'salmon', lwd = 3,
-     xlim = c(-20,20))
-plot(density(data_level2),main="Density - Level 2", col = 'aquamarine2', lwd = 3,
-     xlim = c(-20,20))
-plot(density(data_level3),main="Density - Level 3", col = 'aquamarine2', lwd = 3,
-     xlim = c(-20,20))
-plot(density(data_all),main="Density - all levels", col = 'purple', lwd = 3,
-     xlim = c(-20,20))
+plot = F
+if(plot){
+    x11()
+    par(mfrow = c(2,2))
+    plot(density(data_level1),main="Density - Level 1", col = 'salmon', lwd = 3,
+         xlim = c(-20,20))
+    plot(density(data_level2),main="Density - Level 2", col = 'aquamarine2', lwd = 3,
+         xlim = c(-20,20))
+    plot(density(data_level3),main="Density - Level 3", col = 'aquamarine2', lwd = 3,
+         xlim = c(-20,20))
+    plot(density(data_all),main="Density - all levels", col = 'purple', lwd = 3,
+         xlim = c(-20,20))
+}
 
 d=3
 ncol_data <- max(length(data_level1), length(data_level2),length(data_level3))
@@ -53,11 +56,18 @@ dat[1, 1:length(data_level1)] <- data_level1
 dat[2, 1:length(data_level2)] <- data_level2
 dat[3, 1:length(data_level3)] <- data_level3
 option<-list("Mstar0"=2,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5,
-             "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,
+             "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "Adapt_MH_var0"=1)
-example_GDFMM_sampler(dat,10,10,2,123,option = option)
-
+             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+GDFMM = example_GDFMM_sampler(dat,1000,5000,2,123,option = option)
+plot_GDFMM = T
+if(plot_GDFMM){
+  x11()
+  par(mfrow = c(1,3))
+  hist(GDFMM$Mstar)
+  hist(GDFMM$K)
+  hist(GDFMM$lambda)
+}
 df1<-df %>%
   group_by(school_id) %>%
   mutate(avgmathscore = mean(math_score), maxms=max(math_score), minms=min(math_score))%>%as.data.frame()

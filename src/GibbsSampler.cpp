@@ -7,28 +7,44 @@
 
 
 GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-             unsigned int thn, unsigned int seed, Rcpp::List option) {
-        // Initialization of random_engine with selected seed
-        random_engine = sample::GSL_RNG(seed);
+             unsigned int thn, unsigned int seed, Rcpp::List option) : random_engine(seed) {
         // Extract hyper_parameter and initialization values from option
         n_iter = n;
         burn_in = b_in;
         thin = thn;
 
-        double Mstar0 = Rcpp::as<double>(option["Mstar0"]);
+        Rcpp::Rcout << "PRIMA Rcpp::as " << std::endl;
+        unsigned int Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
+        Rcpp::Rcout << "Mstar0 : " << Mstar0 <<std::endl;
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
+        Rcpp::Rcout << "Lambda0 : " << Lambda0 <<std::endl;
         double mu0 = Rcpp::as<double>(option["mu0"]);
+        Rcpp::Rcout << "mu0: " << mu0 <<std::endl;
         double nu0 = Rcpp::as<double>(option["nu0"]);
+        Rcpp::Rcout << "nu0: " << nu0 <<std::endl;
         double sigma0 = Rcpp::as<double>(option["sigma0"]);
+        Rcpp::Rcout << "sigma0: " << sigma0 <<std::endl;
         double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
+        Rcpp::Rcout << "h1: " << h1 <<std::endl;
         double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
+        Rcpp::Rcout << "h2: " << h2 <<std::endl;
         unsigned int pow = Rcpp::as<unsigned int>(option["Adapt_MH_power_lim"]);
+        Rcpp::Rcout << "Pow: " << pow <<std::endl;
         double adapt_var0 = Rcpp::as<double>(option["Adapt_MH_var0"]);
+        Rcpp::Rcout << "adapt_var0: " << adapt_var0 <<std::endl;
         double k0 = Rcpp::as<double>(option["k0"]);
+        Rcpp::Rcout << "k0: " << k0 <<std::endl;
         double a1 = Rcpp::as<double>(option["alpha_gamma"]);
+        Rcpp::Rcout << "a1: " << a1 <<std::endl;
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
+        Rcpp::Rcout << "b1: " << b1 <<std::endl;
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
+        Rcpp::Rcout << "a2: " << a2 <<std::endl;
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
+        Rcpp::Rcout << "b2: " << b2 <<std::endl;
+        
+        Rcpp::Rcout << "DOPO Rcpp::as " << std::endl;
+        
         // Initialize gs_data with the correct random seed
         gs_data = GS_data(data, n_iter, burn_in, thin, random_engine, Mstar0, Lambda0, mu0, nu0, sigma0);
         Partition partition("Partition");
@@ -41,13 +57,13 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
 
         std::vector<FullConditional*> fc{&U,
                                          &partition,
-                                         //&Mstar,
-                                         //&gamma,
+                                         &Mstar,
+                                         &gamma,
                                          &S,
-                                         //&tau,
-                                         //&lambda
+                                         &tau,
+                                         &lambda
                                          };
-        FullConditionals=fc;
+        FullConditionals = fc;
         //partition.update(gs_data, random_engine);
        // Mstar.update(gs_data, random_engine);
 

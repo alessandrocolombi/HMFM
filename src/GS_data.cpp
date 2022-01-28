@@ -4,12 +4,12 @@
 
 
 
-GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,const sample::GSL_RNG& gs_engine,
-                 unsigned int Mstar0, double Lambda0, double mu0, double nu0, double sigma0) {
+GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0,
+                double mu0, double nu0, double sigma0) {
 
     iterations = 0;
     K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
-
     Mstar = Mstar0; //Mstar inizializzata dopo
     lambda = Lambda0; //fixed
 
@@ -25,28 +25,31 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d = dat.rows();
-    //Rcpp::Rcout << "d is : " << d << std::endl;
-    //std::cout<<d<<std::endl;
+    Rcpp::Rcout << "Data read, d is : " << d << std::endl;
 
+    // Initialization of n_j
+    n_j = std::vector<unsigned int>(d, 0);    
     for (unsigned int j = 0; j < d; ++j) {
-
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
 
             if(std::isnan(dat(j,i))){
-                n_j.push_back(i);
+                n_j[j] = i;
                 break;
 
             }
-            if(i == dat.cols()-1){n_j.push_back(i+1);}
+            if(i == dat.cols()-1){n_j[j] = i+1;}
         }
         //Rcpp::Rcout<<n_j[j]<<std::endl;
     }
+    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << n_j[d-1]<< std::endl;
     // Initialization of partition data structures
     initialize_Partition(n_j);
+    Rcpp::Rcout << "Partition Initialized "<< std::endl;
     // Initialization of gamma and U vector
     gamma = std::vector<double>(d, 1.0);
+    Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 0.0);
-
+    Rcpp::Rcout << "U vector Initialized "<< std::endl;
     /*for (int l = 0; l <K ; ++l) {
         N_k.push_back(0);
 
@@ -54,7 +57,9 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     //std::vector<double> U(d,0.0);
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine);
+    Rcpp::Rcout << "S matrix Initialized "<< std::endl;
     initialize_tau(M, nu0, mu0, sigma0, gs_engine);
+    Rcpp::Rcout << "tau Initialized "<< std::endl;
     //Rcpp::Rcout<< p<<std::endl;
 }
 
@@ -85,9 +90,9 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& n_j){
 
 void GS_data::allocate_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
-    for (unsigned int i = 0; i <d ; ++i) {
-        for (unsigned int j = 0; j <M ; ++j) {
-            S(i,j)=0;
+    for (unsigned int j = 0; j <d ; ++j) {
+        for (unsigned int m = 0; m <M ; ++m) {
+            S(j,m) = 0;
         }
     }
 }
