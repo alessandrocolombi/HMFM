@@ -20,9 +20,8 @@ for (j in 1:d) {
 data2<-data1[c(67,51,79,92,100,94,5,72,17),]
 option2 <-list("Mstar0"=3,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"=2.5,"sigma0"=var(as.vector(data2), na.rm=T),
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,  "Adapt_MH_var0"=1,
-              "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
-example_GDFMM_sampler(data2,2000,2000,2,seed=123, option=option2)
+              "k0"= 10000, "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+GS = GDFMM_sampler(data1,500,500,3,seed=123, option=option2)
 
 y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp
 y1_m2 = rnorm(20, 0, 1/2) # 1st level, 2nd comp
@@ -36,7 +35,7 @@ data_level2 <- c(y2_m1, y2_m2)
 data_level3 <- c(y3_m1, y3_m2, y3_m3)
 data_all <- c(data_level1, data_level2,data_level3)
 
-plot = T
+plot = F
 if(plot){
     x11()
     par(mfrow = c(2,2))
@@ -56,11 +55,12 @@ dat <- matrix(NA, nrow = d, ncol = ncol_data)
 dat[1, 1:length(data_level1)] <- data_level1
 dat[2, 1:length(data_level2)] <- data_level2
 dat[3, 1:length(data_level3)] <- data_level3
-option<-list("Mstar0"=2,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5,
+option<-list("Mstar0" =10,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5,
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
-GDFMM = xample_GDFMM_sampler(dat,2500,5000,2,seed = 123,option = option)
+GDFMM = GDFMM_sampler(dat, 2500, 5000, 2, seed = 123, option = option)
+
 plot_GDFMM = T
 if(plot_GDFMM){
   x11()
@@ -69,9 +69,6 @@ if(plot_GDFMM){
   hist(GDFMM$K)
   hist(GDFMM$lambda)
 }
-
-
-
 
 df1<-df %>%
   group_by(school_id) %>%
