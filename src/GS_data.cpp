@@ -28,7 +28,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     Rcpp::Rcout << "Data read, d is : " << d << std::endl;
 
     // Initialization of n_j
-    n_j = std::vector<unsigned int>(d, 0);    
+    n_j = std::vector<unsigned int>(d, 0);
     for (unsigned int j = 0; j < d; ++j) {
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
 
@@ -117,7 +117,7 @@ void GS_data::initialize_tau(unsigned int M, double nu0, double mu0, double sigm
     sample::rnorm rnorm;
 
     for(unsigned m = 0; m < M; m++){
-        sigma[m] =  1 / Gamma(gs_engine, nu0, 2 / (nu0*sigma0)); // prendo
+        sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0)); // prendo
         mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
   }
 }
