@@ -12,7 +12,8 @@ struct out_data{
   //vectors
   std::vector<std::vector< std::vector<unsigned int>>> Ctilde;
   std::vector<GDFMM_Traits::MatRow> S;
-  std::vector<std::vector< std::vector<double>>> tau;
+  std::vector<std::vector< double>> mu;
+  std::vector<std::vector< double>> sigma;
   //output
   std::vector<std::vector<double>> U; // auxiliary variable
   std::vector<std::vector<double>> gamma; // vector of d gamma, one for each group

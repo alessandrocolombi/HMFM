@@ -114,10 +114,8 @@ void GibbsSampler::store_params_values() {
   out.lambda.push_back(gs_data.lambda);
   out.Ctilde.push_back(gs_data.Ctilde);
   out.S.push_back(gs_data.S);
-  std::vector< std::vector<double>> tau;
-  tau.push_back(gs_data.mu);
-  tau.push_back(gs_data.sigma);
-  out.tau.push_back(tau);
+  out.mu.push_back(gs_data.mu);
+  out.sigma.push_back(gs_data.sigma);
   out.U.push_back(gs_data.U);
   out.gamma.push_back(gs_data.gamma);
 }

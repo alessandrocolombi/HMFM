@@ -3,10 +3,11 @@
 #' @param x input parameter
 #' @return returns x plus 10
 #' @export
-hello2 <- function(x) {
+hello2 <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-InvGamma", option) {
   print("Hello, world!")
   return(x+10)
 }
+
 
 #' GDFMM Gibbs Sampler, all updates
 #'
@@ -20,6 +21,11 @@ hello2 <- function(x) {
 #' @export
 GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-InvGamma", option) {
 
+
+  maxind <- function(vout) {
+    maxind<-as.character(as.data.frame(table(vout))[which(as.data.frame(table(vout))$Freq==max(table(vout))),1])
+    return(maxind)
+  }
   cat('\n This is the R function: ')
   #Data check and pre-processing
   #--> handle here different types of input types. User you be able to pass the data the simplest possible ways. For example, this
@@ -28,12 +34,25 @@ GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-Inv
   #Check number of iterations
 
   #Check P0.prior
-
+  output<-GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option)
   #Check options
+  K<-maxind(output$K)
+  Mstar<-maxind(output$Mstar)
+  Lambda<-mean(output$lambda) #shall we use median or mean
 
-  cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
+  # vec<-'vec'
+  # for ( i in 1:length(output$C)){
+  #   for ( j in j )
+  #     for ( k in k )
+  #   vec<-c(vec,output$C[[i]][j,k])
+  #   maxind(vec)
+  # }
+
+  cat('Estimated K:',K,'\n')
+  cat('Estimated Mstar:', Mstar, '\n')
+  cat("Estimated Lambda:", Lambda, '\n')
   # This is just an example, of course you can save the c++ output and perform further operations in R
-  return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option))
+  return(output)
 }
 
 

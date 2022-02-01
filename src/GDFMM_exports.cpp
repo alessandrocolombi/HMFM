@@ -40,6 +40,11 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
     std::vector<double> lambda=Gibbs.out.lambda;
     std::vector<std::vector<double>> U=Gibbs.out.U;
     std::vector<std::vector<double>> gamma=Gibbs.out.gamma;
+    std::vector<std::vector<std::vector<unsigned int>>> C=Gibbs.out.Ctilde;
+    std::vector<std::vector<double>> mu=Gibbs.out.mu;
+    std::vector<std::vector<double>> sigma=Gibbs.out.sigma;
+    std::vector<GDFMM_Traits::MatRow> S=Gibbs.out.S;
+
 
     // Parameters param(niter, burnin, thin);   // example of another class that stores useful options
 	if (P0_prior_name == "Normal-InvGamma")
@@ -47,18 +52,21 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 		// Hyperparameters hy(param1,param2,param3); 			//example of the creation of a custom c++ class
 		//P0Prior P0(hy.nu, ...);
 			    //--> example of the creation of a custom c++ class that defines the P0prior to be used in this case
-
 		//SamplingStrategy sampler_obj(data, param, hy, P0);   //example of sampler object creation
 		//sampler_obj(...);
 				//--> run the sampler. prefer to use the call operator instead of a method called run().
 
 
 		//Post-processing and return
-
+   // Rcpp::Named("C")=C;
 		//you can mix types in Rcpp lists
 		return Rcpp::List::create ( Rcpp::Named("Mstar")= Mstar,
                                   	Rcpp::Named("K")= K,
-                                  	Rcpp::Named("lambda")=lambda
+                                  	Rcpp::Named("lambda")=lambda,
+                                    Rcpp::Named("C")=C,
+                                    Rcpp::Named("mu")=mu,
+                                    Rcpp::Named("sigma")=sigma,
+                                    Rcpp::Named("S")=S
                                   	//Rcpp::Named("U")= U
                                   	//Rcpp::Named("gamma")=gamma
                                   	);
