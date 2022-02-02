@@ -117,16 +117,16 @@ if(plot){
   par(mfrow = c(2,2))
   plot(density(data_level1),main="Density - Level 1", col = 'salmon', lwd = 3,
        xlim = c(-20,20))
-  lines(density(simul1), lty="dashed", lwd=3)
+  lines(density(simul1), lty="dashed", lwd=2)
   plot(density(data_level2),main="Density - Level 2", col = 'aquamarine2', lwd = 3,
        xlim = c(-20,20))
-  lines(density(simul2), lty="dashed", lwd=3)
+  lines(density(simul2), lty="dashed", lwd=2)
   plot(density(data_level3),main="Density - Level 3", col = 'aquamarine2', lwd = 3,
        xlim = c(-20,20))
-  lines(density(simul3), lty="dashed", lwd=3)
+  lines(density(simul3), lty="dashed", lwd=2)
   plot(density(data_all),main="Density - all levels", col = 'purple', lwd = 3,
        xlim = c(-20,20))
-    lines(density(simul), lty="dashed", lwd=3)
+    lines(density(simul), lty="dashed", lwd=2)
 }
 
 plot_GDFMM = T
