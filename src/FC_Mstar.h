@@ -4,10 +4,11 @@
 #include "FullConditional.h"
 
 class FC_Mstar : public FullConditional{
-
+private:
+    bool Partition_fixed;
 public:
 
-    FC_Mstar(std::string na){name=na;};
+    FC_Mstar(std::string na, bool FixPart) : Partition_fixed(FixPart){ name = na; };
     FC_Mstar(/* args */) {};
     ~FC_Mstar() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;

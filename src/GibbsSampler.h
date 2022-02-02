@@ -1,7 +1,3 @@
-//
-// Created by pietr on 12/12/2021.
-//
-
 #ifndef GDFMM_GIBBSSAMPLER_H
 #define GDFMM_GIBBSSAMPLER_H
 
@@ -29,13 +25,11 @@ public:
     unsigned int burn_in;
     unsigned int thin;
     void sample();
-    // Constructor for update of all GDFMM values
-    GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-             unsigned int thn, unsigned int seed,std::string P0_prior_name, Rcpp::List option) ;
-    // Constructor when number of components (M) is fixed
-    GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-            unsigned int thn, unsigned int seed, std::string P0_prior_name, unsigned int M,
-            Rcpp::List option);
+
+    // Constructor 
+    GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsigned int b_in, unsigned int thn,
+                unsigned int seed, std::string P0_prior_name, bool FixPart, Rcpp::List option);
+                
     // Data structure for the output
     out_data out;
 
@@ -46,7 +40,7 @@ private:
     std::string model;
     void store_params_values();
     void GS_Step();
-    bool M_fixed;
+    bool Partition_fixed;
 };
 
 

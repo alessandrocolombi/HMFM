@@ -5,17 +5,18 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 
-// Consrtructor to update all variables of the GDFMM model
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-            unsigned int thn, unsigned int seed, std::string P0_prior_name, Rcpp::List option) :
-            random_engine(seed), M_fixed(false) {
-
+// Consrtructor
+GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsigned int b_in,
+            unsigned int thn, unsigned int seed, std::string P0_prior_name, bool FixPart,
+            Rcpp::List option) : random_engine(seed), Partition_fixed(FixPart){
     // Extract hyper_parameter and initialization values from option
-    n_iter = n;
+    n_iter = n_it;
     burn_in = b_in;
     thin = thn;
 
     if(P0_prior_name == "Normal-InvGamma"){
+        
+        // Read all hyper-parameters passed with option
         unsigned int Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
@@ -30,18 +31,24 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
-
-        // Initialize gs_data with the correct random seed
+        
+        std::vector<unsigned int> partition_vec;
+        if(Partition_fixed){
+            partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
+        }
+        
+        // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data(data, n_iter, burn_in, thin, random_engine,
-                            Mstar0, Lambda0, mu0, nu0, sigma0, P0_prior_name);
-
+                        Mstar0, Lambda0, mu0, nu0, sigma0, P0_prior_name, partition_vec);
+            
+        
         //Initialize Full Conditional Objects
-        auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j);
-        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar");
+        auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
+        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart);
         auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, adapt_var0, a1, b1);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0);
         auto U_ptr = std::make_shared<FC_U>("U");
-        auto S_ptr = std::make_shared<FC_S>("S", false);
+        auto S_ptr = std::make_shared<FC_S>("S");
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2);
 
         //Full Conditional vector that we will loop
@@ -53,50 +60,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-        std::swap(FullConditionals, fc);
-    }
-
-}
-
-// Consrtructor with number of components (M) fixed
-GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-            unsigned int thn, unsigned int seed, std::string P0_prior_name, unsigned int M,
-            Rcpp::List option) : random_engine(seed), M_fixed(true){
-    // Extract hyper_parameter and initialization values from option
-    n_iter = n;
-    burn_in = b_in;
-    thin = thn;
-
-    if(P0_prior_name == "Normal-InvGamma"){
-        unsigned int Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
-        double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
-        double mu0 = Rcpp::as<double>(option["mu0"]);
-        double nu0 = Rcpp::as<double>(option["nu0"]);
-        double sigma0 = Rcpp::as<double>(option["sigma0"]);
-        double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
-        double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
-        unsigned int pow = Rcpp::as<unsigned int>(option["Adapt_MH_power_lim"]);
-        double adapt_var0 = Rcpp::as<double>(option["Adapt_MH_var0"]);
-        double k0 = Rcpp::as<double>(option["k0"]);
-        double a1 = Rcpp::as<double>(option["alpha_gamma"]);
-        double b1 = Rcpp::as<double>(option["beta_gamma"]);
-
-        // Initialize gs_data with the correct random seed
-        gs_data = GS_data(data, n_iter, burn_in, thin, random_engine,
-                            Mstar0, Lambda0, mu0, nu0, sigma0, P0_prior_name);
-
-        //Initialize Full Conditional Objects
-        auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j);
-        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, adapt_var0, a1, b1);
-        auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0);
-        auto S_ptr = std::make_shared<FC_S>("S", true);
-
-        //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc{Partition_ptr,
-                                                            gamma_ptr,
-                                                            S_ptr,
-                                                            tau_ptr
-                                                            };
+    
         std::swap(FullConditionals, fc);
     }
 }
@@ -109,7 +73,7 @@ void GibbsSampler::sample() {
         }
         //updating number of iterations necessary for MH algorithm
         gs_data.iterations = it;
-        if(!M_fixed){
+        if(!Partition_fixed){
             Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
                         <<"\n"<<std::endl;
         }
@@ -132,10 +96,14 @@ void GibbsSampler::GS_Step() {
 }
 
 void GibbsSampler::store_params_values() {
-    out.K.push_back(gs_data.K);
-    out.Mstar.push_back(gs_data.Mstar);
+    
+    if(!Partition_fixed){
+        out.K.push_back(gs_data.K);
+        out.Mstar.push_back(gs_data.Mstar);
+        out.Ctilde.push_back(gs_data.Ctilde);
+    }
+
     out.lambda.push_back(gs_data.lambda);
-    out.Ctilde.push_back(gs_data.Ctilde);
     out.S.push_back(gs_data.S);
     std::vector< std::vector<double>> tau;
     tau.push_back(gs_data.mu);

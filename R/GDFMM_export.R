@@ -8,46 +8,20 @@ hello2 <- function(x) {
   return(x+10)
 }
 
-#' GDFMM Gibbs Sampler, all updates
-#'
-#' @param data input data.
-#' @param niter number of iterations
-#' @param burnin burnin period
-#' @param thin thinning value
-#' @param P0.prior string with the prior to be used as P0
-#' @param option list with initial values, hyperparameters and other options
-#' @return results of Gibbs Sampler
-#' @export
-GDFMM_sampler <- function(data, niter, burnin, thin, seed, P0.prior = "Normal-InvGamma", option) {
-
-  cat('\n This is the R function: ')
-  #Data check and pre-processing
-  #--> handle here different types of input types. User you be able to pass the data the simplest possible ways. For example, this
-  #    function should be able to handle both matrixes and data.frames (or others if needed).
-
-  #Check number of iterations
-
-  #Check P0.prior
-
-  #Check options
-
-  cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
-  # This is just an example, of course you can save the c++ output and perform further operations in R
-  return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option))
-}
-
-#' GDFMM Gibbs Sampler, M fixed
+#' GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)
 #'
 #' @param data input data
-#' @param M fixed number of components
 #' @param niter number of iterations
 #' @param burnin burnin period
 #' @param thin thinning value
+#' @param seed seed for GSL random engine
 #' @param P0.prior string with the prior to be used as P0
+#' @param FixPartition TRUE if we want to fix the partition
 #' @param option list with initial values, hyperparameters and other options
 #' @return results of Gibbs Sampler
 #' @export
-GDFMM_sampler_M <- function(data, M, niter, burnin, thin, seed, P0.prior = "Normal-InvGamma", option) {
+GDFMM_sampler <- function(data, niter, burnin, thin, seed,
+                            P0.prior = "Normal-InvGamma", FixPartition = F, option) {
 
   cat('\n This is the R function: ')
   #Data check and pre-processing
@@ -59,10 +33,10 @@ GDFMM_sampler_M <- function(data, M, niter, burnin, thin, seed, P0.prior = "Norm
   #Check P0.prior
 
   #Check options
-
+      # if(FixPartition){ check che una partition sia passata}
   cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
   # This is just an example, of course you can save the c++ output and perform further operations in R
-  return( GDFMM:::GDFMM_sampler_M_c(data, M, niter, burnin, thin,seed, P0.prior, option))
+  return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
 
 

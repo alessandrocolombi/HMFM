@@ -2,18 +2,16 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 
-/* CONSTRUCTOR WITH RANDOM M */
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0,
-                double mu0, double nu0, double sigma0, std::string P0_prior_name) : prior(P0_prior_name) {
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
+                double nu0, double sigma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
+                prior(P0_prior_name) {
     
     iterations = 0;
-    K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
-    Mstar = Mstar0; //Mstar inizializzata dopo
-    lambda = Lambda0; //fixed
+    lambda = Lambda0;
+    Mstar = Mstar0;
 
-    M = K+Mstar;//M è somma di componenti Allocate e Non Allocate
-
+    // Read Data and extract d, n_j
     for (unsigned int j = 0; j < dat.rows(); ++j) {
         std::vector<double> v;
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
@@ -34,77 +32,31 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
             if(std::isnan(dat(j,i))){
                 n_j[j] = i;
                 break;
-
             }
-            if(i == dat.cols()-1){n_j[j] = i+1;}
+            if(i == dat.cols()-1){
+                n_j[j] = i+1;
+            }
         }
-        //Rcpp::Rcout<<n_j[j]<<std::endl;
     }
-    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << n_j[d-1]<< std::endl;
-    // Initialization of partition data structures
-    initialize_Partition(n_j);
-    Rcpp::Rcout << "Partition Initialized "<< std::endl;
-    // Initialization of gamma and U vector
-    gamma = std::vector<double>(d, 1.0);
-    Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
-    U = std::vector<double>(d, 0.0);
-    Rcpp::Rcout << "U vector Initialized "<< std::endl;
-    /*for (int l = 0; l <K ; ++l) {
-        N_k.push_back(0);
-
-    }*/
-    //std::vector<double> U(d,0.0);
-    // Random Initialization of S and tau form the prior
-    initialize_S(M, gs_engine);
-    Rcpp::Rcout << "S matrix Initialized "<< std::endl;
-    initialize_tau(M, nu0, mu0, sigma0, gs_engine);
-    Rcpp::Rcout << "tau Initialized "<< std::endl;
-    //Rcpp::Rcout<< p<<std::endl;
-}
-
-/* CONSTRUCTOR WITH FIXED M*/
-GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int m,double mu0, double nu0, double sigma0,
-                std::string P0_prior_name) : prior(P0_prior_name) {
+    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << " " << n_j[d-1]<< std::endl;
     
-    M = m;
-    iterations = 0;
-    K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
-    Mstar = M - K; //Mstar inizializzata dopo
-
-    for (unsigned int j = 0; j < dat.rows(); ++j) {
-        std::vector<double> v;
-        for (unsigned int i = 0; i <dat.cols() ; ++i) {
-            if(!std::isnan(dat(j,i))){
-                v.push_back(dat(j,i));
-            }
-        }
-        data.push_back(v);
-    }
-    d = dat.rows();
-    Rcpp::Rcout << "Data read, d is : " << d << std::endl;
-
-    // Initialization of n_j
-    n_j = std::vector<unsigned int>(d, 0);
-    for (unsigned int j = 0; j < d; ++j) {
-        for (unsigned int i = 0; i <dat.cols() ; ++i) {
-
-            if(std::isnan(dat(j,i))){
-                n_j[j] = i;
-                break;
-
-            }
-            if(i == dat.cols()-1){n_j[j] = i+1;}
-        }
-    }
-    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << n_j[d-1]<< std::endl;
     // Initialization of partition data structures
-    initialize_Partition(n_j);
+    if( part_vec.empty() ){
+        K = 1;
+        Mstar = Mstar0;
+        M = K + Mstar;
+        initialize_Partition();
+    }
+    else{
+        initialize_Partition(part_vec);
+    }
     Rcpp::Rcout << "Partition Initialized "<< std::endl;
+    
     // Initialization of gamma and U vector
     gamma = std::vector<double>(d, 1.0);
     Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 0.0);
+    
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine);
     Rcpp::Rcout << "S matrix Initialized "<< std::endl;
@@ -123,7 +75,46 @@ void GS_data::update_log_sum(){
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
 }
 
-void GS_data::initialize_Partition(const std::vector<unsigned int>& n_j){
+// Initialize partition (Ctilde, N, N_k) when it is FIXED
+void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_vec){
+    
+    // Extract number of clusters from partition vec
+    const auto max_it = std::max_element(partition_vec.cbegin(), partition_vec.cend());
+    K =  *max_it + 1;
+    M = K;
+    Mstar = 0;
+    Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
+    
+    // Allocate Ctilde, N, N_k 
+    Ctilde.clear();
+    for(size_t j = 0; j < d; j++){
+        std::vector<unsigned int> row_j(n_j[j], 0);
+        Ctilde.push_back(row_j);
+    }
+    N = GDFMM_Traits::MatUnsCol(d, K);
+    for (unsigned int j = 0; j <d ; ++j)
+        for(unsigned int k = 0; k < K; ++k)
+            N(j,k) = 0;
+    N_k = std::vector<unsigned int>(K, 0);
+
+    // Initialize Ctilde, N, N_k with info from partition_vec
+    unsigned int j = 0;
+    unsigned int i = 0;
+    for(const unsigned int& clust_ji : partition_vec){
+        Ctilde[j][i] = clust_ji;
+        N(j, clust_ji)++;
+        N_k[clust_ji]++;
+        i++;
+        // If we have just 
+        if(i == n_j[j]){
+            j++;
+            i = 0;
+        }
+    }
+}
+
+// Initialize partition (Ctilde, N, N_k) when M and K are RANDOM
+void GS_data::initialize_Partition(){
     // Initialize Ctilde so that it assign every observation to the same cluster
     Ctilde.clear();
     for(size_t j = 0; j < d; j++){
@@ -167,7 +158,7 @@ void GS_data::initialize_tau(unsigned int M, double nu0, double mu0, double sigm
     sample::rnorm rnorm;
 
     for(unsigned m = 0; m < M; m++){
-        sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0)); // prendo
+        sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0));
         mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
   }
 }

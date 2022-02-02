@@ -36,12 +36,9 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         // Update of Gamma via Adapting Metropolis Hastings
         // *computation of quantities is in logarithm for numerical reasons*
         ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma));
-        Rcpp::Rcout<<"ln_new"<<ln_new;
         gamma_new = std::exp(ln_new);
         ln_acp = log_full_gamma(gamma_new, Lambda, K, Mstar, N.row(j)) - lmedia; //da rivedere il tipo
-        Rcpp::Rcout<<" logfulgamma gn"<<log_full_gamma(gamma_new, Lambda, K, Mstar, N.row(j));
-        Rcpp::Rcout<<" ln_acp"<<ln_acp<<"--"<<std::endl;
-        ln_acp = ln_acp - (log_full_gamma(gamma_old,  Lambda, K, Mstar, N.row(j)) - ln_new);
+        ln_acp = ln_acp - (log_full_gamma(gamma_old, Lambda, K, Mstar, N.row(j)) - ln_new);
         ln_u= std::log(runif(gs_engine));
         
         if (ln_u  < ln_acp){
@@ -54,7 +51,6 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
         //Rcpp::Rcout << "gamma_" << j << gs_data.gamma[j] << update_status << std::endl;
         ww_g = pow(iter + 1,- hyp2);
-
 
         adapt_var_pop_gamma = adapt_var_pop_gamma *
                                      std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));

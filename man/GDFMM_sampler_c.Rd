@@ -2,10 +2,19 @@
 % Please edit documentation in R/RcppExports.R
 \name{GDFMM_sampler_c}
 \alias{GDFMM_sampler_c}
-\title{GDFMM sampler with M unknown}
+\title{GDFMM sampler}
 \usage{
-GDFMM_sampler_c(dat, n_iter, burn_in, thin, seed, P0_prior_name, option)
+GDFMM_sampler_c(
+  dat,
+  n_iter,
+  burn_in,
+  thin,
+  seed,
+  P0_prior_name,
+  FixPart,
+  option
+)
 }
 \description{
-GDFMM sampler with M unknown
+GDFMM sampler
 }

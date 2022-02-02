@@ -32,28 +32,28 @@ struct GS_data{
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
     //-----------------------------------------------------------//
-    /* CONSTRUCTOR */
-    // Constructor with default prior (Normal-InvGamma); M RANDOM
-    GS_data(Eigen::MatrixXd const &dat, unsigned int n_it, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_eng, unsigned int Mstar0, double Lam0,
-                double mu0, double nu0, double sig0):
-                GS_data(dat, n_it, burnin, thin, gs_eng, Mstar0, Lam0, mu0, nu0, sig0, "Normal-InvGamma"){}
-    // Constructor with user defined prior; M RANDOM
+    
+    /* CONSTRUCTORS */
+
+    // Constructor with default prior (Normal-InvGamma)
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0,
-                double mu0, double nu0, double sigma0, std::string P0_prior_name);
-    // Constructor with default prior (Normal-InvGamma); M FIXED
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
+                double nu0, double sigma0, std::vector<unsigned int> part_vec) : 
+                        GS_data(dat, n_iter, burnin, thin, gs_engine, Mstar0, Lambda0, mu0, nu0,
+                                sigma0, "Normal-InvGamma", part_vec){}
+    
+    // Constructor with user defined prior
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int m,double mu0, double nu0, double sigma0):
-                GS_data(dat, n_iter, burnin, thin, gs_engine, m, mu0, nu0, sigma0, "Normal-InvGamma"){}
-    // Constructor with user defined prior; M FIXED
-    GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int m,double mu0, double nu0, double sigma0,
-                std::string P0_prior_name);
+                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
+                double nu0, double sigma0, std::string P0_prior_name, std::vector<unsigned int> part_vec);
+
     GS_data(){};
     ~GS_data(){};
     /* METHODS */
-    void initialize_Partition(const std::vector<unsigned int>& n_j);
+    // Initialize partition (Ctilde, N, N_k) when it is FIXED
+    void initialize_Partition(const std::vector<unsigned int>& partition_vec);
+    // Initialize partition (Ctilde, N, N_k) when M and K are RANDOM
+    void initialize_Partition();
     void initialize_S(unsigned int M,  const sample::GSL_RNG& gs_engine);
     void allocate_S(unsigned int M);
     void initialize_tau(unsigned int M, double nu0, double mu0, double sigma0,

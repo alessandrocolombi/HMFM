@@ -2,7 +2,6 @@
 
 export(EigenTest)
 export(GDFMM_sampler)
-export(GDFMM_sampler_M)
 export(TestGSL)
 export(hello2)
 export(try_rcpp)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{GDFMM_sampler}
 \alias{GDFMM_sampler}
-\title{GDFMM Gibbs Sampler, all updates}
+\title{GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)}
 \usage{
 GDFMM_sampler(
   data,
@@ -11,11 +11,12 @@ GDFMM_sampler(
   thin,
   seed,
   P0.prior = "Normal-InvGamma",
+  FixPartition = F,
   option
 )
 }
 \arguments{
-\item{data}{input data.}
+\item{data}{input data}
 
 \item{niter}{number of iterations}
 
@@ -23,7 +24,11 @@ GDFMM_sampler(
 
 \item{thin}{thinning value}
 
+\item{seed}{seed for GSL random engine}
+
 \item{P0.prior}{string with the prior to be used as P0}
+
+\item{FixPartition}{TRUE if we want to fix the partition}
 
 \item{option}{list with initial values, hyperparameters and other options}
 }
@@ -31,5 +36,5 @@ GDFMM_sampler(
 results of Gibbs Sampler
 }
 \description{
-GDFMM Gibbs Sampler, all updates
+GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)
 }

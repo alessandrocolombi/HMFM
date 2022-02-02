@@ -30,6 +30,10 @@ y2_m2 = rnorm(200, 3, 1/2) # 2nd level, 2nd comp
 y3_m1 = rnorm(200,-3, 1/2) # 3nd level, 1st comp
 y3_m2 = rnorm(50, 3, 1/2) # 3nd level, 2nd comp
 y3_m3 = rnorm(200, 0, 1/2) # 3nd level, 3rd comp
+
+real_partition = c(rep(0, 20), rep(1, 20), rep(0, 200), rep(2, 200), rep(0, 200),
+                   rep(2, 50), rep(1, 200) )
+
 data_level1 <- c(y1_m1, y1_m2)
 data_level2 <- c(y2_m1, y2_m2)
 data_level3 <- c(y3_m1, y3_m2, y3_m3)
@@ -62,7 +66,12 @@ option<-list("Mstar0"=10,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"
              "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 GDFMM = GDFMM_sampler(dat, 2500, 5000, 2, seed = 123, option = option)
-GDFMM_Mfixed = GDFMM_sampler_M(dat, 3, 2500, 5000, 2, seed = 123, option = option)
+
+option_fixed <- list("Mstar0"= 0,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5^2,
+                     "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
+                     "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
+                     "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = real_partition)
+GDFMM_fixed = GDFMM_sampler(dat, 2500, 5000, 2, seed = 123, FixPartition = T, option = option_fixed)
 
 plot_GDFMM = T
 if(plot_GDFMM){
