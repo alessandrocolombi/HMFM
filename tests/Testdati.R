@@ -60,21 +60,63 @@ dat[1, 1:length(data_level1)] <- data_level1
 dat[2, 1:length(data_level2)] <- data_level2
 dat[3, 1:length(data_level3)] <- data_level3
 
+#k0=1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2 --> paper
+#interpret hyper ->hoff non abbiamo dati precedenti media 0 su campione 200 dati
 #per far coincidere con i dati dele ragazze nu0 deve essere 1/2 e sigma0 0.5^2
-option<-list("Mstar0" =3,"Lambda0"=2,"mu0"=mean(dat, na.rm = T),"nu0"=1,"sigma0"=0.5^2,
+
+option<-list("Mstar0" =10,"Lambda0"=2,"mu0"=0,"nu0"=200,"sigma0"=1^2,
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
-             "k0"= 1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2, "alpha_gamma"=1,
+             "k0"= 1/sqrt(200), "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+niter<-2500
+burnin<-5000
+
+
+
 GDFMM = GDFMM_sampler(dat, 2500, 5000, 2, seed = 123, option = option)
 
 table(GDFMM$K)
 
+vector<-c()
+dati<-na.omit(data_all)
+l<-length(data_all)
+matr<-matrix(ncol=l)
+for (k in 1:(niter-1)){
+  vector<-c()
+  for( i in 1:dim(dat)[1]){
+    vector<-c(vector, GDFMM$C[[k]][[i]])
+  }
+  print(length(vector))
+  print(k)
+  matr<-rbind(matr, t(vector))
+}
+
+
 GDFMM$C[[1]][[1]]
+# matap<-matrix(ncol=niter-1, nrow=length(data_all))
+#   for( j in 1:dim(dat)[1]){
+#     for (i in 1:(niter-1)){
+#     matap(i,j)<-GDFMM$C[[i]][[j]][[]]
+#     vector<-c(vector, GDFMM$C[[k]][[i]])
+#   }
+#   print(length(vector))
+#   print(k)
+#   matr<-rbind(matr, t(vector))
+# }
+
+
+matr<-matr[-1,]
+library(salso)
+m<-t(matr)
+sim_matrix <- psm(matr)
+VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
+binder_dahl <- dlso(matr, loss = 'binder', estimate = sim_matrix)
+
 plot(density(data_all))
 plot(data_level1)
 
-mu=GDFMM$Tau[[2499]][[1]]
-sigma=GDFMM$Tau[[2499]][[2]]
+mu=GDFMM$mu[[2499]]
+sigma=GDFMM$sigma[[2499]]
 #Numerosità per gruppo 0->249 1->221 ->420
 
 

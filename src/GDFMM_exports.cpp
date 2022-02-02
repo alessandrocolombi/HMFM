@@ -35,12 +35,30 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 	  //GS_data g(dat, n_iter,burn_in,thin); non posso più inizializzare gsdata fuori
     GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed, option);
     //out_data out=Gibbs.sample();
+    unsigned int N=dat.rows()*dat.cols();
+    Rcpp::Rcout<<"N:"<<N<<std::endl;
     std::vector<int> Mstar=Gibbs.out.Mstar;
     std::vector<int> K=Gibbs.out.K;
     std::vector<double> lambda=Gibbs.out.lambda;
     std::vector<std::vector<double>> U=Gibbs.out.U;
     std::vector<std::vector<double>> gamma=Gibbs.out.gamma;
     std::vector<std::vector<std::vector<unsigned int>>> C=Gibbs.out.Ctilde;
+    //we need a better structure for C
+    std::vector<unsigned int> fprowvec;//final partition rowvec
+    std::vector<std::vector<unsigned int>> fpmatr;  //final partition matrix
+
+    for (unsigned k=0;k<n_iter-1;k++){
+      fprowvec.clear();
+      for(unsigned i=0; i<dat.rows(); i++){
+        fprowvec.insert(fprowvec.end(), C[k][i].begin(), C[k][i].end());
+      }
+        fpmatr.push_back(fprowvec);
+
+    }
+
+
+
+
     std::vector<std::vector<double>> mu=Gibbs.out.mu;
     std::vector<std::vector<double>> sigma=Gibbs.out.sigma;
     std::vector<GDFMM_Traits::MatRow> S=Gibbs.out.S;
@@ -66,7 +84,8 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
                                     Rcpp::Named("C")=C,
                                     Rcpp::Named("mu")=mu,
                                     Rcpp::Named("sigma")=sigma,
-                                    Rcpp::Named("S")=S
+                                    Rcpp::Named("S")=S,
+                                    Rcpp::Named("cout")=fpmatr
                                   	//Rcpp::Named("U")= U
                                   	//Rcpp::Named("gamma")=gamma
                                   	);
