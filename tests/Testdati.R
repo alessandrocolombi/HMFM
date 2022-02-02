@@ -18,9 +18,9 @@ for (j in 1:d) {
   data1[j, 1:n_j[j]] <- data_level
 }
 data2<-data1[c(67,51,79,92,100,94,5,72,17),]
-option2 <-list("Mstar0"=3,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"=2.5,"sigma0"=40,
+option2 <-list("Mstar0"= 5,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"= 150,"sigma0"=40,
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,  "Adapt_MH_var0"=1,
-              "k0"= 8, "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+              "k0"= 1/sqrt(2500), "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 GS = GDFMM_sampler(data2,500,500,3,seed=123, option=option2)
 
 y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp

@@ -15,7 +15,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
     thin = thn;
 
     if(P0_prior_name == "Normal-InvGamma"){
-        
+
         // Read all hyper-parameters passed with option
         unsigned int Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
@@ -31,17 +31,17 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
-        
+
         std::vector<unsigned int> partition_vec;
         if(Partition_fixed){
             partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
         }
-        
+
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data(data, n_iter, burn_in, thin, random_engine,
                         Mstar0, Lambda0, mu0, nu0, sigma0, P0_prior_name, partition_vec);
-            
-        
+
+
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
         auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart);
@@ -60,19 +60,25 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-    
+
         std::swap(FullConditionals, fc);
+
     }
 }
 
 void GibbsSampler::sample() {
     for(unsigned int it = 0; it <= burn_in + n_iter*thin; it++){
+        // Sample from all full conditional
         this->GS_Step();
+
+        //updating number of iterations necessary for MH algorithm
+        gs_data.iterations = it;
+
+        // If we are in the right iteration store needed values
         if(it>burn_in && it%thin == 0){
             this->store_params_values();
         }
-        //updating number of iterations necessary for MH algorithm
-        gs_data.iterations = it;
+
         if(!Partition_fixed){
             Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
                         <<"\n"<<std::endl;
@@ -96,19 +102,54 @@ void GibbsSampler::GS_Step() {
 }
 
 void GibbsSampler::store_params_values() {
-    
     if(!Partition_fixed){
         out.K.push_back(gs_data.K);
         out.Mstar.push_back(gs_data.Mstar);
         out.Ctilde.push_back(gs_data.Ctilde);
     }
 
+    // Common output values retrived
+    store_tau();
     out.lambda.push_back(gs_data.lambda);
     out.S.push_back(gs_data.S);
-    std::vector< std::vector<double>> tau;
-    tau.push_back(gs_data.mu);
-    tau.push_back(gs_data.sigma);
-    out.tau.push_back(tau);
     out.U.push_back(gs_data.U);
-    out.gamma.push_back(gs_data.gamma);
+    out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
+}
+
+void GibbsSampler::store_tau(){
+    unsigned int current_it = (gs_data.iterations - burn_in)/thin;
+    unsigned int current_K = gs_data.K;
+    unsigned int size_tau = out.mu.size();
+
+    // Check that current_K doesn't exceed size_tau
+    if(out.mu.empty()){
+        for(unsigned int k = 0; k < current_K; k++){
+            out.mu.push_back(std::vector<double>{gs_data.mu[k]});
+            out.sigma.push_back(std::vector<double>{gs_data.sigma[k]});
+        }
+        return;
+    }
+    if(current_K > size_tau){
+        // resize output tau accordingly and initialize values for past iterations
+        out.mu.resize(current_K);
+        out.sigma.resize(current_K);
+        for(unsigned int i = size_tau; i < current_K; i++){
+            out.mu[i] = std::vector<double>(current_it, std::nan("") );
+            out.sigma[i] = std::vector<double>(current_it, std::nan("") );
+        }
+    }
+
+    // Update tau with current value
+    for(unsigned int k = 0; k < current_K; k++){
+        out.mu[k].push_back(gs_data.mu[k]);
+        out.sigma[k].push_back(gs_data.sigma[k]);
+    }
+
+    // Fill other tau, if there exist
+    if(current_K < size_tau){
+        for(unsigned int i = current_K; i < size_tau; i++){
+            out.mu[i].push_back(std::nan("") );
+            out.sigma[i].push_back(std::nan("") );
+        }
+    }
 }

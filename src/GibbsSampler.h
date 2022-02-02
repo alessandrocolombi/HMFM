@@ -32,13 +32,17 @@ public:
                 
     // Data structure for the output
     out_data out;
-
+    
+    // Get n_j, for output C in a better way
+    std::vector<unsigned int> get_nj() const {return gs_data.n_j;}
+    
 private:
     std::vector<std::shared_ptr<FullConditional> > FullConditionals; // vector of shared pointer to FC class
     sample::GSL_RNG random_engine; // GSL random engine to sample from random distribution
     GS_data gs_data; // data structure to store values that are updated during Gibbs Sampler
     std::string model;
     void store_params_values();
+    void store_tau();
     void GS_Step();
     bool Partition_fixed;
 };
