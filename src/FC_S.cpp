@@ -14,20 +14,32 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
     // Update routine
     Rcpp::Rcout << "S: ";
-    for (unsigned j=0; j<d; j++) { //per ogni livello
-        //S ALLOCATE
-        Rcpp::Rcout << "[";
-        for (unsigned k=0; k<K; k++) {//per ogni comp allocata
-            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1) );
-            Rcpp::Rcout << S(j,k)<< " ";
+    if(M_fixed){
+        for (unsigned j=0; j<d; j++) {
+            Rcpp::Rcout << "[";
+                for (unsigned k=0; k<K; k++) {//per ogni comp allocata
+                    S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1);
+                    Rcpp::Rcout << S(j,k)<< " ";
+                }
+            Rcpp::Rcout << "]";
         }
-        //S NON ALLOCATE
-        if (Mstar > 0) { // se c'è almeno una componente non allocata
-            for (unsigned mstar=0; mstar<Mstar; mstar++) {
-                S(j, K + mstar) = Gamma(gs_engine, gamma[j],  1 /(U[j] + 1) );
+    }
+    else{
+        for (unsigned j=0; j<d; j++) { //per ogni livello
+            //S ALLOCATE
+            Rcpp::Rcout << "[";
+            for (unsigned k=0; k<K; k++) {//per ogni comp allocata
+                S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1) );
+                Rcpp::Rcout << S(j,k)<< " ";
             }
+            //S NON ALLOCATE
+            if (Mstar > 0) { // se c'è almeno una componente non allocata
+                for (unsigned mstar=0; mstar<Mstar; mstar++) {
+                    S(j, K + mstar) = Gamma(gs_engine, gamma[j],  1 /(U[j] + 1) );
+                }
+            }
+            Rcpp::Rcout << "]";
         }
-        Rcpp::Rcout << "]";
     }
     Rcpp::Rcout << std::endl;
 }

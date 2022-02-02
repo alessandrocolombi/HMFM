@@ -18,7 +18,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
 
-    if (prior.compare("normal-inverse-gammaS")) {
+    if (prior == "Normal-InvGamma") {
 
         sample::rgamma Gamma;
         sample::rnorm rnorm;

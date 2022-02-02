@@ -22,9 +22,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// example_GDFMM_sampler_c
-Rcpp::List example_GDFMM_sampler_c(Eigen::MatrixXd const& dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, Rcpp::List option);
-RcppExport SEXP _GDFMM_example_GDFMM_sampler_c(SEXP datSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP optionSEXP) {
+// GDFMM_sampler_c
+Rcpp::List GDFMM_sampler_c(Eigen::MatrixXd const& dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, Rcpp::List option);
+RcppExport SEXP _GDFMM_GDFMM_sampler_c(SEXP datSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP optionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -35,7 +35,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type P0_prior_name(P0_prior_nameSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type option(optionSEXP);
-    rcpp_result_gen = Rcpp::wrap(example_GDFMM_sampler_c(dat, n_iter, burn_in, thin, seed, P0_prior_name, option));
+    rcpp_result_gen = Rcpp::wrap(GDFMM_sampler_c(dat, n_iter, burn_in, thin, seed, P0_prior_name, option));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GDFMM_sampler_M_c
+Rcpp::List GDFMM_sampler_M_c(Eigen::MatrixXd const& dat, unsigned int M, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, Rcpp::List option);
+RcppExport SEXP _GDFMM_GDFMM_sampler_M_c(SEXP datSEXP, SEXP MSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP optionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd const& >::type dat(datSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_iter(n_iterSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type P0_prior_name(P0_prior_nameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type option(optionSEXP);
+    rcpp_result_gen = Rcpp::wrap(GDFMM_sampler_M_c(dat, M, n_iter, burn_in, thin, seed, P0_prior_name, option));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -60,7 +78,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_try_rcpp", (DL_FUNC) &_GDFMM_try_rcpp, 1},
-    {"_GDFMM_example_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_example_GDFMM_sampler_c, 7},
+    {"_GDFMM_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_c, 7},
+    {"_GDFMM_GDFMM_sampler_M_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_M_c, 8},
     {"_GDFMM_EigenTest", (DL_FUNC) &_GDFMM_EigenTest, 0},
     {"_GDFMM_TestGSL", (DL_FUNC) &_GDFMM_TestGSL, 0},
     {NULL, NULL, 0}

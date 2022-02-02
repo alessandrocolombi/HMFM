@@ -2,12 +2,11 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 
-
-
+/* CONSTRUCTOR WITH RANDOM M */
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0,
-                double mu0, double nu0, double sigma0) {
-
+                double mu0, double nu0, double sigma0, std::string P0_prior_name) : prior(P0_prior_name) {
+    
     iterations = 0;
     K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
     Mstar = Mstar0; //Mstar inizializzata dopo
@@ -28,7 +27,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     Rcpp::Rcout << "Data read, d is : " << d << std::endl;
 
     // Initialization of n_j
-    n_j = std::vector<unsigned int>(d, 0);    
+    n_j = std::vector<unsigned int>(d, 0);
     for (unsigned int j = 0; j < d; ++j) {
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
 
@@ -62,6 +61,57 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     Rcpp::Rcout << "tau Initialized "<< std::endl;
     //Rcpp::Rcout<< p<<std::endl;
 }
+
+/* CONSTRUCTOR WITH FIXED M*/
+GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
+                const sample::GSL_RNG& gs_engine, unsigned int m,double mu0, double nu0, double sigma0,
+                std::string P0_prior_name) : prior(P0_prior_name) {
+    
+    M = m;
+    iterations = 0;
+    K = 1; // Inizialmente tutte le osservazioni appartengono allo stesso gruppo
+    Mstar = M - K; //Mstar inizializzata dopo
+
+    for (unsigned int j = 0; j < dat.rows(); ++j) {
+        std::vector<double> v;
+        for (unsigned int i = 0; i <dat.cols() ; ++i) {
+            if(!std::isnan(dat(j,i))){
+                v.push_back(dat(j,i));
+            }
+        }
+        data.push_back(v);
+    }
+    d = dat.rows();
+    Rcpp::Rcout << "Data read, d is : " << d << std::endl;
+
+    // Initialization of n_j
+    n_j = std::vector<unsigned int>(d, 0);
+    for (unsigned int j = 0; j < d; ++j) {
+        for (unsigned int i = 0; i <dat.cols() ; ++i) {
+
+            if(std::isnan(dat(j,i))){
+                n_j[j] = i;
+                break;
+
+            }
+            if(i == dat.cols()-1){n_j[j] = i+1;}
+        }
+    }
+    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << n_j[d-1]<< std::endl;
+    // Initialization of partition data structures
+    initialize_Partition(n_j);
+    Rcpp::Rcout << "Partition Initialized "<< std::endl;
+    // Initialization of gamma and U vector
+    gamma = std::vector<double>(d, 1.0);
+    Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
+    U = std::vector<double>(d, 0.0);
+    // Random Initialization of S and tau form the prior
+    initialize_S(M, gs_engine);
+    Rcpp::Rcout << "S matrix Initialized "<< std::endl;
+    initialize_tau(M, nu0, mu0, sigma0, gs_engine);
+    Rcpp::Rcout << "tau Initialized "<< std::endl;
+}
+
 
 void GS_data::update_log_sum(){
     log_sum = 0.0;
@@ -117,7 +167,7 @@ void GS_data::initialize_tau(unsigned int M, double nu0, double mu0, double sigm
     sample::rnorm rnorm;
 
     for(unsigned m = 0; m < M; m++){
-        sigma[m] =  1 / Gamma(gs_engine, nu0, 2 / (nu0*sigma0)); // prendo
+        sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0)); // prendo
         mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
   }
 }

@@ -23,38 +23,30 @@
 #include "FC_gamma.h"
 #include <chrono>
 
-
-
-typedef std::vector<double> params;
-using std::string;
-// BISOGNA METTERE UN IF SEED IMPOSTATO DA UTENTE
 class GibbsSampler {
 public:
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
-    out_data sample();
+    void sample();
+    // Constructor for update of all GDFMM values
     GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
-             unsigned int thn, unsigned int seed, Rcpp::List option) ;
+             unsigned int thn, unsigned int seed,std::string P0_prior_name, Rcpp::List option) ;
+    // Constructor when number of components (M) is fixed
+    GibbsSampler(Eigen::MatrixXd const &data, unsigned int n, unsigned int b_in,
+            unsigned int thn, unsigned int seed, std::string P0_prior_name, unsigned int M,
+            Rcpp::List option);
+    // Data structure for the output
     out_data out;
 
 private:
-    std::vector<FullConditional*> FullConditionals; //potrebbe diventare un array? Passato
-    sample::GSL_RNG random_engine;
-    GS_data gs_data; // Passato
-     // default -> idealmente questo era output_data che però è diventato una struct
-
-    //BOSCA -> PETER  peter qua io ho rimesso la struct ma non sono sicuro sia il metodo migliore
-
-    //std::map<string, std::vector<double>> output_data; // Questo diventa una struct
-
-    //BOSCA-->PETER FERRETTI MI SA CHE BISOGNA CAMBIARE UN PO' I METODI IN MODO CHE VADANO A SALVARE I PARAMETRI NELLE STRUCT
-    //se ho fatto qualcosa di poco sensato stravolgi pure tutto eh
-    std::map<string, double> parameters{{"M", 0.0}, {"M*", 0.0}, {"K", 0.0}};// Forse sostituito da Gs_data
-    string model;
+    std::vector<std::shared_ptr<FullConditional> > FullConditionals; // vector of shared pointer to FC class
+    sample::GSL_RNG random_engine; // GSL random engine to sample from random distribution
+    GS_data gs_data; // data structure to store values that are updated during Gibbs Sampler
+    std::string model;
     void store_params_values();
     void GS_Step();
-    unsigned int seed;
+    bool M_fixed;
 };
 
 

@@ -8,7 +8,7 @@ hello2 <- function(x) {
   return(x+10)
 }
 
-#' The R function
+#' GDFMM Gibbs Sampler, all updates
 #'
 #' @param data input data.
 #' @param niter number of iterations
@@ -16,9 +16,9 @@ hello2 <- function(x) {
 #' @param thin thinning value
 #' @param P0.prior string with the prior to be used as P0
 #' @param option list with initial values, hyperparameters and other options
-#' @return what it returns
+#' @return results of Gibbs Sampler
 #' @export
-example_GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "Normal-InvGamma", option) {
+GDFMM_sampler <- function(data, niter, burnin, thin, seed, P0.prior = "Normal-InvGamma", option) {
 
   cat('\n This is the R function: ')
   #Data check and pre-processing
@@ -33,9 +33,37 @@ example_GDFMM_sampler <- function(data, niter, burnin, thin,seed, P0.prior = "No
 
   cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
   # This is just an example, of course you can save the c++ output and perform further operations in R
-  return( GDFMM:::example_GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option))
+  return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin,seed, P0.prior, option))
 }
 
+#' GDFMM Gibbs Sampler, M fixed
+#'
+#' @param data input data
+#' @param M fixed number of components
+#' @param niter number of iterations
+#' @param burnin burnin period
+#' @param thin thinning value
+#' @param P0.prior string with the prior to be used as P0
+#' @param option list with initial values, hyperparameters and other options
+#' @return results of Gibbs Sampler
+#' @export
+GDFMM_sampler_M <- function(data, M, niter, burnin, thin, seed, P0.prior = "Normal-InvGamma", option) {
+
+  cat('\n This is the R function: ')
+  #Data check and pre-processing
+  #--> handle here different types of input types. User you be able to pass the data the simplest possible ways. For example, this
+  #    function should be able to handle both matrixes and data.frames (or others if needed).
+
+  #Check number of iterations
+
+  #Check P0.prior
+
+  #Check options
+
+  cat('Call the c++ function passing the preprocessed data, you can only pass types that can be traslated from R. \n')
+  # This is just an example, of course you can save the c++ output and perform further operations in R
+  return( GDFMM:::GDFMM_sampler_M_c(data, M, niter, burnin, thin,seed, P0.prior, option))
+}
 
 
 
