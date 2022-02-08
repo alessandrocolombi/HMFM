@@ -3,7 +3,7 @@
 export(EigenTest)
 export(GDFMM_sampler)
 export(TestGSL)
-export(hello2)
+export(point_density)
 export(try_rcpp)
 importFrom(Rcpp,sourceCpp)
 useDynLib(GDFMM, .registration = TRUE)

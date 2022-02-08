@@ -41,17 +41,19 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 
 	std::vector<std::vector<double>> mu = out.mu;
 	std::vector<std::vector<double>> sigma = out.sigma;
-    std::vector<GDFMM_Traits::MatRow> S = out.S;
+    std::vector<GDFMM_Traits::MatRow> w_ji = out.w_ji;
 	std::vector<double> lambda = out.lambda;
 	Rcpp::NumericMatrix gamma(dat.rows(), n_iter, out.gamma.begin());
+	Rcpp::NumericMatrix U(dat.rows(), n_iter, out.U.begin());
 
 	if(FixPart){
 		
 		return Rcpp::List::create( Rcpp::Named("mu") = mu,
                                   	Rcpp::Named("sigma") = sigma,
-									Rcpp::Named("S") =  S,
+									Rcpp::Named("w_ji") =  w_ji,
 									Rcpp::Named("gamma") = gamma,
-									Rcpp::Named("lambda") = lambda
+									Rcpp::Named("lambda") = lambda,
+									Rcpp::Named("U") = U
 									);
 	}
 	else{
@@ -59,9 +61,12 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 		std::vector<unsigned int> Mstar = out.Mstar;
 		std::vector<std::vector< std::vector<unsigned int>>> C = out.Ctilde;
 
-				//we need a better structure for C
+			//we need a better structure for C--> we save it as a vector instead of a matrix
 		std::vector<unsigned int> fprowvec; //final partition rowvec
-		Rcpp::NumericMatrix fpmatr(n_iter, std::accumulate(n_j.begin(), n_j.end(), 0));  //final partition matrix
+		
+		// store total number of data (i.e. cardinality{y_ji})
+		unsigned int n_data = std::accumulate(n_j.begin(), n_j.end(), 0);
+		Rcpp::NumericMatrix fpmatr(n_iter, n_data );  //final partition matrix
 
 		for (unsigned it = 0; it < n_iter; it++){
 			fprowvec.clear();
@@ -70,18 +75,17 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 				fprowvec.insert(fprowvec.end(), C[it][j].begin(), C[it][j].end());
 			}
 			
-			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, std::accumulate(n_j.begin(), n_j.end(), 0), 
-														fprowvec.begin() );
+			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() );
 		}
 
-		return Rcpp::List::create( Rcpp::Named("mu") = mu,
+		return Rcpp::List::create( Rcpp::Named("K") = K,
+									Rcpp::Named("Mstar") = Mstar,
+									Rcpp::Named("Partition") = fpmatr,
+									Rcpp::Named("mu") = mu,
                                   	Rcpp::Named("sigma") = sigma,
-									Rcpp::Named("S") =  S,
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
-									Rcpp::Named("K") = K,
-									Rcpp::Named("Mstar") = Mstar,
-									Rcpp::Named("Partition") = fpmatr
+									Rcpp::Named("U") = U
 									);
 	}
     

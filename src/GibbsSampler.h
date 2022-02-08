@@ -43,6 +43,7 @@ private:
     std::string model;
     void store_params_values();
     void store_tau();
+    void store_w_ji();
     void GS_Step();
     bool Partition_fixed;
 };

@@ -102,18 +102,43 @@ void GibbsSampler::GS_Step() {
 }
 
 void GibbsSampler::store_params_values() {
+    
     if(!Partition_fixed){
         out.K.push_back(gs_data.K);
         out.Mstar.push_back(gs_data.Mstar);
         out.Ctilde.push_back(gs_data.Ctilde);
     }
 
+    if(Partition_fixed){
+        store_w_ji();
+    }
     // Common output values retrived
     store_tau();
     out.lambda.push_back(gs_data.lambda);
-    out.S.push_back(gs_data.S);
-    out.U.push_back(gs_data.U);
+    out.U.insert(out.U.end(), gs_data.U.begin(), gs_data.U.end() );
     out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
+}
+
+void GibbsSampler::store_w_ji(){
+    
+    unsigned int current_it = (gs_data.iterations - burn_in)/thin;
+    unsigned int d = gs_data.S.rows();
+    unsigned int K = gs_data.S.cols();
+    
+    if(out.w_ji.empty()){
+        GDFMM_Traits::MatRow w_j(K, n_iter);
+        for(unsigned int j = 0; j < d; j++){
+            out.w_ji.push_back(w_j);
+        }
+    }
+
+    Eigen::VectorXd T = gs_data.S.rowwise().sum();
+
+    for(unsigned int j = 0; j < d; j++){
+        for(unsigned int k = 0; k < K; k++){
+            out.w_ji[j](k, current_it - 1) = gs_data.S(j,k)/T(j);
+        }
+    }
 }
 
 void GibbsSampler::store_tau(){

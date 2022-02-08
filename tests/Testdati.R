@@ -87,7 +87,7 @@ option_fixed <- list("Mstar0" =0,"Lambda0"=2,"mu0"=0,"nu0"=200,"sigma0"=1^2,
                      "k0"= 1/sqrt(200), "alpha_gamma"=1,
                      "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = estimate_partition)
 
-GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 2, seed = 123, FixPartition = T, option = option_fixed)
+GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 2, seed = 124, FixPartition = T, option = option_fixed)
 #k0=1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2 --> paper
 #interpret hyper ->hoff non abbiamo dati precedenti media 0 su campione 200 dati
 #per far coincidere con i dati dele ragazze nu0 deve essere 1/2 e sigma0 0.5^2

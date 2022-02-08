@@ -1,11 +1,16 @@
-#' Title R function
+#' point_density : compute the point estimate with credible intervals for 
 #'
-#' @param x input parameter
-#' @return returns x plus 10
+#' @param x point where density is computed
+#' @param mu_vec vector of mean for the gaussian distribution
+#' @param sigma_vec vector of standard deviation for the gaussian distribution
+#' @return c(inf, mean, sup) of point estimate of the density in x 
 #' @export
-hello2 <- function(x) {
-  print("Hello, world!")
-  return(x+10)
+point_density <- function(x, mu_vec, sigma_vec) {
+  estimated_density = mean(dnorm(x, mu_vec, sigma_vec))
+  err = 1/sd(dnorm(x, mu_vec, sigma_vec))*qnorm(0.975)
+  ret = c(estimated_density - err, estimated_density, estimated_density + err)
+  d_estimate = w_j[1]*dnorm(grid, mu[1], sigma[1])
+  return(ret)
 }
 
 #' GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)
