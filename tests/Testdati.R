@@ -1,10 +1,7 @@
-#datapreprocessing
+# LIBRARIES #
 library(bbricks)
 library(dplyr)
 library(salso)
-
-
-
 
 data2<-data(hlrData)
 data1<-data(hlrData)
@@ -27,7 +24,7 @@ option2 <-list("Mstar0"= 5,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"= 150,"
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,  "Adapt_MH_var0"=1,
               "k0"= 1/sqrt(2500), "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 GS = GDFMM_sampler(data2,500,500,3,seed=123, option=option2)
-
+#--------------------------------------------------------------------------------------------------#
 y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp
 y1_m2 = rnorm(20, 0, 1/2) # 1st level, 2nd comp
 y2_m1 = rnorm(200,-3, 1/2) # 2nd level, 1st comp
@@ -75,25 +72,26 @@ option<-list("Mstar0" =10,"Lambda0"=2,"mu0"=0,"nu0"=200,"sigma0"=1^2,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 GDFMM = GDFMM_sampler(dat, niter, burnin, 2, seed = 123, option = option)
 
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION
+
+part_matrix <- GDFMM$Partition
+
+sim_matrix <- psm(part_matrix)
+# VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
+binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+
+estimate_partition = as.vector(binder_dahl)
+
 option_fixed <- list("Mstar0" =0,"Lambda0"=2,"mu0"=0,"nu0"=200,"sigma0"=1^2,
                      "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
                      "k0"= 1/sqrt(200), "alpha_gamma"=1,
-                     "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = real_partition)
+                     "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = estimate_partition)
+
 GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 2, seed = 123, FixPartition = T, option = option_fixed)
 #k0=1 / (max(dat, na.rm = T) - min(dat, na.rm = T)) ^ 2 --> paper
 #interpret hyper ->hoff non abbiamo dati precedenti media 0 su campione 200 dati
 #per far coincidere con i dati dele ragazze nu0 deve essere 1/2 e sigma0 0.5^2
 table(GDFMM$K)
-
-matr<-GDFMM$partition
-
-sim_matrix <- psm(matr)
-VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(matr, loss = 'binder', estimate = sim_matrix)
-
-plot(density(data_all))
-plot(data_level1)
-
 
 #da rivedere
 
