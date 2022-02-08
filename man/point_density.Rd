@@ -4,7 +4,7 @@
 \alias{point_density}
 \title{point_density : compute the point estimate with credible intervals for}
 \usage{
-point_density(x, mu_vec, sigma_vec)
+point_density(x, mu_vec, sigma_vec, alpha = 0.05)
 }
 \arguments{
 \item{x}{point where density is computed}
@@ -12,6 +12,8 @@ point_density(x, mu_vec, sigma_vec)
 \item{mu_vec}{vector of mean for the gaussian distribution}
 
 \item{sigma_vec}{vector of standard deviation for the gaussian distribution}
+
+\item{alpha}{level of confidence}
 }
 \value{
 c(inf, mean, sup) of point estimate of the density in x

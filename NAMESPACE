@@ -3,6 +3,8 @@
 export(EigenTest)
 export(GDFMM_sampler)
 export(TestGSL)
+export(dmix)
+export(dnorm_est)
 export(point_density)
 export(try_rcpp)
 importFrom(Rcpp,sourceCpp)

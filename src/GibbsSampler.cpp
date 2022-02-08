@@ -16,8 +16,18 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 
     if(P0_prior_name == "Normal-InvGamma"){
 
+        // Manage cases if Partition is fixed
+        std::vector<unsigned int> partition_vec;
+        unsigned int Mstar0 = 0;
+
+        if(Partition_fixed){
+            partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
+        }
+        else{
+            Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
+        }
+
         // Read all hyper-parameters passed with option
-        unsigned int Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
         double nu0 = Rcpp::as<double>(option["nu0"]);
@@ -31,11 +41,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
-
-        std::vector<unsigned int> partition_vec;
-        if(Partition_fixed){
-            partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
-        }
 
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data(data, n_iter, burn_in, thin, random_engine,
