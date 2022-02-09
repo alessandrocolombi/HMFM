@@ -9,6 +9,7 @@ library(dplyr)
 library(salso)
 library(ggplot2)
 
+
 # Preprocessing of the data -----------------------------------------------
 
 
@@ -34,12 +35,11 @@ data2<-data1[c(67,51,79,92,100,94,5,72,17),]
 
 # Gibbs sampler 1st run ---------------------------------------------------
 
-
-option2 <-list("Mstar0"= 5,"Lambda0"=2,"mu0"=mean(data2, na.rm = T), "nu0"= 150,"sigma0"= 40,
+option2 <-list("Mstar0"= 10,"Lambda0"= 2,"mu0" = mean(data2, na.rm = T), "nu0"= 200,"sigma0"= 800,
                "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,  "Adapt_MH_var0"=1,
-               "k0"= 1/sqrt(2500), "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+               "k0"= 100, "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 
-GS = GDFMM_sampler(data2,5000,5000,3,seed=123, option=option2)
+GS = GDFMM_sampler(data1,2500,2500,2,seed=123, option=option2)
 
 
 # Get partition by binder loss function minimization ----------------------
@@ -70,16 +70,21 @@ GS_fixed = GDFMM_sampler(data2,500,500,3,seed=123, option=option2_fixed, FixPart
 # Plot for Pres -----------------------------------------------------------
 k<-na.omit(as.vector(data1[c(67,51,79,92,100,94,5,72,17),]))
 
-df1<-df %>%
+df2 <- df1[which(df1$school_id %in% c(67,51,79,92,100,94,5,72,17)) , ]
+
+df_plot <- df %>%
   group_by(school_id) %>%
   mutate(avgmathscore = mean(math_score), maxms=max(math_score), minms=min(math_score))%>%as.data.frame()
-df1<-df1[order(df1$avgmathscore),]
-df1$rank<-as.integer(as.factor(df1$avgmathscore))
+df_plot <- df_plot[order(df_plot$avgmathscore),]
+df_plot$rank <- as.integer(as.factor(df_plot$avgmathscore))
 
-df1
-ggplot(df1, aes(x=rank,y=math_score,group=school_id, ymin=minms, ymax=maxms)) +
-  geom_point()+geom_linerange()+labs(x = "Rank - Math score average", y = "Math Score",
-                                     title ="2002 US Math Score")
+clust = as.factor(estimate_partition +1)
+
+ggplot(df_plot, aes(x=rank,y=math_score,group=school_id, ymin=minms,
+                    ymax=maxms, group = clust)) +
+  geom_point( aes(color = clust, shape = clust), size =3 ) +
+  geom_linerange() +
+  labs(x = "Rank - Math score average", y = "Math Score", title ="2002 US Math Score")
 
 
 l[order(l$math_score),]

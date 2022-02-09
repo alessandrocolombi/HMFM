@@ -58,7 +58,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
             double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
             //Rcpp::Rcout<<mu_n_clust;
-            double sigma2_n_clust = (nu_0 * (sigma_0 * sigma_0) + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
+            double sigma2_n_clust = (nu_0 * sigma_0 + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
             // Rcpp::Rcout<<sigma2_n_clust;
             //Campionamento
             double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, 2 / sigma2_n_clust );

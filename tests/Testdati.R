@@ -10,11 +10,18 @@ library(LaplacesDemon)
 #interpret hyper ->hoff non abbiamo dati precedenti media 0 su campione 200 dati
 #per far coincidere con i dati dele ragazze nu0 deve essere 1/2 e sigma0 0.5^2
 
-diagplot<-function (param, color, title = "title"){
+diagplot<-function (param, color, title = "title", it = 0){
+
+  if(it == 0){
+    y_lab = paste(title)
+  }else{
+    y_lab = paste(title, "[", it,"]")
+  }
+
   plot(param,
        type = "l",
        col = color,
-       ylab= paste(title, " "),
+       ylab= y_lab,
        main="")
   acf(param, lag = 100,main="")
   mtext(title,
@@ -104,7 +111,7 @@ estimate_partition = as.vector(binder_dahl)
 
 # Gibbs Sampler second run ------------------------------------------------
 
-option_fixed <- list("Mstar0" = 100, "Lambda0"=2, "mu0"=0, "nu0"=100, "sigma0"= 1/2,
+option_fixed <- list("Mstar0" = 100, "Lambda0"= 2, "mu0"=0, "nu0"=10, "sigma0"= 1,
                      "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
                      "k0"= 1/14, "alpha_gamma"=1,
                      "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = estimate_partition)
@@ -134,34 +141,39 @@ sigma<-lapply(GDFMM_fixed$mu, var)
 
 
 #K
-diagplot(GDFMM$K, "black")
+x11()
+par(mfrow = c(2,1))
+diagplot(GDFMM$K, "black", "K")
+
 #M
-diagplot(GDFMM$M, "black")
+x11()
+par(mfrow = c(2,1))
+diagplot(GDFMM$M, "black", "M")
+
 #lambda
 x11()
-par(mfrow = c(1,2))
+par(mfrow = c(2,1))
 diagplot(GDFMM$lambda, "black")
+
 #gamma
 x11()
 par(mfcol = c(2, 3))
 for (j in 1:dim(GDFMM_fixed$gamma)[1]){
   diagplot(GDFMM_fixed$gamma[j,], "black", "Gamma", j)
 }
+
 #mu
 x11()
 par(mfcol = c(2, 3))
 for (j in 1:length(GDFMM_fixed$mu)[1]){
-  diagplot(GDFMM_fixed$mu[[j]], "black")
+  diagplot(GDFMM_fixed$mu[[j]], "black", "mu", j)
 }
 #sigma
 x11()
 par(mfcol = c(2, 3))
 for (j in 1:length(GDFMM_fixed$sigma)[1]){
-  diagplot(GDFMM_fixed$sigma[[j]], "black")
+  diagplot(GDFMM_fixed$sigma[[j]], "black", "sigma", j)
 }
-
-
-
 
 
 # Density plot ------------------------------------------------------------
@@ -248,7 +260,37 @@ sigma_vec = c(sigma1, sigma2, sigma3)
 mix_1 = dmix(grid, w_1, mu_vec, sigma_vec)
 mix_2 = dmix(grid, w_2, mu_vec, sigma_vec)
 mix_3 = dmix(grid, w_3, mu_vec, sigma_vec)
-mix_all = dmix(grid, 1/3*(w_1 + w_2 + w_3), mu_vec, sigma_vec)
+# mix_all = dmix(grid, 1/3*(w_1 + w_2 + w_3), mu_vec, sigma_vec)
+
+# PLOT OF MIXTURES IN THE GROUPS
+
+x11()
+par(mfrow = c(2,2))
+
+plot(grid, dmix(grid,c(1/2, 1/2), c(0, -3), c(1/2, 1/2)),
+     main = "Density comparison for group 1", ylab = "Group 1",
+     type = "l", lty = 2, col = "gray", lwd = 2)
+lines(density(data_level1), lty = 2, col = "red", lwd = 2)
+lines(grid, mix_1, lwd = 2, col = "blue")
+legend("topright", legend = c("real", "sample", "estimate"),
+       col = c("gray", "red", "blue"), lty = c(2, 2, 1), lwd = 2)
+
+plot(grid, dmix(grid,c(1/2, 1/2), c(3, -3), c(1/2, 1/2)),
+     main = "Density comparison for group 2", ylab = "Group 2",
+     type = "l", lty = 2, col = "gray", lwd = 2)
+lines(density(data_level2), lty = 2, col = "red", lwd = 2)
+lines(grid, mix_2, lwd = 2, col = "blue")
+legend("top", legend = c("real", "sample", "estimate"),
+       col = c("gray", "red", "blue"), lty = c(2, 2, 1), lwd = 2)
+
+plot(grid, dmix(grid, c(4/9, 1/9, 4/9), c(-3, 3, 0), c(1/2, 1/2, 1/2)),
+     main = "Density comparison for group 3", ylab = "Group 3",
+     type = "l", lty = 2, col = "gray", lwd = 2)
+lines(density(data_level3), lty = 2, col = "red", lwd = 2)
+lines(grid, mix_3, lwd = 2, col = "blue")
+legend("topright", legend = c("real", "sample", "estimate"),
+       col = c("gray", "red", "blue"), lty = c(2, 2, 1), lwd = 2)
+
 
 # PLOT OF COMPONENTS
 x11()
@@ -279,27 +321,6 @@ plot(grid, dnorm(grid, 3, 1/2), main = "Estimate vs Real density - mu=3", type =
 lines(grid, d_comp3$Inf. , lty = 4, col = "red")
 lines(grid, d_comp3$Sup. , lty = 4, col = "red")
 lines(grid, d_comp3$Est. ,  col = "red", lwd = 2)
-
-# PLOT OF MIXTURES IN THE GROUPS
-
-x11()
-par(mfrow = c(2,2))
-
-plot(grid, dmix(grid,c(1/2, 1/2), c(0, -3), c(1/2, 1/2)), main = "Density comparison for group 1",
-     type = "l", lty = 2, col = "gray", lwd = 2)
-lines(density(data_level1), main = "Density of group 1", lty = 2, col = "red", lwd = 2)
-lines(grid, mix_1, lwd = 2, col = "blue")
-
-plot(grid, dmix(grid,c(1/2, 1/2), c(0, -3), c(1/2, 1/2)), main = "Density comparison for group 1",
-     type = "l", lty = 2, col = "gray", lwd = 2)
-lines(density(data_level1), main = "Density of group 1", lty = 2, col = "red", lwd = 2)
-lines(grid, mix_1, lwd = 2, col = "blue")
-
-plot(grid, dmix(grid,c(1/2, 1/2), c(0, -3), c(1/2, 1/2)), main = "Density comparison for group 1",
-     type = "l", lty = 2, col = "gray", lwd = 2)
-lines(density(data_level1), main = "Density of group 1", lty = 2, col = "red", lwd = 2)
-lines(grid, mix_1, lwd = 2, col = "blue")
-
 
 
 # Simulated Data testing --------------------------------------------------
