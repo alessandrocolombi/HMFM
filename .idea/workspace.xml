@@ -11,10 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_gamma.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GS_data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GS_data.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Testdati.R" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Testdati.R" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,7 +28,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="prova2" />
+        <entry key="$PROJECT_DIR$" value="user_interface" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -91,6 +88,9 @@
       <workItem from="1642155078868" duration="203000" />
       <workItem from="1642323739570" duration="27000" />
       <workItem from="1642498167270" duration="16789000" />
+      <workItem from="1644418256799" duration="926000" />
+      <workItem from="1644490812799" duration="76000" />
+      <workItem from="1644578431280" duration="3681000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>
