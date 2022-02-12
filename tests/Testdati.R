@@ -116,7 +116,7 @@ option_fixed <- list("Mstar0" = 100, "Lambda0"= 2, "mu0"=0, "nu0"=10, "sigma0"= 
                      "k0"= 1/14, "alpha_gamma"=1,
                      "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = estimate_partition)
 
-GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 2, seed = 123, FixPartition = T, option = option_fixed)
+GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 3, seed = 123, FixPartition = T, option = option_fixed)
 
 
 # Inference on parameters -------------------------------------------------
@@ -325,7 +325,51 @@ lines(grid, d_comp3$Est. ,  col = "red", lwd = 2)
 
 # Simulated Data testing --------------------------------------------------
 
-LaplacesDemon::rnormm()
+n_simul = 5
+group_dim = c(300, 400, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
+mu = c(-3, 0, 3)
+sigma = c(0.7, 0.5, 0.9)
+n_iter = 5000
+burnin = 5000
+thin = 3
+seed = 2561996
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 10, "sigma0"= 1,
+               "k0"= 5, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
+               "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
+               "alpha_gamma" = 1, "beta_gamma" = 1,
+               "alpha_lambda" = 1, "beta_lambda" = 1)
+
+simulation = simulate_data(n_simul = n_simul,
+                           group_dim = group_dim,
+                           p_mix = p_mix,
+                           mu = mu, sigma = sigma,
+                           burnin = burnin, n_iter = n_iter, thin = thin,
+                           seed = seed, option = option)
+
+rm(list = ls())
 
 
+n_simul = 5
+group_dim = c(300, 400, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
+mu = c(-3, 0, 3)
+sigma = c(0.7, 0.5, 0.9)
+n_iter = 5000
+burnin = 5000
+thin = 3
+seed = 2561996
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 5, "sigma0"= 2,
+               "k0"= 2, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
+               "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
+               "alpha_gamma" = 1, "beta_gamma" = 1,
+               "alpha_lambda" = 1, "beta_lambda" = 1)
 
+simulation = simulate_data(n_simul = n_simul,
+                           group_dim = group_dim,
+                           p_mix = p_mix,
+                           mu = mu, sigma = sigma,
+                           burnin = burnin,n_iter = n_iter, thin = thin,
+                           seed = seed, option = option)
+
+#

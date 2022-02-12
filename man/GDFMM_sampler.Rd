@@ -2,7 +2,9 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{GDFMM_sampler}
 \alias{GDFMM_sampler}
-\title{GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)}
+\title{GDFMM Gibbs Sampler: function to run the GDFMM model. There is the possibility to fix
+the partition, passing TRUE to FixPartition and specifying the
+partion in the option. Default prior for P0 is an inverse gamma}
 \usage{
 GDFMM_sampler(
   data,
@@ -24,17 +26,23 @@ GDFMM_sampler(
 
 \item{thin}{thinning value}
 
-\item{seed}{seed for GSL random engine}
+\item{seed}{seed for GSL random engine (0 ==> random seed)}
 
 \item{P0.prior}{string with the prior to be used as P0}
 
 \item{FixPartition}{TRUE if we want to fix the partition}
 
-\item{option}{list with initial values, hyperparameters and other options}
+\item{option}{list with initial values, hyperparameters and other options.
+Value always needed are : "Mstar0", "Lambda0", "mu0", "nu0", "sigma0",
+"k0", "Adapt_MH_hyp1", "Adapt_MH_hyp2", "Adapt_MH_power_lim", "Adapt_MH_var0",
+"alpha_gamma", "beta_gamma", "alpha_lambda", "beta_lambda".
+If FixPartition = TRUE, also value for "partition" is needed}
 }
 \value{
 results of Gibbs Sampler
 }
 \description{
-GDFMM Gibbs Sampler: options for fixing the Partition (FixPartition) and for changing prior (P0.prior)
+GDFMM Gibbs Sampler: function to run the GDFMM model. There is the possibility to fix
+the partition, passing TRUE to FixPartition and specifying the
+partion in the option. Default prior for P0 is an inverse gamma
 }

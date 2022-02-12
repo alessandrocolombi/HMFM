@@ -2,14 +2,16 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{point_density}
 \alias{point_density}
-\title{point_density : compute the point estimate with credible intervals for}
+\title{point_density : compute the point estimate with credible intervals for density in
+in a point for a gaussian distribution and}
 \usage{
 point_density(x, mu_vec, sigma_vec, alpha = 0.05)
 }
 \arguments{
 \item{x}{point where density is computed}
 
-\item{mu_vec}{vector of mean for the gaussian distribution}
+\item{mu_vec}{vector of mean for the gaussian distribution
+extracted from posterior distribution of mu}
 
 \item{sigma_vec}{vector of standard deviation for the gaussian distribution}
 
@@ -19,5 +21,6 @@ point_density(x, mu_vec, sigma_vec, alpha = 0.05)
 c(inf, mean, sup) of point estimate of the density in x
 }
 \description{
-point_density : compute the point estimate with credible intervals for
+point_density : compute the point estimate with credible intervals for density in
+in a point for a gaussian distribution and
 }

@@ -22,7 +22,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
         data.push_back(v);
     }
     d = dat.rows();
-    Rcpp::Rcout << "Data read, d is : " << d << std::endl;
+    // Rcpp::Rcout << "Data read, d is : " << d << std::endl;
 
     // Initialization of n_j
     n_j = std::vector<unsigned int>(d, 0);
@@ -38,7 +38,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
             }
         }
     }
-    Rcpp::Rcout << "n_j Initialized : " << n_j[0] << " " << n_j[d-1]<< std::endl;
+    // Rcpp::Rcout << "n_j Initialized : " << n_j[0] << " " << n_j[d-1]<< std::endl;
     
     // Initialization of partition data structures
     if( part_vec.empty() ){
@@ -50,18 +50,18 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     else{
         initialize_Partition(part_vec);
     }
-    Rcpp::Rcout << "Partition Initialized "<< std::endl;
+    // Rcpp::Rcout << "Partition Initialized "<< std::endl;
     
     // Initialization of gamma and U vector
     gamma = std::vector<double>(d, 1.0);
-    Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
+    // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 0.0);
     
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine);
-    Rcpp::Rcout << "S matrix Initialized "<< std::endl;
+    // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
     initialize_tau(M, nu0, mu0, sigma0, gs_engine);
-    Rcpp::Rcout << "tau Initialized "<< std::endl;
+    // Rcpp::Rcout << "tau Initialized "<< std::endl;
 }
 
 
@@ -83,7 +83,7 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     K =  *max_it + 1;
     M = K;
     Mstar = 0;
-    Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
+    // Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
     // Allocate Ctilde, N, N_k 
     Ctilde.clear();

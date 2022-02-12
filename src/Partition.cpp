@@ -13,7 +13,7 @@ Partition::Partition(std::string na, const unsigned int d, const std::vector<uns
 // update method
 void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     if(Partition_fixed){
-        Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
+        // Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
     }
     else{
         // From gs_data all needed variable are retrived
@@ -62,17 +62,19 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             for(unsigned int i=0; i<n_j[j]; i++){
                 s.insert(C[j][i]); //insert every label inside a set
                 clust_out.assign(s.begin(),s.end()); //get the vector of the label sorted and newly labeled e.g (0-1-2-3)
-        }
+            }
         }
 
         k = clust_out.size(); //Set K=the size of clust out
         gs_data.K = k; // updating K in the struct gs_data
         gs_data.allocate_N(k); // initialize N according to new K
         gs_data.update_Ctilde(C, clust_out);
-        Rcpp::Rcout<< "Numerosity in the "<< k << " clusters: ";
+        // Rcpp::Rcout<< "Numerosity in the "<< k << " clusters: ";
+        /*
         for(unsigned int m=0; m<gs_data.K; m++){
             Rcpp::Rcout<<gs_data.N_k[m]<< " ";
         }
+        */
     }
 }
 
