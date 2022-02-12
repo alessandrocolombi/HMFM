@@ -35,7 +35,7 @@ data2<-data1[c(67,51,79,92,100,94,5,72,17),]
 
 # Gibbs sampler 1st run ---------------------------------------------------
 
-option2 <-list("Mstar0"= 10,"Lambda0"= 2,"mu0" = mean(data2, na.rm = T), "nu0"= 200,"sigma0"= 800,
+option2 <-list("Mstar0"= 5,"Lambda0"= 2,"mu0" = mean(data2, na.rm = T), "nu0"= 100,"sigma0"= 400,
                "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10,  "Adapt_MH_var0"=1,
                "k0"= 100, "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 
@@ -54,8 +54,6 @@ binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
 estimate_partition = as.vector(binder_dahl)
 
 
-
-
 # Gibbs Sampler 2nd run ---------------------------------------------------
 
 option2_fixed <-list("Mstar0"= 0,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"= 150,"sigma0"=40,
@@ -63,7 +61,7 @@ option2_fixed <-list("Mstar0"= 0,"Lambda0"=2,"mu0"=mean(data2, na.rm = T),"nu0"=
                "k0"= 1/sqrt(2500), "alpha_gamma"=1, "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
                "partition" = estimate_partition)
 
-GS_fixed = GDFMM_sampler(data2,500,500,3,seed=123, option=option2_fixed, FixPartition = T)
+GS_fixed = GDFMM_sampler(data1, 500, 500, 2, seed=123, FixPartition = T, option=option2_fixed)
 
 
 

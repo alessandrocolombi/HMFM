@@ -43,8 +43,8 @@ dnorm_est <- function(grid, mu_vec, sigma_vec, alpha = 0.05){
 #' @return named matrix with (Inf, estimate, Sup)
 #' @export
 dmix <- function(x, w_j, mu_vec, sigma_vec){
-  #if(sum(w_j) != 1)
-  # stop("weigths don't sum to one")
+  if( !dplyr::near(sum(w_j), 1) )
+    stop("weigths don't sum to one")
 
   if(length(w_j) != length(mu_vec) || length(w_j) != length(mu_vec) )
     stop("length of w_j, mu_vec and sigma_vec differs")

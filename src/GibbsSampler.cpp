@@ -80,7 +80,7 @@ void GibbsSampler::sample() {
         gs_data.iterations = it;
 
         // If we are in the right iteration store needed values
-        if(it>burn_in && it%thin == 0){
+        if(it>burn_in && (it-burn_in)%thin == 0){
             this->store_params_values();
         }
 
@@ -159,13 +159,14 @@ void GibbsSampler::store_tau(){
         }
         return;
     }
+    
     if(current_K > size_tau){
         // resize output tau accordingly and initialize values for past iterations
         out.mu.resize(current_K);
         out.sigma.resize(current_K);
         for(unsigned int i = size_tau; i < current_K; i++){
-            out.mu[i] = std::vector<double>(current_it, std::nan("") );
-            out.sigma[i] = std::vector<double>(current_it, std::nan("") );
+            out.mu[i] = std::vector<double>(current_it-1, std::nan("") );
+            out.sigma[i] = std::vector<double>(current_it-1, std::nan("") );
         }
     }
 

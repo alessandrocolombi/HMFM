@@ -86,11 +86,11 @@ dat[3, 1:length(data_level3)] <- data_level3
 
 niter <-2000
 burnin <- 1000
-thin <- 2
+thin <- 3
 
-option<-list("Mstar0" =10,"Lambda0"=2,"mu0"=0,"nu0"=10,"sigma0"=1^2,
+option<-list("Mstar0" =10,"Lambda0"=2,"mu0"=0,"nu0"= 5,"sigma0"= 2,
              "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
-             "k0"= 1/14, "alpha_gamma"=1,
+             "k0"= 5, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 
 GDFMM = GDFMM_sampler(dat, niter, burnin, thin, seed = 123, option = option)
