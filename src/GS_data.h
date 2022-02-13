@@ -4,8 +4,7 @@
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
-//#include "Partition.h"
-//class Partition;
+
 struct GS_data{
     /* DATA */
 

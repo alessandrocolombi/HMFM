@@ -14,7 +14,8 @@ struct out_data{
   // PARAMETERS OF MIXTURES
   std::vector< std::vector<double>> mu;
   std::vector< std::vector<double>> sigma;
-  std::vector<GDFMM_Traits::MatRow> w_ji;
+  // if partition is fixed estimated weights for the components are stored in w_jk
+  std::vector<GDFMM_Traits::MatRow> w_jk; 
 
   // ALGORITHIMC INTERESTING VALUES
   std::vector<double> lambda; // M|lambda ~ Poi(lambda)

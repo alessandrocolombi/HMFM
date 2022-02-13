@@ -191,9 +191,10 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 
   cat("SIMULATION options are : \n", file = "simulation_INFO.txt")
   cat("- Datasets simulated : ", n_simul, "\n", file = "simulation_INFO.txt", append = T)
+  cat("- Numerosity of the groups : ", group_dim, "\n", file = "simulation_INFO.txt", append = T)
   cat("- Mixture specifics : mu -> (", mu, ")  sigma-> (", sigma, ") \n \n",
       file = "simulation_INFO.txt", append = TRUE)
-
+  
   option_text = ""
   opt_names = names(option)
   for(name_i in 1:length(opt_names)){
@@ -252,7 +253,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
                               FixPartition = T, option = option_fixed)
 
     # for each group compute mean of weights for the estimated components
-    w_list = GS_fixed$w_ji
+    w_list = GS_fixed$w_jk
     w = matrix(nrow = d, ncol = k_est)
 
     for(j in 1:d){
@@ -304,7 +305,8 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
   # save list of metrics vector
   metrics = list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec)
   save(metrics, file = "metrics_list.rda")
-
+  save(p_mix, file = "p_mix.rda")
+  
   # restore original working directory
   setwd(original_dir)
 

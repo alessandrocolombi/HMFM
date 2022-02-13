@@ -115,7 +115,7 @@ void GibbsSampler::store_params_values() {
     }
 
     if(Partition_fixed){
-        store_w_ji();
+        store_w_jk();
     }
     // Common output values retrived
     store_tau();
@@ -124,16 +124,16 @@ void GibbsSampler::store_params_values() {
     out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
 }
 
-void GibbsSampler::store_w_ji(){
+void GibbsSampler::store_w_jk(){
     
     unsigned int current_it = (gs_data.iterations - burn_in)/thin;
     unsigned int d = gs_data.S.rows();
     unsigned int K = gs_data.S.cols();
     
-    if(out.w_ji.empty()){
+    if(out.w_jk.empty()){
         GDFMM_Traits::MatRow w_j(K, n_iter);
         for(unsigned int j = 0; j < d; j++){
-            out.w_ji.push_back(w_j);
+            out.w_jk.push_back(w_j);
         }
     }
 
@@ -141,7 +141,7 @@ void GibbsSampler::store_w_ji(){
 
     for(unsigned int j = 0; j < d; j++){
         for(unsigned int k = 0; k < K; k++){
-            out.w_ji[j](k, current_it - 1) = gs_data.S(j,k)/T(j);
+            out.w_jk[j](k, current_it - 1) = gs_data.S(j,k)/T(j);
         }
     }
 }

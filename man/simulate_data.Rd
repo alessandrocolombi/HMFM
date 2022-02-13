@@ -42,6 +42,8 @@ group}
 
 \item{option}{list of option for the GDFMM model. See GDFMM_sampler help for the list of
 needed values}
+
+\item{dir}{path to the directory where data about simlation have to be saved}
 }
 \value{
 some metrics to evaluate the goodness of GDFMM

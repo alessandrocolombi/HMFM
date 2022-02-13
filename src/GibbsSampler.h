@@ -9,14 +9,15 @@
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "FullConditional.h"
-#include "GS_data.h"
-#include "out_data.h"
 #include "FC_tau.h"
 #include "FC_U.h"
 #include "FC_S.h"
 #include "FC_Lambda.h"
 #include "FC_Mstar.h"
 #include "FC_gamma.h"
+#include "Partition.h"
+#include "GS_data.h"
+#include "out_data.h"
 #include <chrono>
 
 class GibbsSampler {
@@ -43,7 +44,7 @@ private:
     std::string model;
     void store_params_values();
     void store_tau();
-    void store_w_ji();
+    void store_w_jk();
     void GS_Step();
     bool Partition_fixed;
 };

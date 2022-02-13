@@ -41,7 +41,7 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 
 	std::vector<std::vector<double>> mu = out.mu;
 	std::vector<std::vector<double>> sigma = out.sigma;
-    std::vector<GDFMM_Traits::MatRow> w_ji = out.w_ji;
+    std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk;
 	std::vector<double> lambda = out.lambda;
 	Rcpp::NumericMatrix gamma(dat.rows(), n_iter, out.gamma.begin());
 	Rcpp::NumericMatrix U(dat.rows(), n_iter, out.U.begin());
@@ -50,7 +50,7 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 		
 		return Rcpp::List::create( Rcpp::Named("mu") = mu,
                                   	Rcpp::Named("sigma") = sigma,
-									Rcpp::Named("w_ji") =  w_ji,
+									Rcpp::Named("w_jk") =  w_jk,
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U

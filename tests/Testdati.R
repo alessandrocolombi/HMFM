@@ -325,16 +325,19 @@ lines(grid, d_comp3$Est. ,  col = "red", lwd = 2)
 
 # Simulated Data testing --------------------------------------------------
 
+# 1) base simulation
 n_simul = 50
-group_dim = c(300, 400, 40)
-p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
+group_dim = c(100, 120, 12, 90, 60, 80, 70, 110, 15, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3),
+               c(0.2, 0.3, 0.5), c(0.4, 0.35, 0.25), c(0.2, 0.25, 0.55),
+               c(0, 0.6, 0.4), c(0.7, 0, 0.3), c(0, 1, 0), c(1/3, 1/3, 1/3))
 mu = c(-3, 0, 3)
 sigma = c(0.7, 0.5, 0.9)
 n_iter = 5000
 burnin = 5000
-thin = 3
+thin = 2
 seed = 2561996
-option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 10, "sigma0"= 1,
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 5, "sigma0"= 2,
                "k0"= 5, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
                "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
                "alpha_gamma" = 1, "beta_gamma" = 1,
@@ -345,22 +348,25 @@ simulation = simulate_data(n_simul = n_simul,
                            p_mix = p_mix,
                            mu = mu, sigma = sigma,
                            burnin = burnin, n_iter = n_iter, thin = thin,
-                           seed = seed, option = option)
+                           seed = seed, option = option, dir = "~")
 
 rm(list = ls())
 
+# 2) simulation with sigma0 changed
 
 n_simul = 50
-group_dim = c(300, 400, 40)
-p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
+group_dim = c(100, 120, 12, 90, 60, 80, 70, 110, 15, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3),
+               c(0.2, 0.3, 0.5), c(0.4, 0.35, 0.25), c(0.2, 0.25, 0.55),
+               c(0, 0.6, 0.4), c(0.7, 0, 0.3), c(0, 1, 0), c(1/3, 1/3, 1/3))
 mu = c(-3, 0, 3)
 sigma = c(0.7, 0.5, 0.9)
 n_iter = 5000
 burnin = 5000
-thin = 3
+thin = 2
 seed = 2561996
-option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 5, "sigma0"= 2,
-               "k0"= 2, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 5, "sigma0"= 4,
+               "k0"= 5, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
                "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
                "alpha_gamma" = 1, "beta_gamma" = 1,
                "alpha_lambda" = 1, "beta_lambda" = 1)
@@ -370,6 +376,61 @@ simulation = simulate_data(n_simul = n_simul,
                            p_mix = p_mix,
                            mu = mu, sigma = sigma,
                            burnin = burnin,n_iter = n_iter, thin = thin,
-                           seed = seed, option = option)
+                           seed = seed, option = option, dir = "~")
 
+rm(list = ls())
+
+# 3) simulation with nu0 changed
+
+n_simul = 50
+group_dim = c(100, 120, 12, 90, 60, 80, 70, 110, 15, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3),
+               c(0.2, 0.3, 0.5), c(0.4, 0.35, 0.25), c(0.2, 0.25, 0.55),
+               c(0, 0.6, 0.4), c(0.7, 0, 0.3), c(0, 1, 0), c(1/3, 1/3, 1/3))
+mu = c(-3, 0, 3)
+sigma = c(0.7, 0.5, 0.9)
+n_iter = 5000
+burnin = 5000
+thin = 2
+seed = 2561996
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 1, "sigma0"= 2,
+               "k0"= 5, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
+               "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
+               "alpha_gamma" = 1, "beta_gamma" = 1,
+               "alpha_lambda" = 1, "beta_lambda" = 1)
+
+simulation = simulate_data(n_simul = n_simul,
+                           group_dim = group_dim,
+                           p_mix = p_mix,
+                           mu = mu, sigma = sigma,
+                           burnin = burnin, n_iter = n_iter, thin = thin,
+                           seed = seed, option = option, dir = "~")
+
+rm(list = ls())
+
+# 4) simulation with k0 changed
+
+n_simul = 50
+group_dim = c(100, 120, 12, 90, 60, 80, 70, 110, 15, 40)
+p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3),
+               c(0.2, 0.3, 0.5), c(0.4, 0.35, 0.25), c(0.2, 0.25, 0.55),
+               c(0, 0.6, 0.4), c(0.7, 0, 0.3), c(0, 1, 0), c(1/3, 1/3, 1/3))
+mu = c(-3, 0, 3)
+sigma = c(0.7, 0.5, 0.9)
+n_iter = 5000
+burnin = 5000
+thin = 2
+seed = 2561996
+option <- list("Mstar0" = 3, "Lambda0" = 2, "mu0" = 0, "nu0"= 5, "sigma0"= 3,
+               "k0"= 1, "Adapt_MH_hyp1" = 0.7, "Adapt_MH_hyp2" = 0.234,
+               "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
+               "alpha_gamma" = 1, "beta_gamma" = 1,
+               "alpha_lambda" = 1, "beta_lambda" = 1)
+
+simulation = simulate_data(n_simul = n_simul,
+                           group_dim = group_dim,
+                           p_mix = p_mix,
+                           mu = mu, sigma = sigma,
+                           burnin = burnin,n_iter = n_iter, thin = thin,
+                           seed = seed, option = option, dir = "~")
 #
