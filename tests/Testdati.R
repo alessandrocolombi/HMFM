@@ -325,7 +325,7 @@ lines(grid, d_comp3$Est. ,  col = "red", lwd = 2)
 
 # Simulated Data testing --------------------------------------------------
 
-n_simul = 5
+n_simul = 50
 group_dim = c(300, 400, 40)
 p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
 mu = c(-3, 0, 3)
@@ -350,7 +350,7 @@ simulation = simulate_data(n_simul = n_simul,
 rm(list = ls())
 
 
-n_simul = 5
+n_simul = 50
 group_dim = c(300, 400, 40)
 p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3) )
 mu = c(-3, 0, 3)

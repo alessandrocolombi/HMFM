@@ -16,7 +16,8 @@ simulate_data(
   n_iter = 2000,
   thin = 3,
   seed = 1234,
-  option
+  option,
+  dir = "."
 )
 }
 \arguments{

@@ -168,7 +168,7 @@ rmix <- function(n, p, mu, sigma){
 #' @export 
 simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
                           burnin = 2000, n_iter = 2000, thin = 3, seed = 1234,
-                          option)
+                          option, dir = ".")
   {
       # dimension check
   if( length(group_dim) != dim(p_mix)[1] )
@@ -178,7 +178,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
     stop("*p_mix* must have number of columns equal to the length of mu and sigma (vectors of same length)")
 
   # create a directory to save results and set it as working directory
-  name_dir = paste("simulation_GDFMM_", Sys.time(), sep = "")
+  name_dir = paste(dir, "/simulation_GDFMM_", Sys.time(), sep = "")
   dir.create(name_dir)
   setwd(name_dir)
 
@@ -295,6 +295,11 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
     Mdiff_vec[i] = abs(M - k_est)
   }
   cat("DONE")
+
+  # save list of metrics vector
+  metrics = list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec)
+  save(metrics, file = "metrics_list.rda")
+
   # restore original working directory
   setwd("../")
 
