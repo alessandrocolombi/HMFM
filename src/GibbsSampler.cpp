@@ -85,8 +85,8 @@ void GibbsSampler::sample() {
         }
 
         if(!Partition_fixed){
-            Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
-                        <<"\n"<<std::endl;
+            // Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
+            //             <<"\n"<<std::endl;
         }
     }
 }
@@ -94,15 +94,15 @@ void GibbsSampler::sample() {
 void GibbsSampler::GS_Step() {
     //Loop for updating every fullconditional
     for(auto full_cond: FullConditionals){
-        Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
-        //starting timer to measure updating time
-        auto t_start = std::chrono::high_resolution_clock::now();
+        // Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
+        // starting timer to measure updating time
+        // auto t_start = std::chrono::high_resolution_clock::now();
         full_cond->update(gs_data, random_engine);
-        //ending timer to measure updating time
-        auto t_end = std::chrono::high_resolution_clock::now();
-        //elapsed time in ms
-        double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
-        Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
+        // ending timer to measure updating time
+        // auto t_end = std::chrono::high_resolution_clock::now();
+        // elapsed time in ms
+        // double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
+        // Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
     }
 }
 

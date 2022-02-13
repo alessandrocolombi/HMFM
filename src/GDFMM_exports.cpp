@@ -30,8 +30,8 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
 	// Do not use deafult values here
-	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
-	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
+	// Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
+	// Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
     // Create object GibbsSampler and sample
 	GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
     Gibbs.sample();
