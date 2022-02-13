@@ -164,6 +164,7 @@ rmix <- function(n, p, mu, sigma){
 #' @param seed seed for the GDFMM run (0 ==> random seed)
 #' @param option list of option for the GDFMM model. See GDFMM_sampler help for the list of
 #'               needed values
+#' @param dir path to the directory where data about simlation have to be saved
 #' @return some metrics to evaluate the goodness of GDFMM
 #' @export 
 simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
@@ -291,8 +292,8 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 
 
     # save results for the current iteration
-    save(list = c("GS", "GS_fixed", "group_list", "grid", "GS_mix", "real_mix"),
-         file = paste("run", i,".rda"))
+    save(list = c("GS", "GS_fixed", "est_part", "group_list", "grid", "GS_mix", "real_mix"),
+         file = paste("run", i,".rda", sep = "") )
 
     # store metrics for the currente iteratiom
     KLdiv_vec[i] = KLdiv/d
