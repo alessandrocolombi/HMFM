@@ -178,7 +178,11 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
     stop("*p_mix* must have number of columns equal to the length of mu and sigma (vectors of same length)")
 
   # create a directory to save results and set it as working directory
-  name_dir = paste(dir, "/simulation_GDFMM_", Sys.time(), sep = "")
+  original_dir = getwd()
+  name_dir = paste("/simulation_GDFMM_", Sys.time(), sep = "")
+  name_dir = stringr::str_replace_all(name_dir,":",".")
+  name_dir = paste(dir, name_dir, sep = "")
+
   dir.create(name_dir)
   setwd(name_dir)
 
@@ -301,7 +305,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
   save(metrics, file = "metrics_list.rda")
 
   # restore original working directory
-  setwd("../")
+  setwd(original_dir)
 
   # return divergence metrics obtained through the simulation
   return(list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec))
