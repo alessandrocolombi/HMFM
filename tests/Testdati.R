@@ -345,7 +345,7 @@ simulation = simulate_data(n_simul = n_simul,
                            p_mix = p_mix,
                            mu = mu, sigma = sigma,
                            burnin = burnin, n_iter = n_iter, thin = thin,
-                           seed = seed, option = option)
+                           seed = seed, option = option, dir = "~/Desktop")
 
 rm(list = ls())
 
