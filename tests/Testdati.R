@@ -433,4 +433,8 @@ simulation = simulate_data(n_simul = n_simul,
                            mu = mu, sigma = sigma,
                            burnin = burnin,n_iter = n_iter, thin = thin,
                            seed = seed, option = option, dir = "~")
+mean(metrics$KLD)
+mean(metrics$M_diff)
+metrics$M_diff
+
 #
