@@ -7,15 +7,15 @@ This folder contains all .R files. Do not modify GDFMM-package.R and zzz.R (used
 # src/
 This folder contains all c++ and Rcpp files, the ones to be compiled. There are three types of files:
 1. Makevars and Makevars.win are sort of makefiles for linux and window, respectively.
-2. GDFMM_exports.cpp is the file to export C++ functions in R environment with Rcpp. All functions are documented with Roxygen
-3. Test_Eigen.cpp and Test_GSL.cpp are just example functions that test if Eigen and GSL libraries are installed correctly. Moreover this functions thest if user-defined classes to sample from GSL library works correctly 
-4. include_headers.h contains all the `#include<lib>` for the C++ internal libraries. Custom classes, i.e `#include "MyClass.h" `, are not included in this file.
-5. recurrent_traits.h contains all the typedefs for values or data structures that are recurrently called
-6. utils.h contains custom free functions, i.e those operations that are not class methods.
-7. FullConditional.h is a pure virtual class from wich are derived all classes for Full Conditionals, i.e. files FC_*.h and Partition.h
-8. GS_data.h and out_data.h are data structure to contain data needed in a Gibbs Sample iteration and for the output of GDFMM_sampler, respectively.
-9. GibbsSampler.h class for a Gibbs Sampler object. Gives the possibility to specify if the partition is fixed and the prior distribution for the components
-10. RcppExports.cpp automatically generated, do not edit by hand
+2. **GDFMM_exports.cpp** is the file to export C++ functions in R environment with Rcpp. All functions are documented with Roxygen
+3. **Test_Eigen.cpp** and **Test_GSL.cpp** are just example functions that test if Eigen and GSL libraries are installed correctly. Moreover this functions thest if user-defined classes to sample from GSL library works correctly 
+4. **include_headers.h** contains all the `#include<lib>` for the C++ internal libraries. Custom classes, i.e `#include "MyClass.h" `, are not included in this file.
+5. **recurrent_traits.h** contains all the typedefs for values or data structures that are recurrently called
+6. **utils.h** contains custom free functions, i.e those operations that are not class methods.
+7. **FullConditional.h** is a pure virtual class from wich are derived all classes for Full Conditionals, i.e. files **FC_*.h** and **Partition.h**
+8. **GS_data.h** and out_data.h are data structure to contain data needed in a Gibbs Sample iteration and for the output of GDFMM_sampler, respectively.
+9. **GibbsSampler.h** class for a Gibbs Sampler object. Gives the possibility to specify if the partition is fixed and the prior distribution for the components
+10. **RcppExports.cpp** automatically generated, do not edit by hand
 
 # man/
 This folder contains the Rmarkdown files for the documentation. Do not edit by hand.
