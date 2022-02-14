@@ -55,7 +55,7 @@ The drawback for those cases, is that the repo has to be public or at least you 
 $ cd package_repo
 $ R CMD build package_name
 ```
-from command line. (Questo funziona in linux, non ho mai creato il tar.gz in window). Once that the file is sent to the user, the latter just need to open R, set the working directory to match the file location and run
+from command line. (This works in Linux, never tested that on Windows). Once that the file is sent to the user, the latter just need to open R, set the working directory to match the file location and run
 ```R
 install.package("package_name.tar.gz", repos = NULL )
 ```
