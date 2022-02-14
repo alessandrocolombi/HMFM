@@ -41,7 +41,7 @@ The first command compile the c++ code (it creates the GDFMM.so library actually
 ## Install the package
 When the work is done, or whenever you want to install packages that have been published only on github and on the CRAN, you can install the package. The difference with respect to the previous section is that this step is not done when you are inside the GDFMM.Rproj. Therefore it is not local to the project but you make the package available in all your R system.
 There are several ways to install a github package. The procedures presented here are valid in general, not only for GDFMM.
-1. clone the repo as explained in [# Getting started](# Getting started). Open R and set the repo as working directory (select the folder where there is the .Rproj file). Run
+1. clone the repo as explained in [# Compile, document, build and run]. Open R and set the repo as working directory (select the folder where there is the .Rproj file). Run.
 ```R
 devtools::install()
 ```
