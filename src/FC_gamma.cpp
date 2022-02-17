@@ -8,79 +8,86 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
 
     sample::rnorm rnorm;
     sample::runif runif;
-    sample::rgamma rgamma;
+    //sample::rgamma rgamma;
 
     // Data from G_stat
-    std::vector<double>& gamma = gs_data.gamma;
+    std::vector<double> gamma = gs_data.gamma;
     const unsigned int & d = gs_data.d;
-    // Initialization of some variable
-    double K=gs_data.K;
-    double Mna = gs_data.Mstar;
+    double Lambda = gs_data.lambda;// Initialization of some variable
+    double K = gs_data.K;
+    double Mstar = gs_data.Mstar;
     double iter = gs_data.iterations;
-    GDFMM_Traits::MatUnsCol N=gs_data.N;
+    GDFMM_Traits::MatUnsCol N = gs_data.N;
     double acc=0; // <------- DA RIVEDERE
     double gamma_old;
     double lmedia;
     double ln_new;
     double gamma_new;
-    double ln_acp=0;
-   // Rcpp::Rcout<<"Step 0";
-    for (int j;j<d;j++){
+    double ln_acp;
+    double ln_u;
+    double ww_g;
+    
+    // Rcpp::Rcout<<"iter="<<iter<<std::endl;
+    
+    for (unsigned int j=0;j<d;j++){
         gamma_old= gamma[j];
-       // Rcpp::Rcout<<"Step 1";
+        //Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
         lmedia = std::log(gamma_old);
-        //Rcpp::Rcout<<"Step 1";
+        //cpp::Rcout<<"lmedia"<<lmedia<<std::endl;
+        //cpp::Rcout<<"var"<<adapt_var_pop_gamma<<std::endl;
         // Update of Gamma via Adapting Metropolis Hastings
         // *computation of quantities is in logarithm for numerical reasons*
-        double ln_new = rnorm(gs_engine, lmedia, sqrt(adapt_var_pop_gamma));
-        //Rcpp::Rcout<<"Step 1";
-        double gamma_new = std::exp(ln_new);
-       // Rcpp::Rcout<<"Step 1";
-        double n_acp =log_full_gamma(gamma_new, Lambda, K, Mna, N.row(j)) - lmedia; //da rivedere il tipo
-       // Rcpp::Rcout<<"Step 1";
-        // ARGOMENTI NON SI PARLANO CON HEADER FILE
-        double ln_acp = ln_acp - (log_full_gamma(gamma_old,  Lambda, K, Mna, N.row(j)) - ln_new);
-       // Rcpp::Rcout<<"Step 1";
-        double ln_u= std::log(runif(gs_engine));
+        ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma));
+        gamma_new = std::exp(ln_new);
+        ln_acp = log_full_gamma(gamma_new, Lambda, K, Mstar, N.row(j)) - lmedia; //da rivedere il tipo
+        ln_acp = ln_acp - (log_full_gamma(gamma_old, Lambda, K, Mstar, N.row(j)) - ln_new);
+        ln_u= std::log(runif(gs_engine));
+        
         if (ln_u  < ln_acp){
-            gamma[j] = gamma_new;
+            gs_data.gamma[j] = gamma_new;
             acc = acc + 1;
         } else {
-            gamma[j] = gamma_old;
+            gs_data.gamma[j] = gamma_old;
         }
 
-        double ww_g = pow(iter + 1,- hyp2); // <--- DA RIVEDERE, SECONDO ME ABBIAMO UN ww_g DIVERSO
+        //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
+        //Rcpp::Rcout << "gamma_" << j << gs_data.gamma[j] << update_status << std::endl;
+        ww_g = pow(iter + 1,- hyp2);
 
-       // Rcpp::Rcout<<"Step 2";
-        double adapt_var_pop_gamma = adapt_var_pop_gamma *
-                                     std::exp(ww_g *(exp(std::min(0.0, ln_acp)) -hyp1));
+        adapt_var_pop_gamma = adapt_var_pop_gamma *
+                                     std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));
 
-        if (adapt_var_pop_gamma < pow(10,50)){  //<--- ANDRE:
-            adapt_var_pop_gamma = pow(10,-50);  //<--- DA RIVEDERE SECONDO ME
-        }                                       //<--- DA COME HO CAPITO IO QUI SI
-        else{adapt_var_pop_gamma = pow(10,50);  //<--- DOVREBBE FARE UNA COSA DIVERSA
+        if (adapt_var_pop_gamma < 1/pow(10, power)){
+            adapt_var_pop_gamma = 1/pow(10, power);
+        }
+        if(adapt_var_pop_gamma > pow(10,power)){
+            adapt_var_pop_gamma = pow(10,power);
         }
 
     }
 }
 
-double  FC_gamma::log_full_gamma(double x, double Lambda, int k, double M_na, GDFMM_Traits::MatUnsCol n_jk)const{
-        // Gamma Distribution to compute new proposal
-    sample::pdfgamma pdfgamma;
-        // Computation of the output
-        double out =  pdfgamma(x,alpha,beta) + lgamma(x * (M_na + k)) -
-                lgamma(x *(M_na + k) + n_jk.sum()) -
-                k * lgamma(x) + sumlgamma(x, n_jk);
-    //Rcpp::Rcout<<"Step lfg";
-        return out;
+double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
+                unsigned int M_star,const GDFMM_Traits::MatUnsCol & n_jk){
+
+    // Computation of the output
+    double out = l_dgamma(gamma, alpha, beta) + lgamma(gamma * (M_star + k)) - 
+                      lgamma(gamma *(M_star + k) + n_jk.sum()) -(k * lgamma(gamma)) + sumlgamma(gamma, n_jk);
+    //Rcpp::Rcout<<"std::log(pdfgamma(x,alpha,beta))"<< std::log(pdfgamma(x,alpha,beta));
+    //Rcpp::Rcout<<"sumlgamma"<<sumlgamma(x, n_jk);
+    return out;
     }
 
 
-double  FC_gamma::sumlgamma(double x, GDFMM_Traits::MatUnsCol n_jk) const{
-  double sum=0;
-  for(unsigned i=0; i<n_jk.size(); i++){
-   sum+=lgamma(n_jk(i)+x);
-  }
+double FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) {
+    double sum = 0.0;
+    for(unsigned i=0; i<n_jk.size(); i++){
+        sum += lgamma(n_jk(i)+gamma);
+    }
     //Rcpp::Rcout<<"Step slg";
-  return sum;
+    return sum;
+}
+
+double FC_gamma::l_dgamma(double gamma, double a, double b){
+    return a*std::log(b) + (a-1)*std::log(gamma) - b*gamma - std::lgamma(a);
 }

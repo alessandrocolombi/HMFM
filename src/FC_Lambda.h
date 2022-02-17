@@ -6,13 +6,13 @@
 class FC_Lambda : public FullConditional{
 private:
     /* hyper parameters */
-    double a2;
-    double b2;
+    double a2 = 1;
+    double b2 = 1;
 public:
 
-    FC_Lambda(/* args */) {};
+    FC_Lambda(std::string na, double a, double b) : a2(a), b2(b){name = na;};
     FC_Lambda(std::string na){name=na;};
-    FC_Lambda(double a, double b): a2(a), b2(b){};
+    FC_Lambda(){name = "Lambda";};
     ~FC_Lambda() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 };

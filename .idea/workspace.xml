@@ -11,12 +11,8 @@
   <component name="ChangeListManager">
     <list default="true" id="de0afee6-77c0-4801-844a-b371f545b48f" name="Default Changelist" comment="changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_gamma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_gamma.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_gamma.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FC_tau.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FC_tau.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GDFMM_exports.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GDFMM_exports.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/GibbsSampler.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/GibbsSampler.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R/GDFMM_export.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/GDFMM_export.R" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Testdati.R" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Testdati.R" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -33,7 +29,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="prova2" />
+        <entry key="$PROJECT_DIR$" value="user_interface" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -49,7 +45,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/CMakeLists.txt" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.ChangelistConflict" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -88,7 +84,16 @@
       <workItem from="1641671109145" duration="10491000" />
       <workItem from="1641713996887" duration="26279000" />
       <workItem from="1641760636309" duration="5348000" />
-      <workItem from="1642003914864" duration="3503000" />
+      <workItem from="1642003914864" duration="3572000" />
+      <workItem from="1642094910674" duration="7227000" />
+      <workItem from="1642155078868" duration="203000" />
+      <workItem from="1642323739570" duration="27000" />
+      <workItem from="1642498167270" duration="16789000" />
+      <workItem from="1644418256799" duration="926000" />
+      <workItem from="1644490812799" duration="76000" />
+      <workItem from="1644578431280" duration="3681000" />
+      <workItem from="1644686101507" duration="987000" />
+      <workItem from="1644742466183" duration="2838000" />
     </task>
     <task id="LOCAL-00001" summary="gamma tau">
       <created>1639658526317</created>
@@ -164,16 +169,5 @@
     <MESSAGE value="changes" />
     <MESSAGE value="prova cambiamento full cond" />
     <option name="LAST_COMMIT_MESSAGE" value="prova cambiamento full cond" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/GS_data.cpp</url>
-          <line>5</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

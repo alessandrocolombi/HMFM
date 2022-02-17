@@ -21,6 +21,7 @@
 #include <random>
 #include <chrono>
 #include <algorithm>
+#include <limits>
 #include <memory>
 #include <exception>
 #include <numeric>

@@ -21,55 +21,75 @@ int try_rcpp(int x){
 	return x+10;
 }
 
-
+//' GDFMM sampler
 // [[Rcpp::export]]
-
-Rcpp::List example_GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin , Rcpp::String P0_prior_name, unsigned int seed){
+Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
+			 					unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
+								bool FixPart, Rcpp::List option){
 
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
 	// Do not use deafult values here
-	Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
-	Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
-	  //GS_data g(dat, n_iter,burn_in,thin); non posso più inizializzare gsdata fuori
-    GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed);
-    //out_data out=Gibbs.sample();
-    std::vector<int> Mstar=Gibbs.out.Mstar;
+	// Rcpp::Rcout<<"This is the Rcpp function"<<std::endl;
+	// Rcpp::Rcout<<"In c++ environment you can create custom c++ classes"<<std::endl;
+    // Create object GibbsSampler and sample
+	GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
+    Gibbs.sample();
+	// Take output data from the sample
+	out_data out = Gibbs.out;
+	auto n_j = Gibbs.get_nj();
 
-    std::vector<int> K=Gibbs.out.K;
+	std::vector<std::vector<double>> mu = out.mu;
+	std::vector<std::vector<double>> sigma = out.sigma;
+    std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk;
+	std::vector<double> lambda = out.lambda;
+	Rcpp::NumericMatrix gamma(dat.rows(), n_iter, out.gamma.begin());
+	Rcpp::NumericMatrix U(dat.rows(), n_iter, out.U.begin());
 
-
-    // Parameters param(niter, burnin, thin);   // example of another class that stores useful options
-	if (P0_prior_name == "Normal-InvGamma")
-	{
-		// Hyperparameters hy(param1,param2,param3); 			//example of the creation of a custom c++ class
-		//P0Prior P0(hy.nu, ...);
-			    //--> example of the creation of a custom c++ class that defines the P0prior to be used in this case
-
-		//SamplingStrategy sampler_obj(data, param, hy, P0);   //example of sampler object creation
-		//sampler_obj(...);
-				//--> run the sampler. prefer to use the call operator instead of a method called run().
-
-
-		//Post-processing and return
-
-		//you can mix types in Rcpp lists
-		return Rcpp::List::create ( Rcpp::Named("Mstar")= Mstar,
-                                  	Rcpp::Named("K")= K
-                                  	);
-
+	if(FixPart){
+		
+		return Rcpp::List::create( Rcpp::Named("mu") = mu,
+                                  	Rcpp::Named("sigma") = sigma,
+									Rcpp::Named("w_jk") =  w_jk,
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = lambda,
+									Rcpp::Named("U") = U
+									);
 	}
-	else if (P0_prior_name == "Normal-Gamma")
-	{
-		//Similar as before
-		return Rcpp::List::create ( Rcpp::Named("return_1")= dat,
-		                            Rcpp::Named("return_2")= 10,
-		                            Rcpp::Named("return_3")= "string" );
+	else{
+		std::vector<unsigned int> K = out.K;
+		std::vector<unsigned int> Mstar = out.Mstar;
+		std::vector<std::vector< std::vector<unsigned int>>> C = out.Ctilde;
+
+			//we need a better structure for C--> we save it as a vector instead of a matrix
+		std::vector<unsigned int> fprowvec; //final partition rowvec
+		
+		// store total number of data (i.e. cardinality{y_ji})
+		unsigned int n_data = std::accumulate(n_j.begin(), n_j.end(), 0);
+		Rcpp::NumericMatrix fpmatr(n_iter, n_data );  //final partition matrix
+
+		for (unsigned it = 0; it < n_iter; it++){
+			fprowvec.clear();
+			
+			for(unsigned j=0; j<dat.rows(); j++){
+				fprowvec.insert(fprowvec.end(), C[it][j].begin(), C[it][j].end());
+			}
+			
+			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() );
+		}
+
+		return Rcpp::List::create( Rcpp::Named("K") = K,
+									Rcpp::Named("Mstar") = Mstar,
+									Rcpp::Named("Partition") = fpmatr,
+									Rcpp::Named("mu") = mu,
+                                  	Rcpp::Named("sigma") = sigma,
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = lambda,
+									Rcpp::Named("U") = U
+									);
 	}
-	else
-		throw std::runtime_error("Runtime error. This avoid R session to abort in favour of a meaningful error.");
+    
 }
-
 
 
 #endif

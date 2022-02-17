@@ -8,16 +8,17 @@ class FullConditional;
 
 class Partition : public FullConditional{
 private:
-  /* hyper parameters */
-
+    /* Fix Partition option */
+    bool Partition_fixed;
 public:
-    std::vector<unsigned int> clust_out;
-    std::vector< std::vector<double>> C;
+    std::vector< std::vector<unsigned int>> C; // matrix of c_ji (non ordered)
+    std::set<unsigned int> s;  // A set which will be useful for ordering components
+    std::vector<unsigned int> clust_out; // vector of ORDERED allocated components
     Partition(){};
-    Partition(std::string na){name=na;};
+    Partition(std::string na, const unsigned int d, const std::vector<unsigned int> & n_j, bool FixPart);
     ~Partition(){};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
-    double normpdf(double x, double u, double s) const;
+    double log_norm(double x, double u, double s) const;
 };
 
 #endif
