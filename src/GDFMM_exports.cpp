@@ -6,6 +6,7 @@
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include <RcppArmadillo.h>
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
