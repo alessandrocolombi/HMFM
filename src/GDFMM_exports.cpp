@@ -6,21 +6,10 @@
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include <RcppArmadillo.h>
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
-
-
-//' Title Rcpp function
-//'
-//' @export
-// [[Rcpp::export]]
-int try_rcpp(int x){
-	Rcpp::Rcout<<"Inside test function"<<std::endl;
-	return x+10;
-}
 
 //' GDFMM sampler
 // [[Rcpp::export]]

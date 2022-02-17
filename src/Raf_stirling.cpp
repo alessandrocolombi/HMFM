@@ -80,7 +80,7 @@ Rcpp::NumericVector calcola_stirling(int n, double gamma, double r)
 //' It computes the whole sequence, C(n,k,gamma,r) for k=0,...,n.
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector calcola_stirling_ricor(unsigned int n, double gamma, double r)
+Rcpp::NumericVector calcola_stirling_ricor(int n, double gamma, double r)
 {
  //  gamma=-gamma;
   Rcpp::NumericVector row_j(n+1,0.0); // The output vector initialize all the element to zero
@@ -116,7 +116,7 @@ Rcpp::NumericVector calcola_stirling_ricor(unsigned int n, double gamma, double 
 //' Same as \code{\link{calcola_stirling_ricor}} but with r=0, i.e for central numbers only.
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector calcola_stirling_ricor_centr(double gamma, unsigned int n)
+Rcpp::NumericVector calcola_stirling_ricor_centr(double gamma, int n)
 {
   Rcpp::NumericVector row_j(n+1,0.0); // The output vector initialize all the element to zero
   row_j[0]=1; /// Row j=0
@@ -151,7 +151,7 @@ Rcpp::NumericVector calcola_stirling_ricor_centr(double gamma, unsigned int n)
 //' \mjsdeqn{(a + n -1)_{n} = (a)^{n}}, quello dovrebbe essere un raising factorial.
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector calcola_stirling_ricor_log( unsigned int n, double gamma, double r)
+Rcpp::NumericVector calcola_stirling_ricor_log( int n, double gamma, double r)
 {
   
   double infinito = std::numeric_limits<double>::infinity();
@@ -189,7 +189,7 @@ Rcpp::NumericVector calcola_stirling_ricor_log( unsigned int n, double gamma, do
 //' Same as \code{\link{calcola_stirling_ricor_log}} but with r=0, i.e for central numbers only.
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector calcola_stirling_ricor_log_centrali(unsigned int n, double gamma)
+Rcpp::NumericVector calcola_stirling_ricor_log_centrali( int n, double gamma)
 {
   
   double infinito = std::numeric_limits<double>::infinity();
