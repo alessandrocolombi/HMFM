@@ -3,6 +3,7 @@
 export(EigenTest)
 export(GDFMM_sampler)
 export(TestGSL)
+export(Test_Prior)
 export(calcola_generalized_factorial_ricor_log_matrice_old)
 export(calcola_generalized_factorial_ricor_log_old)
 export(calcola_stirling)

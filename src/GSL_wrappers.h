@@ -10,6 +10,7 @@
 #include <gsl/gsl_cdf.h> 	 //For cumulative density functions
 #include <gsl/gsl_bspline.h> //For spline operations
 #include <gsl/gsl_linalg.h> //For cholesky decomposition
+#include <gsl/gsl_sf.h>
 
 //Load GDFMM traits
 using namespace GDFMM_Traits;
@@ -118,6 +119,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 		}
 	};
 
+	//Callable object to draw a sample from Unif({0,...,N-1})
 	struct runif_int
 	{
 	  unsigned int operator()(GSL_RNG const & engine, unsigned int const & N)const{
@@ -129,9 +131,9 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 	     In other words, it generates a random number generator, generates a number and destroys the generator*/
 	  }
 	};
-	//Callable object to draw a sample from Unif({0,...,N-1})
-	//Callable object to draw a sample from Gamma(shape,scale).
-	// --> NB  Watch out notation! gsl uses the scale parameter, in Europe we are used to the rate parameter (rate = 1/scale) <--
+	
+
+	// Generic discrete distribution sampling. Possibly bugged, check it before using it
 	struct discrete{
 
 	  	  //Gets the engine
@@ -183,12 +185,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 			return gsl_ran_gaussian_ziggurat(GSL_RNG ()(),1.0); //the first () is for the constructor, the second il for the call operator
 		}
 	};
-	struct pdfnorm{
 
-	  double operator()(double x, double sigma)const{
-	    return gsl_ran_gaussian_pdf( x,sigma);
-	  }
-	};
 	//Callable object to draw a sample from Gamma(shape,scale).
 	// --> NB  Watch out notation! gsl uses the scale parameter, in Europe we are used to the rate parameter (rate = 1/scale) <--
 	struct rgamma{
@@ -205,12 +202,7 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 			return gsl_ran_gamma(GSL_RNG ()(),shape,scale);
 		}
 	};
-  struct pdfgamma{
 
-        double operator()(double x, int alpha, int beta)const{
-            return gsl_ran_gamma_pdf( x,  alpha, beta);
-        }
-    };
 	//Callable object to draw a sample from Chi-squared(k).
 	// --> NB  k is the degree of freedom. Chi-squared(k) = Gamma(shape = k/2, scale = 2) <--
 	struct rchisq{

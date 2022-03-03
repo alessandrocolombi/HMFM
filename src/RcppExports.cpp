@@ -30,6 +30,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Test_Prior
+void Test_Prior();
+RcppExport SEXP _GDFMM_Test_Prior() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Test_Prior();
+    return R_NilValue;
+END_RCPP
+}
 // falling_factorial
 double falling_factorial(double x, int n);
 RcppExport SEXP _GDFMM_falling_factorial(SEXP xSEXP, SEXP nSEXP) {
@@ -368,6 +377,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_c, 8},
+    {"_GDFMM_Test_Prior", (DL_FUNC) &_GDFMM_Test_Prior, 0},
     {"_GDFMM_falling_factorial", (DL_FUNC) &_GDFMM_falling_factorial, 2},
     {"_GDFMM_calcola_stirling", (DL_FUNC) &_GDFMM_calcola_stirling, 3},
     {"_GDFMM_calcola_stirling_ricor", (DL_FUNC) &_GDFMM_calcola_stirling_ricor, 3},

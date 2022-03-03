@@ -10,6 +10,7 @@
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
+#include "ComponentPrior_factory.h"
 
 //' GDFMM sampler
 // [[Rcpp::export]]
@@ -81,5 +82,28 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
     
 }
 
+
+//' Test ComponentPrior
+//' @export
+// [[Rcpp::export]]
+void Test_Prior(){
+	Rcpp::String form = "Poisson";
+	double lambda(5.0);
+	ComponentPrior_Parameters param;
+	param.Lambda = lambda;
+	auto qM_ptr = Select_ComponentPrior(form, param);
+	ComponentPrior& qM(*qM_ptr);
+	std::string i_am = qM_ptr->showMe();
+	std::string i_am2 = qM.showMe();
+	Rcpp::Rcout<<"I am: "<<i_am<<std::endl;
+	Rcpp::Rcout<<"I am - II - : "<<i_am2<<std::endl;
+	form = "NegativeBinomial";
+	param.p = 0.45;
+	param.n_succ = 2.0;
+	auto qM_ptr2 = Select_ComponentPrior(form, param);
+	i_am = qM_ptr2->showMe();
+	Rcpp::Rcout<<"I am: "<<i_am<<std::endl;
+	// Devo testare se le densità sono giuste!
+}
 
 #endif
