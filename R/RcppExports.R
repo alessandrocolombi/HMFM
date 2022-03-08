@@ -6,12 +6,6 @@ GDFMM_sampler_c <- function(dat, n_iter, burn_in, thin, seed, P0_prior_name, Fix
     .Call(`_GDFMM_GDFMM_sampler_c`, dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option)
 }
 
-#' Test ComponentPrior
-#' @export
-Test_Prior <- function() {
-    invisible(.Call(`_GDFMM_Test_Prior`))
-}
-
 #' Falling Factorial - Raf
 #'
 #' @export
@@ -183,6 +177,15 @@ raising_factorial <- function(n, a) {
     .Call(`_GDFMM_raising_factorial`, n, a)
 }
 
+#' log Raising Factorial
+#'
+#' \loadmathjax This function computes the logarithm of the rising factorial \mjseqn{(a)^{n}} using the gsl code for the log of Pochhammer symbol.
+#' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+#' @export
+log_raising_factorial <- function(n, a) {
+    .Call(`_GDFMM_log_raising_factorial`, n, a)
+}
+
 #' Falling Factorial
 #'
 #' \loadmathjax This function computes the falling factorial \mjseqn{ a_{n} }. See \code{\link{raising_factorial}} for details.
@@ -203,6 +206,14 @@ my_falling_factorial <- function(n, a) {
 #' @export
 compute_Pochhammer <- function(x, a) {
     .Call(`_GDFMM_compute_Pochhammer`, x, a)
+}
+
+#' Pochhammer log Symbol
+#'
+#' \loadmathjax This function computes the Pochhammer symbol in log form. See \code{\link{compute_Pochhammer}} for details. 
+#' @export
+compute_log_Pochhammer <- function(x, a) {
+    .Call(`_GDFMM_compute_log_Pochhammer`, x, a)
 }
 
 #' Build matrix of logC numbers
@@ -258,5 +269,11 @@ my_logC2_central <- function(n, scale) {
 #' @export
 compute_logC <- function(n, scale, location) {
     .Call(`_GDFMM_compute_logC`, n, scale, location)
+}
+
+#' Test ComponentPrior
+#' @export
+Test_Prior <- function() {
+    invisible(.Call(`_GDFMM_Test_Prior`))
 }
 

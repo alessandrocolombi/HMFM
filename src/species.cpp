@@ -11,6 +11,7 @@
 #include "GSL_wrappers.h"
 #include "utils.h"
 #include <gsl/gsl_sf.h>
+#include "ComponentPrior_factory.h"
 
 //' Title Rcpp function
 //'
@@ -32,6 +33,17 @@ int try_rcpp(int x){
 double raising_factorial(const unsigned int& n, const double& a)
 {
 	return( gsl_sf_poch(a, (double)n ) );
+}
+
+//' log Raising Factorial
+//'
+//' \loadmathjax This function computes the logarithm of the rising factorial \mjseqn{(a)^{n}} using the gsl code for the log of Pochhammer symbol.
+//' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+//' @export
+// [[Rcpp::export]]
+double log_raising_factorial(const unsigned int& n, const double& a) //secondo me troppo generale, può essere semplificata
+{
+	return( gsl_sf_lnpoch(a, (double)n ) );
 }
 
 //' Falling Factorial
@@ -63,6 +75,15 @@ double compute_Pochhammer(const unsigned int& x, const double& a)
 	return( gsl_sf_poch(a,x ) );
 }
 
+//' Pochhammer log Symbol
+//'
+//' \loadmathjax This function computes the Pochhammer symbol in log form. See \code{\link{compute_Pochhammer}} for details. 
+//' @export
+// [[Rcpp::export]]
+double compute_log_Pochhammer(const unsigned int& x, const double& a)
+{
+	return( gsl_sf_lnpoch(a,x ) );
+}
 
 //' Build matrix of logC numbers
 //'
@@ -245,5 +266,123 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 	} 
 	return (LogC_old);
 }
+
+
+
+// Tutta da testare
+double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 ){
+	
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+	double res(0.0);
+	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+		res += raising_factorial(k, (double)(Mstar+1) ) * qM.eval_prob(Mstar + k) * 
+		       std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(), 
+		       					   [&Mstar, &k](const double& nj, const double& gamma_j){return 1/compute_Pochhammer(nj, gamma_j*(Mstar + k));} );		       
+	}
+	return res;
+}
+
+/*
+// Tutta da testare
+double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 ){
+	
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+	std::vector<double> vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	vector_d_iterator it_max = log_vect_res.begin(); 
+	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+		log_vect_res[Mstar] = log_raising_factorial(k,(double)(Mstar+1) ) + 
+							  qM.log_eval_prob(Mstar + k) - 
+							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::sum<>(), 
+			       					   			  [&Mstar, &k](const double& nj, const double& gamma_j){return compute_log_Pochhammer(nj, gamma_j*(Mstar + k));} 
+			       					   			);	   
+        if(log_vect_res[Mstar]>*it_max) //check if maximum
+        	*it_max = log_vect_res[Mstar];	       					   			    
+	}
+
+	double res(*it_max);
+	return (*it_max + std::log(1 + std::accumulate(vect_res.cbegin(), vect_res.cend(), 0.0,
+						                           [&it_max](double& acc, const double& x){return exp(x - *it_max );}) ) ) 
+//cosi ho un termine che viene sicuramente nullo perché non sto togliendo il massimo. potrei spezzare in due range.
+}
+
+//questa è sola per 2 gruppi
+double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double> gamma){
+	
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
+	if(n_i.size() != 2)
+		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) must be equal to 2");
+	if(k == 0)
+		return 0.0;
+
+	double res(0.0);
+	for(std::size_t r1=0; Mstar <= k; ++r1){
+		for(std::size_t r2=0; r2<= k-r1; ++r2){
+			// come calcolo il coefficiente binomiale in c++?
+		}      
+	}
+	return res;
+}
+*/
+
+
+
+//' Test ComponentPrior
+//' @export
+// [[Rcpp::export]]
+void Test_Prior(){
+	Rcpp::String form = "Poisson";
+	double lambda(5.0);
+	ComponentPrior_Parameters param;
+	param.Lambda = lambda;
+	auto qM_ptr = Select_ComponentPrior(form, param);
+	ComponentPrior& qM(*qM_ptr);
+	std::string i_am = qM_ptr->showMe();
+	std::string i_am2 = qM.showMe();
+	Rcpp::Rcout<<"I am: "<<i_am<<std::endl;
+	Rcpp::Rcout<<"I am - II - : "<<i_am2<<std::endl;
+	form = "NegativeBinomial";
+	param.p = 0.45;
+	param.n_succ = 2;
+	auto qM_ptr2 = Select_ComponentPrior(form, param);
+	i_am = qM_ptr2->showMe();
+	Rcpp::Rcout<<"I am: "<<i_am<<std::endl;
+	// Devo testare se le densità sono giuste!
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"============== Densità ============="<<std::endl;
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"Poisson1(0)="<<qM_ptr->eval_prob(0)<<std::endl;
+	Rcpp::Rcout<<"Poisson1(1)="<<qM_ptr->eval_prob(1)<<std::endl;
+	Rcpp::Rcout<<"Poisson1(2)="<<qM_ptr->eval_prob(2)<<std::endl;
+	Rcpp::Rcout<<"Poisson1(3)="<<qM_ptr->eval_prob(3)<<std::endl;
+	Rcpp::Rcout<<"Poisson1(4)="<<qM_ptr->eval_prob(4)<<std::endl;
+	Rcpp::Rcout<<"NegativeBinomial1(0)="<<qM_ptr2->eval_prob(0)<<std::endl;
+	Rcpp::Rcout<<"NegativeBinomial1(1)="<<qM_ptr2->eval_prob(1)<<std::endl;
+	Rcpp::Rcout<<"NegativeBinomial1(2)="<<qM_ptr2->eval_prob(2)<<std::endl;
+	Rcpp::Rcout<<"NegativeBinomial(3)="<<qM_ptr2->eval_prob(3)<<std::endl;
+	Rcpp::Rcout<<"NegativeBinomial(4)="<<qM_ptr2->eval_prob(4)<<std::endl;
+	// Devo testare se le densità sono giuste!
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"============ Log Densità ==========="<<std::endl;
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"log_Poisson1(0)="<<qM_ptr->log_eval_prob(0)<<std::endl;
+	Rcpp::Rcout<<"log_Poisson1(1)="<<qM_ptr->log_eval_prob(1)<<std::endl;
+	Rcpp::Rcout<<"log_Poisson1(2)="<<qM_ptr->log_eval_prob(2)<<std::endl;
+	Rcpp::Rcout<<"log_Poisson1(3)="<<qM_ptr->log_eval_prob(3)<<std::endl;
+	Rcpp::Rcout<<"log_Poisson1(4)="<<qM_ptr->log_eval_prob(4)<<std::endl;
+	Rcpp::Rcout<<"log_NegativeBinomial1(0)="<<qM_ptr2->log_eval_prob(0)<<std::endl;
+	Rcpp::Rcout<<"log_NegativeBinomial1(1)="<<qM_ptr2->log_eval_prob(1)<<std::endl;
+	Rcpp::Rcout<<"log_NegativeBinomial1(2)="<<qM_ptr2->log_eval_prob(2)<<std::endl;
+	Rcpp::Rcout<<"log_NegativeBinomial1(3)="<<qM_ptr2->log_eval_prob(3)<<std::endl;
+	Rcpp::Rcout<<"log_NegativeBinomial1(4)="<<qM_ptr2->log_eval_prob(4)<<std::endl;
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"================ Moda =============="<<std::endl;
+	Rcpp::Rcout<<"===================================="<<std::endl;
+	Rcpp::Rcout<<"La moda Poisson1 quando lambda = "<<lambda<<" è pari a "<<qM_ptr->get_mode()<<std::endl;
+	Rcpp::Rcout<<"La moda NegativeBinomial1 quando p = "<<lambda<<" è pari a "<<param.p<<" e n è "<<param.n_succ<<" è pari a "<<qM_ptr2->get_mode()<<std::endl;
+}
+
 
 #endif

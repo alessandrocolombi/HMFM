@@ -13,7 +13,7 @@ struct ComponentPrior_Parameters{
 	double Lambda{1}; //Poisson parameter, mean and variance are equal to Lambda
 	// For Negative Binomial Distribution
 	double p{0.5}; // probability of successes of each experiment
-	double n_succ{1}; // number of successes after which the experiments stops. It is not required to be integer, negative binomial allows n_succ to be a real number.
+	unsigned int n_succ{1}; // number of successes after which the experiments stops. It is not required to be integer
 };
 
 
