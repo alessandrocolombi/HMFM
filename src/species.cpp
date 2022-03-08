@@ -61,6 +61,20 @@ double my_falling_factorial(const unsigned int& n, const double& a)
 		return( -1*gsl_sf_poch(-a, (double)n ) );
 }
 
+//' log Falling Factorial
+//'
+//' \loadmathjax This function computes the logarithm of the falling factorial \mjseqn{ a_{n} } using the gsl code for the log of Pochhammer symbol.
+//' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+//' @export
+// [[Rcpp::export]]
+double my_log_falling_factorial(const unsigned int& n, const double& a)
+{
+	if(n%2 == 0) //n is even
+		return( gsl_sf_lnpoch(-a, (double)n ) );
+	else //n is odd, change sign
+		return( -1*gsl_sf_lnpoch(-a, (double)n ) );
+}
+
 //' Pochhammer Symbol
 //'
 //' \loadmathjax This function computes the Pochhammer symbol, 
@@ -268,8 +282,7 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 }
 
 
-
-// Tutta da testare
+// Da Testare
 double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 ){
 	
 	if(n_i.size() != gamma.size())
@@ -283,32 +296,48 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 	return res;
 }
 
-/*
+
 // Tutta da testare
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 ){
 	
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
-	std::vector<double> vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
-	vector_d_iterator it_max = log_vect_res.begin(); 
+
+	// Initialize vector of results
+	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	// Initialize quantities to find the maximum
+	unsigned int idx_max(0); 
+	double val_max(log_vect_res[idx_max]);
+
+	// Start the loop, let us compute all the elements
 	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+
+		// Formula implementation
 		log_vect_res[Mstar] = log_raising_factorial(k,(double)(Mstar+1) ) + 
 							  qM.log_eval_prob(Mstar + k) - 
-							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::sum<>(), 
+							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(), 
 			       					   			  [&Mstar, &k](const double& nj, const double& gamma_j){return compute_log_Pochhammer(nj, gamma_j*(Mstar + k));} 
-			       					   			);	   
-        if(log_vect_res[Mstar]>*it_max) //check if maximum
-        	*it_max = log_vect_res[Mstar];	       					   			    
+			       					   			);	
+		// Check if it is the new maximum			       					   			   
+        if(log_vect_res[Mstar]>val_max){ 
+        	idx_max = Mstar;
+        	val_max = log_vect_res[Mstar];
+        } 
+        	       					   			    
 	}
 
-	double res(*it_max);
-	return (*it_max + std::log(1 + std::accumulate(vect_res.cbegin(), vect_res.cend(), 0.0,
-						                           [&it_max](double& acc, const double& x){return exp(x - *it_max );}) ) ) 
-//cosi ho un termine che viene sicuramente nullo perché non sto togliendo il massimo. potrei spezzare in due range.
+	// Formula to compute the log of all the sums in a stable way
+	return (val_max + 
+			std::log(1 + 
+				    std::accumulate(   log_vect_res.cbegin(), log_vect_res.cbegin()+idx_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  +
+				    std::accumulate(   log_vect_res.cbegin()+idx_max+1, log_vect_res.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  
+		            ) 
+		   ); 
 }
 
+
 //questa è sola per 2 gruppi
-double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double> gamma){
+double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 	
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
@@ -317,15 +346,66 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 	if(k == 0)
 		return 0.0;
 
-	double res(0.0);
-	for(std::size_t r1=0; Mstar <= k; ++r1){
+	double inf = std::numeric_limits<double>::infinity();
+
+	std::vector<double> log_a(k+1,-inf);    // This vector contains all the quantities that depend only on r1 
+
+	// Initialize quantities to find the maximum of log_a
+	unsigned int idx_max1(0); 
+	double val_max1(log_a[idx_max1]);
+	
+	// Compute all C numbers required
+	Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n1,i,-gamma1)| for i = 0,...,n2
+
+	// Start for loop
+	for(std::size_t r1=0; r1 <= k; ++r1){
+
+		// Compute a_r1 using its definition
+		log_a[r1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,k) + absC1[k-r1];
+
+		// Prepare for computing the second term
+
+		// Initialize vector of results
+		std::vector<double> log_vect_res(k-r1+1, -inf );
+		// Initialize quantities to find the maximum of log_vect_res
+		unsigned int idx_max2(0); 
+		double val_max2(log_vect_res[idx_max2]);
+		
+		// Inner loop on r2
 		for(std::size_t r2=0; r2<= k-r1; ++r2){
-			// come calcolo il coefficiente binomiale in c++?
-		}      
+			// Compute b_r2*c_r1r2
+			log_vect_res[r2] = gsl_sf_lnchoose(k-r1,r2) - std::lgamma(k-r2+1) + absC2[k-r2];
+
+			// Check if it is the new maximum of log_vect_res		       					   			   
+        	if(log_vect_res[r2]>val_max2){ 
+        		idx_max2 = r2;
+        		val_max2 = log_vect_res[r2];
+        	} 
+		}
+
+		// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
+		log_a[r1] += val_max2 + 
+					 std::log(1 + 
+				              std::accumulate(   log_vect_res.cbegin(), log_vect_res.cbegin()+idx_max2, 0.0, [&val_max2](double& acc, const double& x){return acc + exp(x - val_max2 );}   )  +
+				              std::accumulate(   log_vect_res.cbegin()+idx_max2+1, log_vect_res.cend(), 0.0, [&val_max2](double& acc, const double& x){return acc + exp(x - val_max2 );}   )  
+		                     );
+		// Check if it is the new maximum of log_a		       					   			   
+       	if(log_a[r1]>val_max1){ 
+       		idx_max1 = r1;
+       		val_max1 = log_a[r1];
+       	}			 
 	}
-	return res;
+
+	// Complete the sum over all elements in log_a
+	return (val_max1 + 
+			std::log(1 + 
+				    std::accumulate(   log_a.cbegin(), log_a.cbegin()+idx_max1, 0.0, [&val_max1](double& acc, const double& x){return acc + exp(x - val_max1 );}   )  +
+				    std::accumulate(   log_a.cbegin()+idx_max1+1, log_a.cend(), 0.0, [&val_max1](double& acc, const double& x){return acc + exp(x - val_max1 );}   )  
+		            ) 
+		   ); 
 }
-*/
+
 
 
 

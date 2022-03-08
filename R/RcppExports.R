@@ -196,6 +196,15 @@ my_falling_factorial <- function(n, a) {
     .Call(`_GDFMM_my_falling_factorial`, n, a)
 }
 
+#' log Falling Factorial
+#'
+#' \loadmathjax This function computes the logarithm of the falling factorial \mjseqn{ a_{n} } using the gsl code for the log of Pochhammer symbol.
+#' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+#' @export
+my_log_falling_factorial <- function(n, a) {
+    .Call(`_GDFMM_my_log_falling_factorial`, n, a)
+}
+
 #' Pochhammer Symbol
 #'
 #' \loadmathjax This function computes the Pochhammer symbol, 
