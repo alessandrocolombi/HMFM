@@ -180,7 +180,7 @@ raising_factorial <- function(n, a) {
 #' log Raising Factorial
 #'
 #' \loadmathjax This function computes the logarithm of the rising factorial \mjseqn{(a)^{n}} using the gsl code for the log of Pochhammer symbol.
-#' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+#' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details.
 #' @export
 log_raising_factorial <- function(n, a) {
     .Call(`_GDFMM_log_raising_factorial`, n, a)
@@ -199,7 +199,7 @@ my_falling_factorial <- function(n, a) {
 #' log Falling Factorial
 #'
 #' \loadmathjax This function computes the logarithm of the falling factorial \mjseqn{ a_{n} } using the gsl code for the log of Pochhammer symbol.
-#' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details. 
+#' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details.
 #' @export
 my_log_falling_factorial <- function(n, a) {
     .Call(`_GDFMM_my_log_falling_factorial`, n, a)
@@ -207,7 +207,7 @@ my_log_falling_factorial <- function(n, a) {
 
 #' Pochhammer Symbol
 #'
-#' \loadmathjax This function computes the Pochhammer symbol, 
+#' \loadmathjax This function computes the Pochhammer symbol,
 #' \mjsdeqn{(a)^{x} = \frac{\Gamma(a+x)}{\Gamma(a)}}.
 #' Where \code{x} is a real number. When x is an integer, such a function coincides with the rising factorial defined in \code{\link{raising_factorial}}.
 #' The raising (here denote with the upper apex) and the falling factorial (here denote with the lower apex) are related by the following relationship
@@ -219,7 +219,7 @@ compute_Pochhammer <- function(x, a) {
 
 #' Pochhammer log Symbol
 #'
-#' \loadmathjax This function computes the Pochhammer symbol in log form. See \code{\link{compute_Pochhammer}} for details. 
+#' \loadmathjax This function computes the Pochhammer symbol in log form. See \code{\link{compute_Pochhammer}} for details.
 #' @export
 compute_log_Pochhammer <- function(x, a) {
     .Call(`_GDFMM_compute_log_Pochhammer`, x, a)
@@ -230,7 +230,7 @@ compute_log_Pochhammer <- function(x, a) {
 #' This is the recursive function called by \code{\link{my_logC}} that builds the matrix containing all the log(|C(n,k)|) numbers.
 #' It gets as input the element (n,k) to build, the scale s and location r (here defined as positive and non-negative numbers) and the
 #' matrix res to be build. The matrix is constructed diagonal by diagonal, starting from the bottom.
-#' Important remark, note that log(|C(n,0)|) = log(raising factorial (n,r)). 
+#' Important remark, note that log(|C(n,0)|) = log(raising factorial (n,r)).
 #'
 build_logC_matrix <- function(n, k, s, r, res) {
     invisible(.Call(`_GDFMM_build_logC_matrix`, n, k, s, r, res))
@@ -238,8 +238,8 @@ build_logC_matrix <- function(n, k, s, r, res) {
 
 #' My logC
 #'
-#' This function is the recursive formula 2.69 in "Combinatorial methods in discrete distributions" book by Charalambides. 
-#' It returns an (n+1 x n+1) matrix containing all the log(|C(nn,k)|) numbers, for nn = 0,...,n+1 and k = 0,...,nn. 
+#' This function is the recursive formula 2.69 in "Combinatorial methods in discrete distributions" book by Charalambides.
+#' It returns an (n+1 x n+1) matrix containing all the log(|C(nn,k)|) numbers, for nn = 0,...,n+1 and k = 0,...,nn.
 #' scale and location must be negative and non-positive, respectively.
 #' As a consequence, it is memory expensive.
 #' @export
@@ -247,10 +247,10 @@ my_logC <- function(n, scale, location) {
     .Call(`_GDFMM_my_logC`, n, scale, location)
 }
 
-#' Compute log of absolute values of non Central C number 
+#' Compute log of absolute values of non Central C number
 #'
 #' \loadmathjax This is the main function in the computation of C numbers. It uses the (2.69) formula in the "Combinatorial methods in discrete distributions" book.
-#' It computes \mjseqn{log(|C(n,k; scale, location)|)} for each k=0,...,n. 
+#' It computes \mjseqn{log(|C(n,k; scale, location)|)} for each k=0,...,n.
 #' scale and location must be negative and non-positive, respectively.
 #' It uses eigen objects, apparetly it is slower than using Rcpp vectors.
 #' @export
@@ -268,16 +268,21 @@ my_logC2_central <- function(n, scale) {
     .Call(`_GDFMM_my_logC2_central`, n, scale)
 }
 
-#' compute_logC - Compute log of absolute values of non Central C number 
+#' compute_logC - Compute log of absolute values of non Central C number
 #'
 #' \loadmathjax This is the main function in the computation of C numbers. It uses the (2.69) formula in the "Combinatorial methods in discrete distributions" book.
-#' It computes \mjseqn{log(|C(n,k; scale, location)|)} for each k=0,...,n. 
+#' It computes \mjseqn{log(|C(n,k; scale, location)|)} for each k=0,...,n.
 #' This implementation uses Rcpp vectors.
 #' @param scale must be strictly negative.
 #' @param locatio must be non positive. Set to 0 for central C numbers.
 #' @export
 compute_logC <- function(n, scale, location) {
     .Call(`_GDFMM_compute_logC`, n, scale, location)
+}
+
+#' 
+p_distinct_prior_c <- function(k, n_groups, gamma_groups, prior, prior_param, M_max) {
+    .Call(`_GDFMM_p_distinct_prior_c`, k, n_groups, gamma_groups, prior, prior_param, M_max)
 }
 
 #' Test ComponentPrior

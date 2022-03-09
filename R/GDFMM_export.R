@@ -353,12 +353,53 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
 
 
 
-
-#' Test ellipsis
+#' p_distinct_prior
+#'
+#' This function computes the a priori probability that the number of distinct species is equal to \code{k}.
+#' @param k integer, the number of distinct species whose probability has to be computed.
+#' @param n_groups an positive integer in the case of exchangeable data or a vector of size 2 in the case of partially exchangeable data.
+#' @param gamma real valued, it must be of the same size of n_groups.
+#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
+#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
+#'
 #' @export
-Test_elli = function(...){
-  ell = list(...)
-  return(ell$a + ell$b)
+p_distinct_prior = function(k,n_groups, gamma, prior = "Poisson", ..., Max_iter = 100){
+  l = list(...)
+  L = length(l)
+
+  #checks
+  if(length(n_groups)>2)
+    stop("n_groups can only be an integer of a vector of length 2")
+  if(length(n_groups)!=length(gamma))
+    stop("The length of n_groups must be equal to the length of gamma")
+  if( any(n_groups<0) || any(gamma<=0) )
+    stop("The elements of n_groups must the non negative and the elements of gamma must be strictly positive")
+  if(Max_iter<=0)
+    stop("The number of iterations must be strictly positive")
+
+  # read prior parameters
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)  
+  if(prior == "Poisson"){
+    if(L!=1)
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+    if(! names(l)=="lambda")  
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
+
+    prior_params$lambda = l$lambda
+  } 
+  else if(prior == "NegativeBinomial"){
+    if(L!=2)
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
+    if( !any(! names(l) %in% names(prior_params)) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+
+    prior_params$r = l$r
+    prior_params$p = l$p
+  } 
+  else
+    stop("prior can only be equal to Poisson or NegativeBinomial") 
+
+  return (  p_distinct_prior_c(k,n_groups,gamma,prior,prior_params)  )     
 }
 
 

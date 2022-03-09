@@ -336,20 +336,21 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 }
 
 
-//questa è sola per 2 gruppi
+//questa è sola per 1 o 2 gruppi
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
-	if(n_i.size() > 2)
+	if(n_i.size() > 2 || n_i.size() == 0)
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) must be equal to 1 or 2");
 	if(k == 0)
 		return 0.0;
-	if(n_i.size()==1){
+
+	if(n_i.size()==1){ // one group only 
 		Rcpp::NumericVector absC = compute_logC(n_i[0], -gamma[0], 0.0); //absC[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		return absC[k];
 	}
-	else{ // when n_i.size==2
+	else{ // two groups case
 
 		double inf = std::numeric_limits<double>::infinity();
 
@@ -361,7 +362,7 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 
 		// Compute all C numbers required
 		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n1,i,-gamma1)| for i = 0,...,n2
+		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 
 		// Start for loop
 		for(std::size_t r1=0; r1 <= k; ++r1){
@@ -413,7 +414,40 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 }
 
 
+//' 
+// [[Rcpp::export]] 
+double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max  ){
 
+	// Component prior preliminary operations
+	ComponentPrior_Parameters qM_params;
+	if(prior == "Poisson"){
+		qM_params.Lambda = prior_param["lambda"];
+	}
+	else if(prior == "NegativeBinomial"){
+		qM_params.p = prior_param["p"];
+		qM_params.n_succ = prior_param["r"];
+	}
+	else{
+		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function").
+	}
+
+	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	ComponentPrior& qM(*qM_ptr);
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> n_i   = as< std::vector<unsigned int> >(n_groups);
+	std::vector<double> gamma = as< std::vector<double> >(gamma_groups);
+
+	// Compute normalization constant
+	double V{ compute_Vprior(k, n_i, gamma, qM, M_max) }; 
+	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
+
+	// Compute unnormalized probability
+	double log_K{compute_Kprior_unnormalized(k, n_i, gamma)};
+
+	//return 
+	return std::exp{log_V + log_K};
+}
 
 //' Test ComponentPrior
 //' @export
