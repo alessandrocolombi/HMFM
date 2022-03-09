@@ -37,7 +37,7 @@ sum_check <- function(vec, expected_sum, p){
 #'                 in a point for a gaussian distribution and
 #'
 #' @param x point where density is computed
-#' @param mu_vec vector of mean for the gaussian distribution 
+#' @param mu_vec vector of mean for the gaussian distribution
 #'               extracted from posterior distribution of mu
 #' @param sigma_vec vector of standard deviation for the gaussian distribution
 #' @param alpha level of confidence
@@ -103,7 +103,7 @@ dmix <- function(x, w_j, mu_vec, sigma_vec){
 #'        defined by the 3 vectors p, mu, sigma (that must have same length!)
 #'
 #' @param n dimension of the random sample that has to be extracted
-#' @param p vector of weights for the components of the mixture 
+#' @param p vector of weights for the components of the mixture
 #' @param mu vector of means for the components
 #' @param sigma vector of standard deviations for the components
 #' @return random sample derived my the specified mixture
@@ -150,9 +150,9 @@ rmix <- function(n, p, mu, sigma){
 }
 
 #' simulate_data : function to simulate data from the specified configuration of Gaussian
-#'                 mixtures in different groups. Results for each one of the *n_simul* 
+#'                 mixtures in different groups. Results for each one of the *n_simul*
 #'                 datasets are saved in a directory create with the time-stamp of the simulation.
-#' @param n_simul number of datasets to be simulated                
+#' @param n_simul number of datasets to be simulated
 #' @param group_dim vector of numerosity for each group in a dataset
 #' @param p_mix matrix with each row that specifies weights for the mixture in the corrispondent
 #'              group
@@ -166,7 +166,7 @@ rmix <- function(n, p, mu, sigma){
 #'               needed values
 #' @param dir path to the directory where data about simlation have to be saved
 #' @return some metrics to evaluate the goodness of GDFMM
-#' @export 
+#' @export
 simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
                           burnin = 2000, n_iter = 2000, thin = 3, seed = 1234,
                           option, dir = ".")
@@ -194,7 +194,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
   cat("- Numerosity of the groups : ", group_dim, "\n", file = "simulation_INFO.txt", append = T)
   cat("- Mixture specifics : mu -> (", mu, ")  sigma-> (", sigma, ") \n \n",
       file = "simulation_INFO.txt", append = TRUE)
-  
+
   option_text = ""
   opt_names = names(option)
   for(name_i in 1:length(opt_names)){
@@ -306,7 +306,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
   metrics = list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec)
   save(metrics, file = "metrics_list.rda")
   save(p_mix, file = "p_mix.rda")
-  
+
   # restore original working directory
   setwd(original_dir)
 
@@ -316,7 +316,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 
 
 #' GDFMM Gibbs Sampler: function to run the GDFMM model. There is the possibility to fix
-#'                      the partition, passing TRUE to FixPartition and specifying the 
+#'                      the partition, passing TRUE to FixPartition and specifying the
 #'                      partion in the option. Default prior for P0 is an inverse gamma
 #'
 #' @param data input data
@@ -346,10 +346,21 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
 
   #Check options
       # if(FixPartition){ check che una partition sia passata}
-  
+
   # This is just an example, of course you can save the c++ output and perform further operations in R
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
+
+
+
+
+#' Test ellipsis
+#' @export
+Test_elli = function(...){
+  ell = list(...)
+  return(ell$a + ell$b)
+}
+
 
 
 
