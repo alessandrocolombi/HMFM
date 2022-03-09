@@ -399,7 +399,7 @@ p_distinct_prior = function(k,n_groups, gamma, prior = "Poisson", ..., Max_iter 
   else
     stop("prior can only be equal to Poisson or NegativeBinomial") 
 
-  return (  p_distinct_prior_c(k,n_groups,gamma,prior,prior_params)  )     
+  return (  p_distinct_prior_c(k,n_groups,gamma,prior,prior_params,Max_iter)  )     
 }
 
 
