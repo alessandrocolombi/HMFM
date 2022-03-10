@@ -291,3 +291,9 @@ Test_Prior <- function() {
     invisible(.Call(`_GDFMM_Test_Prior`))
 }
 
+#' Test prod_sum
+#' @export
+Test_prod_sum <- function() {
+    invisible(.Call(`_GDFMM_Test_prod_sum`))
+}
+

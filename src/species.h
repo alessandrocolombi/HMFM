@@ -9,9 +9,33 @@
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
-#include "utils.h"
+//#include "utils.h"
 #include <gsl/gsl_sf.h>
 #include "ComponentPrior_factory.h"
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	log_stable_sum
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// These functions computes log(sum_i(a_i)) using a stable formula for log values. Let us denote a* to the the maximum value of vector a which is attained when i = i*.
+// ---> log(sum_i(a_i)) = log(a*) + log[ 1 + sum_{i not i*}(exp{log(a_i) - log(a*)}) ]
+// See that only the logarithm of the elements of a are needed. Hence, it is likely that one has already computed them in log scale. If so, set is_log = T
+// In this versione of the function, the maximum and its position are passed as parameters. No check is performed to be sure that such information were true or not.
+// It is assumed that the value in val_max is on the same scale of the values of a, i.e it is in log scale if is_log is set to true.
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const double& val_max, const unsigned int& idx_max);
+
+// As before but gets an iterator poining to the maximum value
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const GDFMM_Traits::vector_d_citerator& it_max);
+
+// In this specialized version of the function, the position of the max value is not provided. Hence, one additional operation is done. 
+// Since exp( log(a*) - log(a*)) = 1, the previous formula becomes 
+// ---> log(sum_i(a_i)) = log(a*) + log[ sum_{i}(exp{log(a_i) - log(a*)}) ]
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const double& val_max);
+
+// In this version of the formula, the maximum value is computed
+double log_stable_sum(const std::vector<double>& a, const bool is_log);
+
+
 
 //' Title Rcpp function
 //'
@@ -146,10 +170,46 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
 						  const Rcpp::List& prior_param, unsigned int M_max  );
 
+
+
+
+
+// Queste sono solo per i test
+
+// This function computes prod_{i=1}^{n}( f(a_i*b_i) )
+// Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare
+double combined_product(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
+
+	return (
+				std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(),
+	    					   		[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
+	    					   	  )
+			);
+}
+
+// This function computes sum_{i=1}^{n}( f(ni_i*gamma_i) )
+// Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare
+double combined_sum(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
+
+	return (
+				std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+	    					   		[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
+	    					   	  )
+			);
+}
+
+
+
 //' Test ComponentPrior
 //' @export
 // [[Rcpp::export]]
 void Test_Prior();
+
+
+//' Test prod_sum
+//' @export
+// [[Rcpp::export]]
+void Test_prod_sum();
 
 
 #endif

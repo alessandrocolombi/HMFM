@@ -1,5 +1,107 @@
 #include "species.h"
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	log_stable_sum
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// These functions computes log(sum_i(a_i)) using a stable formula for log values. Let us denote a* to the the maximum value of vector a which is attained when i = i*.
+// ---> log(sum_i(a_i)) = log(a*) + log[ 1 + sum_{i not i*}(exp{log(a_i) - log(a*)}) ]
+// See that only the logarithm of the elements of a are needed. Hence, it is likely that one has already computed them in log scale. If so, set is_log = T
+// In this versione of the function, the maximum and its position are passed as parameters. No check is performed to be sure that such information were true or not.
+// It is assumed that the value in val_max is on the same scale of the values of a, i.e it is in log scale if is_log is set to true.
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const double& val_max, const unsigned int& idx_max){
+
+	if(a.size() == 0)
+		return 0.0;
+
+	if(is_log==TRUE){ // a contains values in log scale
+
+		return (val_max +
+				std::log(1 +
+					    std::accumulate(   a.cbegin(), a.cbegin()+idx_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  +
+					    std::accumulate(   a.cbegin()+idx_max+1, a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )
+				        )
+			   );
+	}
+	else{
+
+		// Do not checks if values of a are strictly positive
+		return ( std::log(val_max) +
+				 std::log(1 +
+					      std::accumulate(   a.cbegin(), a.cbegin()+idx_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(std::log(x) - std::log(val_max) );}   )  +
+					      std::accumulate(   a.cbegin()+idx_max+1, a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(std::log(x) - std::log(val_max) );}   )
+			             )
+			   );	
+	}
+}
+
+// As before but gets an iterator poining to the maximum value
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const GDFMM_Traits::vector_d_citerator& it_max){
+
+	if(a.size() == 0)
+		return 0.0;
+	double val_max{*it_max};
+	if(is_log){ // a contains values in log scale
+
+		return (    val_max +
+					std::log(1 +
+						    std::accumulate(   a.cbegin(), it_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  +
+						    std::accumulate(   it_max+1, a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )
+				            )
+			   );
+	}
+	else{
+
+		// Do not checks if values of a are strictly positive
+		return ( std::log(val_max) +
+				 std::log(1 +
+					      std::accumulate(   a.cbegin(), it_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(std::log(x) - std::log(val_max) );}   )  +
+					      std::accumulate(   it_max+1, a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(std::log(x) - std::log(val_max) );}   )
+			             )
+			   );	
+	}
+}
+
+// In this specialized version of the function, the position of the max value is not provided. Hence, one additional operation is done. 
+// Since exp( log(a*) - log(a*)) = 1, the previous formula becomes 
+// ---> log(sum_i(a_i)) = log(a*) + log[ sum_{i}(exp{log(a_i) - log(a*)}) ]
+double log_stable_sum(const std::vector<double>& a, const bool is_log, const double& val_max){
+
+	if(a.size() == 0)
+		return 0.0;
+
+	// Do not checks if it is really the max value
+	if(is_log){ // a contains values in log scale
+
+		return (val_max +
+					std::log( std::accumulate(   a.cbegin(), a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )   )
+			   );
+	}
+	else{
+		if( val_max <= 0)
+			throw std::runtime_error("Error in log_stable_sum. If is_log is false, all elements have to be strictly positive. However, val_max was not!");
+		
+		return ( std::log(val_max) +
+				 std::log( std::accumulate(   a.cbegin(), a.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(std::log(x) - std::log(val_max) );}   ) )
+			   );	
+	}
+
+}
+
+// In this version of the formula, the maximum value is computed
+double log_stable_sum(const std::vector<double>& a, const bool is_log){
+	if(a.size() == 0)
+		return 0.0;
+
+	// Computes maximum value
+	GDFMM_Traits::vector_d_citerator it_max{std::max_element(a.cbegin(), a.cend())};
+	//double val_max{*it_max};
+	// Calls the specialized version
+	return log_stable_sum(a,is_log,it_max);
+}
+
+
+
 
 int try_rcpp(int x){
 	Rcpp::Rcout<<"Inside test function"<<std::endl;
@@ -193,8 +295,9 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 	double res(0.0);
 	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
 		res += raising_factorial(k, (double)(Mstar+1) ) * qM.eval_prob(Mstar + k) *
-		       std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(),
-		       					   [&Mstar, &k](const double& nj, const double& gamma_j){return 1/compute_Pochhammer(nj, gamma_j*(Mstar + k));} );
+		       std::inner_product( n_i.cbegin(), n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(),
+		       					   [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return 1/raising_factorial( nj, gamma_j*((double)Mstar + (double)k));} );
+		        // nj is an integer, this is just a raising factorial, not a pochammer
 	}
 	return res;
 }
@@ -219,7 +322,7 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 		log_vect_res[Mstar] = log_raising_factorial(k,(double)(Mstar+1) ) +
 							  qM.log_eval_prob(Mstar + k) -
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-			       					   			  [&Mstar, &k](const double& nj, const double& gamma_j){return compute_log_Pochhammer(nj, gamma_j*(Mstar + k));}
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial(nj, gamma_j*(Mstar + k));}
 			       					   			);
 		// Check if it is the new maximum
         if(log_vect_res[Mstar]>val_max){
@@ -230,12 +333,15 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 	}
 
 	// Formula to compute the log of all the sums in a stable way
+	return log_stable_sum(log_vect_res, TRUE, val_max, idx_max);
+	/*
 	return (val_max +
 			std::log(1 +
 				    std::accumulate(   log_vect_res.cbegin(), log_vect_res.cbegin()+idx_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  +
 				    std::accumulate(   log_vect_res.cbegin()+idx_max+1, log_vect_res.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )
 		            )
 		   );
+	*/	   
 }
 
 
@@ -294,11 +400,14 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 			}
 
 			// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
+			log_a[r1] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+			/*
 			log_a[r1] += val_max2 +
 						 std::log(1 +
 					              std::accumulate(   log_vect_res.cbegin(), log_vect_res.cbegin()+idx_max2, 0.0, [&val_max2](double& acc, const double& x){return acc + exp(x - val_max2 );}   )  +
 					              std::accumulate(   log_vect_res.cbegin()+idx_max2+1, log_vect_res.cend(), 0.0, [&val_max2](double& acc, const double& x){return acc + exp(x - val_max2 );}   )
 			                     );
+			*/                     
 			// Check if it is the new maximum of log_a
 	       	if(log_a[r1]>val_max1){
 	       		idx_max1 = r1;
@@ -307,12 +416,15 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		}
 
 		// Complete the sum over all elements in log_a
+		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
+		/*
 		return (val_max1 +
 				std::log(1 +
 					    std::accumulate(   log_a.cbegin(), log_a.cbegin()+idx_max1, 0.0, [&val_max1](double& acc, const double& x){return acc + exp(x - val_max1 );}   )  +
 					    std::accumulate(   log_a.cbegin()+idx_max1+1, log_a.cend(), 0.0, [&val_max1](double& acc, const double& x){return acc + exp(x - val_max1 );}   )
 			            )
 			   );
+		*/	   
 	}
 }
 
@@ -403,3 +515,34 @@ void Test_Prior(){
 	Rcpp::Rcout<<"La moda NegativeBinomial1 quando p = "<<lambda<<" è pari a "<<param.p<<" e n è "<<param.n_succ<<" è pari a "<<qM_ptr2->get_mode()<<std::endl;
 }
 
+
+void Test_prod_sum(){
+	
+	std::vector<unsigned int> n{1,1,1};
+	std::vector<double> gamma{1.0,2.0,3.0};
+	unsigned int M{2};
+	unsigned int k{0};
+
+	std::vector<double> log_a{1.0, 2.0, 1.0};
+	std::vector<double> a{ std::exp(1.0), std::exp(2.0), std::exp(1.0)};
+	unsigned int idx{1};
+	double max_log{log_a[idx]};
+	double max_nolog{a[idx]};
+
+	double res1 = combined_product(n,  gamma,  M,  k);
+	double res2 = combined_sum(n,  gamma,  M,  k);
+
+	// Test log_stable_sum
+	double res3 = log_stable_sum(log_a, TRUE, max_log, idx);
+	double res4 = log_stable_sum(a, FALSE, max_nolog, idx);
+
+	double res5 = log_stable_sum(log_a, TRUE);
+	double res6 = log_stable_sum(a, FALSE);
+
+	Rcpp::Rcout<<"res combined_product = "<<res1<<std::endl;
+	Rcpp::Rcout<<"res combined_sum = "<<res2<<std::endl;
+	Rcpp::Rcout<<"res log_stable_sum (log and max) = "<<res3<<std::endl;
+	Rcpp::Rcout<<"res log_stable_sum (no log and max) = "<<res4<<std::endl;
+	Rcpp::Rcout<<"res log_stable_sum (log) = "<<res5<<std::endl;
+	Rcpp::Rcout<<"res log_stable_sum ( no log) = "<<res6<<std::endl;
+}

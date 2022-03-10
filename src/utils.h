@@ -103,6 +103,9 @@ namespace utils{
 	Derived_mat SubMatrix(Eigen::MatrixBase<Derived_mat> const & M, Eigen::MatrixBase<Derived_rows> const & idx_rows, unsigned int const & idx_cols){
 		return SubMatrix(M, idx_rows, Eigen::Map<const VecUnsCol> (&idx_cols, 1));
 	}
+
+
+	       
 }
 
 #endif

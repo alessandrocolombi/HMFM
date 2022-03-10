@@ -426,6 +426,15 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Test_prod_sum
+void Test_prod_sum();
+RcppExport SEXP _GDFMM_Test_prod_sum() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Test_prod_sum();
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_c, 8},
@@ -462,6 +471,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_compute_logC", (DL_FUNC) &_GDFMM_compute_logC, 3},
     {"_GDFMM_p_distinct_prior_c", (DL_FUNC) &_GDFMM_p_distinct_prior_c, 6},
     {"_GDFMM_Test_Prior", (DL_FUNC) &_GDFMM_Test_Prior, 0},
+    {"_GDFMM_Test_prod_sum", (DL_FUNC) &_GDFMM_Test_prod_sum, 0},
     {NULL, NULL, 0}
 };
 
