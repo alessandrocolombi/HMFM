@@ -428,25 +428,25 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_gr
 		qM_params.n_succ = prior_param["r"];
 	}
 	else{
-		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function").
+		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
 	}
 
 	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
 	ComponentPrior& qM(*qM_ptr);
 
 	// Convert Rcpp vector
-	std::vector<unsigned int> n_i   = as< std::vector<unsigned int> >(n_groups);
-	std::vector<double> gamma = as< std::vector<double> >(gamma_groups);
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_groups);
+	std::vector<double> gamma = Rcpp::as< std::vector<double> >(gamma_groups);
 
 	// Compute normalization constant
-	double V{ compute_Vprior(k, n_i, gamma, qM, M_max) }; 
+	//double V{ compute_Vprior(k, n_i, gamma, qM, M_max) }; 
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
 
 	// Compute unnormalized probability
 	double log_K{compute_Kprior_unnormalized(k, n_i, gamma)};
 
 	//return 
-	return std::exp{log_V + log_K};
+	return std::exp(log_V + log_K);
 }
 
 //' Test ComponentPrior
