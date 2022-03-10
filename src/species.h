@@ -61,6 +61,26 @@ double raising_factorial(const unsigned int& n, const double& a);
 // [[Rcpp::export]]
 double log_raising_factorial(const unsigned int& n, const double& a);
 
+
+//' Raising Factorial
+//'
+//' \loadmathjax This function computes the rising factorial \mjseqn{(a)^{n}} using the gsl code for the Pochhammer symbol, i.e
+//' \mjsdeqn{(a)^{n} = \frac{\Gamma(a+n)}{\Gamma(a)}}.
+//' The raising (here denote with the upper apex) and the falling factorial (here denote with the lower apex) are related by the following relationship
+//' \mjsdeqn{(a)_{n} = (-1)^{n}(a)^{n}}.
+//' @export
+// [[Rcpp::export]]
+double raising_factorial_poch(const unsigned int& n, const double& a);
+
+//' log Raising Factorial
+//'
+//' \loadmathjax This function computes the logarithm of the rising factorial \mjseqn{(a)^{n}} using the gsl code for the log of Pochhammer symbol.
+//' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details.
+//' @export
+// [[Rcpp::export]]
+double log_raising_factorial_poch(const unsigned int& n, const double& a);
+
+
 //' Falling Factorial
 //'
 //' \loadmathjax This function computes the falling factorial \mjseqn{ a_{n} }. See \code{\link{raising_factorial}} for details.
@@ -77,6 +97,23 @@ double my_falling_factorial(const unsigned int& n, const double& a);
 //' @export
 // [[Rcpp::export]]
 double my_log_falling_factorial(const unsigned int& n, const double& a);
+
+//' Falling Factorial
+//'
+//' \loadmathjax This function computes the falling factorial \mjseqn{ a_{n} }. See \code{\link{raising_factorial}} for details.
+//' The raising (here denote with the upper apex) and the falling factorial (here denote with the lower apex) are related by the following relationship
+//' \mjsdeqn{(a)_{n} = (-1)^{n}(a)^{n}}.
+//' @export
+// [[Rcpp::export]]
+double my_falling_factorial_old(const unsigned int& n, const double& a);
+
+//' log Falling Factorial
+//'
+//' \loadmathjax This function computes the logarithm of the falling factorial \mjseqn{ a_{n} } using the gsl code for the log of Pochhammer symbol.
+//' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details.
+//' @export
+// [[Rcpp::export]]
+double my_log_falling_factorial_old(const unsigned int& n, const double& a);
 
 //' Pochhammer Symbol
 //'

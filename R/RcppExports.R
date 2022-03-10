@@ -186,6 +186,26 @@ log_raising_factorial <- function(n, a) {
     .Call(`_GDFMM_log_raising_factorial`, n, a)
 }
 
+#' Raising Factorial
+#'
+#' \loadmathjax This function computes the rising factorial \mjseqn{(a)^{n}} using the gsl code for the Pochhammer symbol, i.e
+#' \mjsdeqn{(a)^{n} = \frac{\Gamma(a+n)}{\Gamma(a)}}.
+#' The raising (here denote with the upper apex) and the falling factorial (here denote with the lower apex) are related by the following relationship
+#' \mjsdeqn{(a)_{n} = (-1)^{n}(a)^{n}}.
+#' @export
+raising_factorial_poch <- function(n, a) {
+    .Call(`_GDFMM_raising_factorial_poch`, n, a)
+}
+
+#' log Raising Factorial
+#'
+#' \loadmathjax This function computes the logarithm of the rising factorial \mjseqn{(a)^{n}} using the gsl code for the log of Pochhammer symbol.
+#' See \code{\link{raising_factorial}} and \code{\link{compute_Pochhammer}} for details.
+#' @export
+log_raising_factorial_poch <- function(n, a) {
+    .Call(`_GDFMM_log_raising_factorial_poch`, n, a)
+}
+
 #' Falling Factorial
 #'
 #' \loadmathjax This function computes the falling factorial \mjseqn{ a_{n} }. See \code{\link{raising_factorial}} for details.
@@ -203,6 +223,25 @@ my_falling_factorial <- function(n, a) {
 #' @export
 my_log_falling_factorial <- function(n, a) {
     .Call(`_GDFMM_my_log_falling_factorial`, n, a)
+}
+
+#' Falling Factorial
+#'
+#' \loadmathjax This function computes the falling factorial \mjseqn{ a_{n} }. See \code{\link{raising_factorial}} for details.
+#' The raising (here denote with the upper apex) and the falling factorial (here denote with the lower apex) are related by the following relationship
+#' \mjsdeqn{(a)_{n} = (-1)^{n}(a)^{n}}.
+#' @export
+my_falling_factorial_old <- function(n, a) {
+    .Call(`_GDFMM_my_falling_factorial_old`, n, a)
+}
+
+#' log Falling Factorial
+#'
+#' \loadmathjax This function computes the logarithm of the falling factorial \mjseqn{ a_{n} } using the gsl code for the log of Pochhammer symbol.
+#' See \code{\link{my_falling_factorial}} and \code{\link{compute_Pochhammer}} for details.
+#' @export
+my_log_falling_factorial_old <- function(n, a) {
+    .Call(`_GDFMM_my_log_falling_factorial_old`, n, a)
 }
 
 #' Pochhammer Symbol

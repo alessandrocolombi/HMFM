@@ -108,17 +108,54 @@ int try_rcpp(int x){
 	return x+10;
 }
 
-double raising_factorial(const unsigned int& n, const double& a)
+double raising_factorial_poch(const unsigned int& n, const double& a)
 {
 	return( gsl_sf_poch(a, (double)n ) );
 }
 
-double log_raising_factorial(const unsigned int& n, const double& a) //secondo me troppo generale, può essere semplificata
-{
+double log_raising_factorial_poch(const unsigned int& n, const double& a) //secondo me troppo generale, può essere semplificata
+{	
+	if(a<=0)
+		throw std::runtime_error("Error in log_raising_factorial, can not compute the raising factorial of a negative number in log scale");
+
 	return( gsl_sf_lnpoch(a, (double)n ) );
 }
 
-double my_falling_factorial(const unsigned int& n, const double& a)
+
+double log_raising_factorial(const unsigned int& n, const double& a){
+
+	if(n==0)
+		return 0.0;
+	if(a<=0)
+		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale");
+	else{
+		double val_max{std::log(a+n-1)};
+		double res{1.0};
+		for(std::size_t i = 0; i <= n-2; ++i){
+			res += std::log(a + (double)i) / val_max;
+		}
+		return val_max*res;
+	}
+}
+
+double raising_factorial(const unsigned int& n, const double& a){
+	if(n==0)
+		return 1.0;
+	if(a<=0){
+		double res{1.0};
+		for(std::size_t i = 0; i <= n-1; ++i){
+			res *= ( a + (double)i ) ;
+		}
+		return res;
+	}
+	else{
+		return std::exp(log_raising_factorial(n,a));
+	}
+
+}
+
+
+double my_falling_factorial_old(const unsigned int& n, const double& a)
 {
 	if(n%2 == 0) //n is even
 		return( gsl_sf_poch(-a, (double)n ) );
@@ -126,13 +163,49 @@ double my_falling_factorial(const unsigned int& n, const double& a)
 		return( -1*gsl_sf_poch(-a, (double)n ) );
 }
 
-double my_log_falling_factorial(const unsigned int& n, const double& a)
+double my_log_falling_factorial_old(const unsigned int& n, const double& a) //questo non va per a negativi!
 {
 	if(n%2 == 0) //n is even
 		return( gsl_sf_lnpoch(-a, (double)n ) );
 	else //n is odd, change sign
 		return( -1*gsl_sf_lnpoch(-a, (double)n ) );
 }
+
+double my_log_falling_factorial(const unsigned int& n, const double& a) 
+{
+	if(n==0)
+		return 0.0;
+	if(a<=0)
+		throw std::runtime_error("Error in my_log_falling_factorial, can not compute the falling factorial of a negative number in log scale");
+	if(a-n+1<=0)
+		throw std::runtime_error("Error in my_log_falling_factorial, can not compute the falling factorial (a)_n in log scale if a <= n-1");
+	else{
+		double val_max{std::log(a)};
+		double res{1.0};
+		for(std::size_t i = 1; i <= n-1; ++i){
+			res += std::log(a - (double)i) / val_max;
+		}
+		return val_max*res;
+	}
+}
+
+double my_falling_factorial(const unsigned int& n, const double& a)
+{
+	if(n==0)
+		return 1.0;
+	if(a<=0){
+		double res{1.0};
+		for(std::size_t i = 0; i <= n-1; ++i){
+			res *= ( a + (double)i ) ;
+		}
+		return res;
+	}
+	else{
+		return std::exp(my_log_falling_factorial(n,a));
+	}
+}
+
+
 
 double compute_Pochhammer(const unsigned int& x, const double& a)
 {
@@ -266,14 +339,14 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 		return LogC_old; // nothing to do in this case
 
 	// Compute the first row
-	LogC_old[0] = std::log(raising_factorial(1,r));
+	LogC_old[0] = log_raising_factorial(1,r);
 	LogC_old[1] = std::log(s);
 
 	//Rcpp::NumericVector LogC_update(LogC_old);
 	Rcpp::NumericVector LogC_update(n+1, 0.0);
 	double coef(0.0);
 	for(std::size_t nn = 2; nn <= n; ++nn ){ //for each row
-		LogC_update[0] = std::log(raising_factorial(nn,r));
+		LogC_update[0] = log_raising_factorial(nn,r);
 		for(std::size_t k = 1; k < nn; ++k){ //for each column but the first and the last one
 			coef = s*k + r + nn - 1;
 			LogC_update[k] = std::log(coef) + LogC_old[k] + std::log( 1 + s/coef*std::exp( LogC_old[k-1] - LogC_old[k] ) );
