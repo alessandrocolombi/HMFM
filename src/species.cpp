@@ -395,7 +395,7 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 
 
 // Sembra funzionare bene anche nel caso d=2
-// Esplode per k>104?
+// Esplode per k>104 ?
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
 
 	//Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
@@ -481,11 +481,37 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 
+		Rcpp::Rcout<<"Stampo absC1: "<<std::endl;
+		for(std::size_t vv=0; vv < absC1.size(); ++vv){
+			Rcpp::Rcout<<absC1[vv]<<", ";
+		}
+		Rcpp::Rcout<<std::endl;
+
+		Rcpp::Rcout<<"Stampo absC2: "<<std::endl;
+		for(std::size_t vv=0; vv < absC2.size(); ++vv){
+			Rcpp::Rcout<<absC2[vv]<<", ";
+		}
+		Rcpp::Rcout<<std::endl;
+		//ATTENZIONE ERRORE
+		// absC1 e absC2 hanno n1+1 e n2+1 elementi, ovvero i numeri per i=0,...,ni
+		// tuttavia nel codice mi serve log(|C(n1,i,-gamma1)|) anche per tutte le i da n1+1 a n1+n2 --> tutti quei termini sarebbero |C(n1,i,-gamma1)| = 0 e quindi log(|C(n1,i,-gamma1)|) = -inf
+		// di fatto sarebbero tutti termini che non serve nemmeno calcolare, tanto non in log scale sarebbero prodotti con un fattore nullo!
+		// Ora cerco di mettere una pezza, poi è da sistemare meglio
+
 		// Start for loop
 		for(std::size_t r1=0; r1 <= k; ++r1){
 
+			// metto una pezza
+			double log_abs_C1 = 0.0;
+			if(k-r1 <= n_i[0])
+				log_abs_C1 = absC1[k-r1];
+			else
+				log_abs_C1 = -inf;
+
+
+			Rcpp::Rcout<<"absC1[k-r1], here k = "<<k<<" and r1 = "<<r1<<" is equal to log_abs_C1: "<<log_abs_C1<<std::endl;
 			// Compute a_r1 using its definition
-			log_a[r1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) + absC1[k-r1];
+			log_a[r1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) +  log_abs_C1 ; //+ absC1[k-r1];
 
 			// Prepare for computing the second term
 
@@ -497,8 +523,17 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 
 			// Inner loop on r2
 			for(std::size_t r2=0; r2<= k-r1; ++r2){
+
+				// metto una pezza
+				double log_abs_C2 = 0.0;
+				if(k-r2 <= n_i[1])
+					log_abs_C2 = absC2[k-r2];
+				else
+					log_abs_C2 = -inf;
+
 				// Compute b_r2*c_r1r2
-				log_vect_res[r2] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) + absC2[k-r2];
+				Rcpp::Rcout<<"absC2[k-r2], here k = "<<k<<" and r2 = "<<r2<<" is equal to log_abs_C2: "<<log_abs_C2<<std::endl;
+				log_vect_res[r2] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) +  log_abs_C2; //absC2[k-r2];
 
 				// Check if it is the new maximum of log_vect_res
 	        	if(log_vect_res[r2]>val_max2){
