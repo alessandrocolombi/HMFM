@@ -127,7 +127,7 @@ double log_raising_factorial(const unsigned int& n, const double& a){
 	if(n==0)
 		return 0.0;
 	if(a<=0)
-		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale");
+		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale"); // mi si blocca se a è 0 ma questo caso è da gestire nel caso del cacolo dei numeri centrali!
 	else{
 		double val_max{std::log(a+n-1)};
 		double res{1.0};
@@ -376,27 +376,39 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 }
 
 
-// Tutta da testare
+// Tutte i pezzi di codice sono stati testati separatamente
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
 
+	Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
 
 	// Initialize vector of results
 	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
 	// Initialize quantities to find the maximum
-	unsigned int idx_max(0);
+	unsigned int idx_max{0};
 	double val_max(log_vect_res[idx_max]);
 
 	// Start the loop, let us compute all the elements
 	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
-
+		Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
 		// Formula implementation
+		/*
 		log_vect_res[Mstar] = log_raising_factorial(k,(double)(Mstar+1) ) +
 							  qM.log_eval_prob(Mstar + k) -
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial(nj, gamma_j*(Mstar + k));}
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(double)(Mstar + k) );}
 			       					   			);
+		*/
+		double _a = log_raising_factorial(k,(double)(Mstar+1) );	
+		Rcpp::Rcout<<"log_raising_factorial = "<<_a<<std::endl;		       					   			
+		double _b = qM.log_eval_prob(Mstar + k);			
+		Rcpp::Rcout<<"qM.log_eval_prob = "<<_b<<std::endl;		       					   			
+		double _c = std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(double)(Mstar + k) );}
+			       					   );
+		Rcpp::Rcout<<"inner_product = "<<_c<<std::endl;	
+		log_vect_res[Mstar] = _a +_b +_c;			       					   			       					   		
 		// Check if it is the new maximum
         if(log_vect_res[Mstar]>val_max){
         	idx_max = Mstar;
@@ -421,20 +433,20 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 //questa è sola per 1 o 2 gruppi
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
+	double inf = std::numeric_limits<double>::infinity();
+
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
 	if(n_i.size() > 2 || n_i.size() == 0)
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) must be equal to 1 or 2");
 	if(k == 0)
-		return 0.0;
+		return -inf;
 
 	if(n_i.size()==1){ // one group only 
 		Rcpp::NumericVector absC = compute_logC(n_i[0], -gamma[0], 0.0); //absC[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		return absC[k];
 	}
 	else{ // two groups case
-
-		double inf = std::numeric_limits<double>::infinity();
 
 		std::vector<double> log_a(k+1,-inf);    // This vector contains all the quantities that depend only on r1
 
@@ -450,7 +462,7 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		for(std::size_t r1=0; r1 <= k; ++r1){
 
 			// Compute a_r1 using its definition
-			log_a[r1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,k) + absC1[k-r1];
+			log_a[r1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) + absC1[k-r1];
 
 			// Prepare for computing the second term
 
@@ -463,7 +475,7 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 			// Inner loop on r2
 			for(std::size_t r2=0; r2<= k-r1; ++r2){
 				// Compute b_r2*c_r1r2
-				log_vect_res[r2] = gsl_sf_lnchoose(k-r1,r2) - std::lgamma(k-r2+1) + absC2[k-r2];
+				log_vect_res[r2] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) + absC2[k-r2];
 
 				// Check if it is the new maximum of log_vect_res
 	        	if(log_vect_res[r2]>val_max2){
@@ -517,19 +529,36 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_gr
 		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
 	}
 
+	Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
 	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
 	ComponentPrior& qM(*qM_ptr);
+	Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
 	// Convert Rcpp vector
 	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_groups);
-	std::vector<double> gamma = Rcpp::as< std::vector<double> >(gamma_groups);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_groups);
+
+	Rcpp::Rcout<<"Stampo n_i: ";
+	for(auto vv=0; vv<n_i.size(); vv++){
+		Rcpp::Rcout<<n_i[vv]<<", ";
+	}
+	Rcpp::Rcout<<std::endl;
+	Rcpp::Rcout<<"Stampo gamma: ";
+	for(auto vv=0; vv<gamma.size(); vv++){
+		Rcpp::Rcout<<gamma[vv]<<", ";
+	}
+	Rcpp::Rcout<<std::endl;
 
 	// Compute normalization constant
+	Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	//double V{ compute_Vprior(k, n_i, gamma, qM, M_max) }; 
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
+	Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
+	Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized(k, n_i, gamma)};
+	Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
