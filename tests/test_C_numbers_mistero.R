@@ -2,7 +2,7 @@ my_logC(n = 4, scale = -exp(2), location = 0)
 lgfactorial_ns(n = 4, sigma = -exp(2))
 my_logC2(n = 4, scale = -exp(2), location = 0)
 my_logC2_central(n = 4, scale = -exp(2))
-compute_logC(n = 4, scale = -exp(2), location = 0)
+compute_logC(n = 5, scale = -exp(2), location = 0)
 
 
 start_time1 <- Sys.time()

@@ -378,15 +378,15 @@ p_distinct_prior = function(k,n_groups, gamma, prior = "Poisson", ..., Max_iter 
     stop("The number of iterations must be strictly positive")
 
   # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)  
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
   if(prior == "Poisson"){
     if(L!=1)
       stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")  
+    if(! names(l)=="lambda")
       stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
 
     prior_params$lambda = l$lambda
-  } 
+  }
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
@@ -395,11 +395,18 @@ p_distinct_prior = function(k,n_groups, gamma, prior = "Poisson", ..., Max_iter 
 
     prior_params$r = l$r
     prior_params$p = l$p
-  } 
+  }
   else
-    stop("prior can only be equal to Poisson or NegativeBinomial") 
+    stop("prior can only be equal to Poisson or NegativeBinomial")
 
-  return (  p_distinct_prior_c(k,n_groups,gamma,prior,prior_params,Max_iter)  )     
+  # Check trivial cases
+  if(k==0)
+    return (0)
+  if(k > sum(n_groups))
+    return (0)
+
+  # Compute non trivial cases
+  return (  p_distinct_prior_c(k,n_groups,gamma,prior,prior_params,Max_iter)  )
 }
 
 

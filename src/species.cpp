@@ -126,21 +126,32 @@ double log_raising_factorial(const unsigned int& n, const double& a){
 
 	if(n==0)
 		return 0.0;
-	if(a<=0)
+	if(a<0)
 		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale"); // mi si blocca se a è 0 ma questo caso è da gestire nel caso del cacolo dei numeri centrali!
+	else if(a==0.0){
+		return -std::numeric_limits<double>::infinity();
+	}
 	else{
+		
 		double val_max{std::log(a+n-1)};
 		double res{1.0};
+		if (n==1)
+			return val_max;
 		for(std::size_t i = 0; i <= n-2; ++i){
 			res += std::log(a + (double)i) / val_max;
+			if(i>100)
+				return -1.0;
 		}
 		return val_max*res;
+
 	}
 }
 
 double raising_factorial(const unsigned int& n, const double& a){
 	if(n==0)
 		return 1.0;
+	if(n==1)
+		return a;
 	if(a<=0){
 		double res{1.0};
 		for(std::size_t i = 0; i <= n-1; ++i){
@@ -175,13 +186,18 @@ double my_log_falling_factorial(const unsigned int& n, const double& a)
 {
 	if(n==0)
 		return 0.0;
-	if(a<=0)
+	if(a<0)
 		throw std::runtime_error("Error in my_log_falling_factorial, can not compute the falling factorial of a negative number in log scale");
+	else if(a==0.0){
+		return -std::numeric_limits<double>::infinity();
+	}
 	if(a-n+1<=0)
 		throw std::runtime_error("Error in my_log_falling_factorial, can not compute the falling factorial (a)_n in log scale if a <= n-1");
 	else{
 		double val_max{std::log(a)};
 		double res{1.0};
+		if (n==1)
+			return val_max;
 		for(std::size_t i = 1; i <= n-1; ++i){
 			res += std::log(a - (double)i) / val_max;
 		}
@@ -193,6 +209,8 @@ double my_falling_factorial(const unsigned int& n, const double& a)
 {
 	if(n==0)
 		return 1.0;
+	if(n==1)
+		return a;
 	if(a<=0){
 		double res{1.0};
 		for(std::size_t i = 0; i <= n-1; ++i){
@@ -376,10 +394,11 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 }
 
 
-// Tutte i pezzi di codice sono stati testati separatamente
+// Sembra funzionare bene anche nel caso d=2
+// Esplode per k>104?
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
 
-	Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
+	//Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
 	if(n_i.size() != gamma.size())
 		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
 
@@ -391,24 +410,28 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 
 	// Start the loop, let us compute all the elements
 	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
-		Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
+		//Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
 		// Formula implementation
-		/*
-		log_vect_res[Mstar] = log_raising_factorial(k,(double)(Mstar+1) ) +
+		
+		log_vect_res[Mstar] = log_raising_factorial(k,Mstar+1 ) +
 							  qM.log_eval_prob(Mstar + k) -
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(double)(Mstar + k) );}
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
 			       					   			);
-		*/
-		double _a = log_raising_factorial(k,(double)(Mstar+1) );	
+		/*
+		double _a = log_raising_factorial(k, Mstar+1 );	
 		Rcpp::Rcout<<"log_raising_factorial = "<<_a<<std::endl;		       					   			
 		double _b = qM.log_eval_prob(Mstar + k);			
 		Rcpp::Rcout<<"qM.log_eval_prob = "<<_b<<std::endl;		       					   			
+		Rcpp::Rcout<<" ORA PARTE IL SECONDO log_raising_factorial !"<<std::endl;		       					   			
 		double _c = std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(double)(Mstar + k) );}
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
 			       					   );
 		Rcpp::Rcout<<"inner_product = "<<_c<<std::endl;	
-		log_vect_res[Mstar] = _a +_b +_c;			       					   			       					   		
+		log_vect_res[Mstar] = _a +_b -_c;		
+		*/
+		//Rcpp::Rcout<<" ---> calcolato log_vect_res[Mstar] = "<<log_vect_res[Mstar]<<std::endl;	 
+		      					   			       					   		
 		// Check if it is the new maximum
         if(log_vect_res[Mstar]>val_max){
         	idx_max = Mstar;
