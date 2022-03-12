@@ -206,13 +206,13 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 
 //' 
 // [[Rcpp::export]] 
-double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
-						  const Rcpp::List& prior_param, unsigned int M_max  );
+double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
+						  	  const Rcpp::List& prior_param, unsigned int M_max  );
 
 
 //' 
 // [[Rcpp::export]] 
-double Test_multiple_groups_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
+double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
 							  const Rcpp::List& prior_param, unsigned int M_max  );
 
 
