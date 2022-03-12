@@ -198,9 +198,11 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
 
 
-//questa è sola per 1 o 2 gruppi
+//Direct formula per d=1 or d=2
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
+//Recursive formula for d>2
+double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
 //' 
 // [[Rcpp::export]] 
@@ -208,7 +210,10 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_gr
 						  const Rcpp::List& prior_param, unsigned int M_max  );
 
 
-
+//' 
+// [[Rcpp::export]] 
+double Test_multiple_groups_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
+							  const Rcpp::List& prior_param, unsigned int M_max  );
 
 
 // Queste sono solo per i test

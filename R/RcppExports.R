@@ -324,6 +324,11 @@ p_distinct_prior_c <- function(k, n_groups, gamma_groups, prior, prior_param, M_
     .Call(`_GDFMM_p_distinct_prior_c`, k, n_groups, gamma_groups, prior, prior_param, M_max)
 }
 
+#' 
+Test_multiple_groups_c <- function(k, n_groups, gamma_groups, prior, prior_param, M_max) {
+    .Call(`_GDFMM_Test_multiple_groups_c`, k, n_groups, gamma_groups, prior, prior_param, M_max)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

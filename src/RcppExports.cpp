@@ -465,6 +465,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Test_multiple_groups_c
+double Test_multiple_groups_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _GDFMM_Test_multiple_groups_c(SEXP kSEXP, SEXP n_groupsSEXP, SEXP gamma_groupsSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type n_groups(n_groupsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type gamma_groups(gamma_groupsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Test_multiple_groups_c(k, n_groups, gamma_groups, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Test_Prior
 void Test_Prior();
 RcppExport SEXP _GDFMM_Test_Prior() {
@@ -522,6 +538,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_my_logC2_central", (DL_FUNC) &_GDFMM_my_logC2_central, 2},
     {"_GDFMM_compute_logC", (DL_FUNC) &_GDFMM_compute_logC, 3},
     {"_GDFMM_p_distinct_prior_c", (DL_FUNC) &_GDFMM_p_distinct_prior_c, 6},
+    {"_GDFMM_Test_multiple_groups_c", (DL_FUNC) &_GDFMM_Test_multiple_groups_c, 6},
     {"_GDFMM_Test_Prior", (DL_FUNC) &_GDFMM_Test_Prior, 0},
     {"_GDFMM_Test_prod_sum", (DL_FUNC) &_GDFMM_Test_prod_sum, 0},
     {NULL, NULL, 0}

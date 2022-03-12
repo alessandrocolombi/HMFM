@@ -24,3 +24,19 @@ tot
 
 # Se una delle n è > 100 esplode
 
+
+
+
+
+
+
+Test_multiple_groups(k=2, n_groups = c(1,2,3), gamma = c(2,2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
+
+
+
+
+
+
+
+
+

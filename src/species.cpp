@@ -453,6 +453,12 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 //questa è sola per 1 o 2 gruppi
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
+	Rcpp::Rcout<<"Dentro a compute_Kprior_unnormalized con n_i: ";
+	for(auto __v : n_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+
 	double inf = std::numeric_limits<double>::infinity();
 
 	if(n_i.size() != gamma.size())
@@ -536,6 +542,95 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 	}
 }
 
+double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
+
+	Rcpp::Rcout<<"Dentro compute_Kprior_unnormalized_recursive con "<<std::endl;
+	Rcpp::Rcout<<"n_i:  ";
+	for(auto __v : n_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	Rcpp::Rcout<<"gamma:  ";
+	for(auto __v : gamma)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	double inf = std::numeric_limits<double>::infinity();
+
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Kprior_unnormalized_recursive, the length of n_i (group sizes) and gamma has to be equal");
+	if( n_i.size() == 0)
+		throw std::runtime_error("Error in compute_Kprior_unnormalized_recursive, the length of n_i (group sizes) must be greater than 0");
+	if( n_i.size() <= 2){
+		Rcpp::Rcout<<"Quindi da compute_Kprior_unnormalized_recursive chiamo compute_Kprior_unnormalized"<<std::endl;
+		return compute_Kprior_unnormalized(k,n_i,gamma);
+	}
+	if(k == 0)
+		return -inf;
+
+	
+	// if here, n_i.size()>2 
+	Rcpp::Rcout<<"if here, n_i.size()>2"<<std::endl;
+	std::vector<double> log_a(k+1, -inf);    
+	// Initialize quantities to find the maximum of log_a
+	unsigned int idx_max1(0);
+	double val_max1(log_a[idx_max1]);
+
+	// Start for loop
+	for(std::size_t k1=0; k1 <= k; ++k1){
+
+		Rcpp::Rcout<<"----> Dentro a k1 = "<<k1<<std::endl;
+		// Compute ----
+		Rcpp::Rcout<<"Qua inizia la ricorsione, "<<std::endl;
+		log_a[k1] = compute_Kprior_unnormalized_recursive(k1, {n_i.cbegin(), n_i.cend()-1} , {gamma.cbegin(), gamma.cend()-1} );
+		Rcpp::Rcout<<"Esco dalla ricorsiva con k1 = "<<k1<<std::endl;
+		
+		// Prepare for computing the second term
+		
+		// Initialize vector of results
+		std::vector<double> log_vect_res(k1+1, -inf ); 
+		Rcpp::Rcout<<"Ho definito log_vect_res e con log_vect_res.size() = "<<log_vect_res.size()<<std::endl;
+
+		// Initialize quantities to find the maximum of log_vect_res
+		unsigned int idx_max2(0);
+		double val_max2(log_vect_res[idx_max2]);
+		
+		// Inner loop on r2
+		for(std::size_t k2=k-k1; k2<= k; ++k2){
+			Rcpp::Rcout<<"***** Dentro a k2 = "<<k2<<std::endl;
+			
+			// Compute ---
+			std::vector<unsigned int> n_last{1, n_i[n_i.size()-1]};
+			std::vector<double> 	  gamma_last{1, gamma[gamma.size()-1]};
+			Rcpp::Rcout<<"Chiamo la quella per un solo gruppo."<<std::endl;
+			log_vect_res[k2] = gsl_sf_lnchoose(k2,k-k1) + my_log_falling_factorial(k-k2,k1) + compute_Kprior_unnormalized(  k2, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  );
+				
+			// Check if it is the new maximum of log_vect_res
+	       	if(log_vect_res[k2]>val_max2){
+	       		idx_max2 = k2;
+	       		val_max2 = log_vect_res[k2];
+	       	}
+	      
+		}
+		
+	/*	 
+		// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
+		log_a[k1] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+			      
+		// Check if it is the new maximum of log_a
+	   	if(log_a[k1]>val_max1){
+	    	idx_max1 = k1;
+	      	val_max1 = log_a[k1];
+	    }
+	*/    
+	}
+
+	// Complete the sum over all elements in log_a
+	//return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
+	return -1.0;
+
+	
+}
+
 
 double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max  ){
 
@@ -574,6 +669,38 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_gr
 
 	//return 
 	return std::exp(log_V + log_K);
+}
+
+double Test_multiple_groups_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max  ){
+
+	// Component prior preliminary operations
+	ComponentPrior_Parameters qM_params;
+	if(prior == "Poisson"){
+		qM_params.Lambda = prior_param["lambda"];
+	}
+	else if(prior == "NegativeBinomial"){
+		qM_params.p = prior_param["p"];
+		qM_params.n_succ = prior_param["r"];
+	}
+	else{
+		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
+	}
+
+	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
+	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_groups);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_groups);
+
+	// Compute unnormalized probability
+	double log_K{compute_Kprior_unnormalized_recursive(k, n_i, gamma)};
+	Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+
+	//return 
+	return std::exp(log_K);
 }
 
 
