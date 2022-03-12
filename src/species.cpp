@@ -482,11 +482,10 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 //questa è sola per 1 o 2 gruppi
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
-	//Rcpp::Rcout<<"Dentro a compute_Kprior_unnormalized con n_i: ";
+	//Rcpp::Rcout<<"Dentro a compute_Kprior_unnormalized: ";
 	//for(auto __v : n_i)
 		//Rcpp::Rcout<<__v<<", ";
 	//Rcpp::Rcout<<std::endl;
-
 
 	double inf = std::numeric_limits<double>::infinity();
 
@@ -494,10 +493,22 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
 	if(n_i.size() > 2 || n_i.size() == 0)
 		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) must be equal to 1 or 2");
+	
+	if(n_i.size()==1 & n_i[0]==0){ //Need to handle degenerate cases --> mi serve per gestire i casi in cui qualche elemento di n_i è nullo. si puo scrivere piu bella ma cosi va
+		if(k==0){
+			return 0.0;
+		}
+		else{
+			return -inf;	
+		}
+	}
+	
 	if(k == 0)
 		return -inf;
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
 		return -inf;
+
+
 
 	if(n_i.size()==1){ // one group only 
 		Rcpp::NumericVector absC = compute_logC(n_i[0], -gamma[0], 0.0); //absC[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
@@ -573,6 +584,7 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 	}
 }
 
+//questa va bene per qualunque d, se d<=2 chiama compute_Kprior_unnormalized
 double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
 	double inf = std::numeric_limits<double>::infinity();
@@ -598,10 +610,10 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 	// Start for loop
 	for(std::size_t k1=0; k1 <= k; ++k1){
 
-		Rcpp::Rcout<<"----> Dentro a k1 = "<<k1<<std::endl;
+				//Rcpp::Rcout<<"----> Dentro a k1 = "<<k1<<std::endl;
 		// Compute recursive formula
 		log_a[k1] = compute_Kprior_unnormalized_recursive(k1, {n_i.cbegin(), n_i.cend()-1} , {gamma.cbegin(), gamma.cend()-1} ); 
-		Rcpp::Rcout<<"log_a["<<k1<<"] = "<<"NNP(K^(2) = "<<k1<<") = "<<log_a[k1]<<std::endl;
+				//Rcpp::Rcout<<"log_a["<<k1<<"] = "<<"NNP(K^(2) = "<<k1<<") = "<<log_a[k1]<<std::endl;
 		// Prepare for computing the second term
 		
 		// Initialize vector of results
@@ -614,14 +626,14 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 		// Inner loop on r2
 		unsigned int inner_indx{0};
 		for(std::size_t k2=k-k1; k2<= k; ++k2){
-			Rcpp::Rcout<<"***** Dentro a k2 = "<<k2<<std::endl;
+					//Rcpp::Rcout<<"***** Dentro a k2 = "<<k2<<std::endl;
 			
 			// Compute last element
-			Rcpp::Rcout<<"n_i[n_i.size()-1] = "<<n_i[n_i.size()-1]<<std::endl;
-			Rcpp::Rcout<<"gamma[gamma.size()-1] = "<<gamma[gamma.size()-1]<<std::endl;
-			Rcpp::Rcout<<"NNP(K^(1) = "<<k2<<") = "<< compute_Kprior_unnormalized(  k2, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  ) <<std::endl;
-			Rcpp::Rcout<<"coef = "<<std::exp( gsl_sf_lnchoose(k2,k-k1) + my_log_falling_factorial(k1+k2-k, k1) )<<std::endl;
-			Rcpp::Rcout<<"coef giusto = "<< ( gsl_sf_fact(k1)*gsl_sf_fact(k2)  )/(gsl_sf_fact(k-k1)*gsl_sf_fact(k-k2)*gsl_sf_fact(k1+k2-k)  ) <<std::endl;
+					//Rcpp::Rcout<<"n_i[n_i.size()-1] = "<<n_i[n_i.size()-1]<<std::endl;
+					//Rcpp::Rcout<<"gamma[gamma.size()-1] = "<<gamma[gamma.size()-1]<<std::endl;
+					//Rcpp::Rcout<<"NNP(K^(1) = "<<k2<<") = "<< compute_Kprior_unnormalized(  k2, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  ) <<std::endl;
+					//Rcpp::Rcout<<"coef = "<<std::exp( gsl_sf_lnchoose(k2,k-k1) + my_log_falling_factorial(k1+k2-k, k1) )<<std::endl;
+					//Rcpp::Rcout<<"coef giusto = "<< ( gsl_sf_fact(k1)*gsl_sf_fact(k2)  )/(gsl_sf_fact(k-k1)*gsl_sf_fact(k-k2)*gsl_sf_fact(k1+k2-k)  ) <<std::endl;
 			log_vect_res[inner_indx] = gsl_sf_lnchoose(k2,k-k1) + my_log_falling_factorial(k1+k2-k, k1) + compute_Kprior_unnormalized(  k2, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  );
 				
 		 	// Check if it is the new maximum of log_vect_res
@@ -632,13 +644,13 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 	   		inner_indx++;
 		}
 		// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
-					Rcpp::Rcout<<"Vettore interno"<<std::endl;
-					for(auto __v : log_vect_res)
-						Rcpp::Rcout<<__v<<", ";
-					Rcpp::Rcout<<std::endl;
-		Rcpp::Rcout<<"Adding effect: log_stable_sum(log_vect_res) = "<<log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2)<<std::endl;			
+					//Rcpp::Rcout<<"Vettore interno"<<std::endl;
+					//for(auto __v : log_vect_res)
+						//Rcpp::Rcout<<__v<<", ";
+					//Rcpp::Rcout<<std::endl;
+					//Rcpp::Rcout<<"Adding effect: log_stable_sum(log_vect_res) = "<<log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2)<<std::endl;			
 		log_a[k1] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
-		Rcpp::Rcout<<"Updated log_a["<<k1<<"] = "<<log_a[k1]<<std::endl;	      
+					//Rcpp::Rcout<<"Updated log_a["<<k1<<"] = "<<log_a[k1]<<std::endl;	      
 		// Check if it is the new maximum of log_a
 	   	if(log_a[k1]>val_max1){
 	    	idx_max1 = k1;
@@ -646,10 +658,10 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 	    }   
 	}
 
-			Rcpp::Rcout<<"Vettore finale"<<std::endl;
-			for(auto __v : log_a)
-				Rcpp::Rcout<<__v<<", ";
-			Rcpp::Rcout<<std::endl;
+			//Rcpp::Rcout<<"Vettore finale"<<std::endl;
+			//for(auto __v : log_a)
+				//Rcpp::Rcout<<__v<<", ";
+			//Rcpp::Rcout<<std::endl;
 	// Complete the sum over all elements in log_a
 	return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 }
@@ -718,14 +730,14 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	// Compute normalization constant
-	Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
-	Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
-	Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized_recursive(k, n_i, gamma)};
-	Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
