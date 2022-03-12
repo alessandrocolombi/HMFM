@@ -101,8 +101,6 @@ double log_stable_sum(const std::vector<double>& a, const bool is_log){
 }
 
 
-
-
 int try_rcpp(int x){
 	Rcpp::Rcout<<"Inside test function"<<std::endl;
 	return x+10;
@@ -395,7 +393,6 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 
 
 // Sembra funzionare bene anche nel caso d=2
-// Esplode per k>104 ?
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
 
 	//Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
@@ -475,79 +472,62 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 
-		Rcpp::Rcout<<"Stampo absC1: "<<std::endl;
-		for(auto vv=0; vv < absC1.size(); ++vv){
-			Rcpp::Rcout<<absC1[vv]<<", ";
-		}
-		Rcpp::Rcout<<std::endl;
-
-		Rcpp::Rcout<<"Stampo absC2: "<<std::endl;
-		for(auto vv=0; vv < absC2.size(); ++vv){
-			Rcpp::Rcout<<absC2[vv]<<", ";
-		}
-		Rcpp::Rcout<<std::endl;
-
-
-		//ATTENZIONE ERRORE
-		// absC1 e absC2 hanno n1+1 e n2+1 elementi, ovvero i numeri per i=0,...,ni
-		// tuttavia nel codice mi serve log(|C(n1,i,-gamma1)|) anche per tutte le i da n1+1 a n1+n2 --> tutti quei termini sarebbero |C(n1,i,-gamma1)| = 0 e quindi log(|C(n1,i,-gamma1)|) = -inf
-		// di fatto sarebbero tutti termini che non serve nemmeno calcolare, tanto non in log scale sarebbero prodotti con un fattore nullo!
-		// Ora cerco di mettere una pezza, poi è da sistemare meglio
-
-		const int start1 = std::max( {0,(int)k-(int)n_i[0],(int)k-(int)n_i[1]} );
-		const int start2 = std::max( {0,(int)k-(int)n_i[1]} );
-		Rcpp::Rcout<<"start1 = "<<start1<<std::endl; 
-		Rcpp::Rcout<<"start2 = "<<start2<<std::endl; 
+		const int start1 = std::max( {0, (int)k - (int)n_i[0]} );
+		const int start2 = std::max( {0, (int)k - (int)n_i[1]} );
+		const int end1   = std::min( {(int)k, (int)n_i[1]} );
+					//Rcpp::Rcout<<"start1 = "<<start1<<std::endl; 
+					//Rcpp::Rcout<<"start2 = "<<start2<<std::endl; 
+					//Rcpp::Rcout<<"end1   = "<<end1<<std::endl; 
   
-		//std::vector<double> log_a(k+1, -inf);    // This vector contains all the quantities that depend only on r1
-		std::vector<double> log_a(k-start1+1, -inf);    // This vector contains all the quantities that depend only on r1
-		Rcpp::Rcout<<"size log_a, log_a.size() = "<<log_a.size()<<std::endl;
+					//std::vector<double> log_a(k+1, -inf);    // old version
+		std::vector<double> log_a(end1-start1+1, -inf);    // This vector contains all the quantities that depend only on r1
 		// Initialize quantities to find the maximum of log_a
 		unsigned int idx_max1(0);
 		double val_max1(log_a[idx_max1]);
 
 		// Start for loop
-		for(std::size_t r1=start1; r1 <= k; ++r1){
+		unsigned int outer_indx{0};
+		for(std::size_t r1=start1; r1 <= end1; ++r1){
 
-			Rcpp::Rcout<<"absC1["<<k-r1<<"], here k = "<<k<<" and r1 = "<<r1<<" is equal to: "<<absC1[k-r1]<<std::endl;
 			// Compute a_r1 using its definition
-			log_a[r1-start1] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) + absC1[k-r1];
+			log_a[outer_indx] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) + absC1[k-r1];
 			
 			// Prepare for computing the second term
-		/*
+		
 			// Initialize vector of results
-			//std::vector<double> log_vect_res(k-r1+1, -inf );
+					//std::vector<double> log_vect_res(k-r1+1, -inf ); // old version
 			std::vector<double> log_vect_res(k-r1-start2+1, -inf );
-			Rcpp::Rcout<<"Punto cruciale, r1 = "<<r1<<std::endl;
-			Rcpp::Rcout<<"size log_vect_res, log_vect_res.size() = "<<log_vect_res.size()<<std::endl;
+
 			// Initialize quantities to find the maximum of log_vect_res
 			unsigned int idx_max2(0);
 			double val_max2(log_vect_res[idx_max2]);
 		
 			// Inner loop on r2
+			unsigned int inner_indx{0};
 			for(std::size_t r2=start2; r2<= k-r1; ++r2){
 
 				// Compute b_r2*c_r1r2
-				Rcpp::Rcout<<"absC2["<<k-r2<<"], here k = "<<k<<" and r2 = "<<r2<<" is equal to: "<<absC2[k-r2]<<std::endl;
-				log_vect_res[start2-r2] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) +  absC2[k-r2];
-
+				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) +  absC2[k-r2];
+				
 				// Check if it is the new maximum of log_vect_res
-	        	if(log_vect_res[start2-r2]>val_max2){
-	        		idx_max2 = start2-r2;
-	        		val_max2 = log_vect_res[start2-r2];
+	        	if(log_vect_res[inner_indx]>val_max2){
+	        		idx_max2 = inner_indx;
+	        		val_max2 = log_vect_res[inner_indx];
 	        	}
-	        	
+	        			//Rcpp::Rcout<<"Computing for r1 = "<<r1<<" and r2 = "<<r2<<std::endl;
+				inner_indx++;
 			}
+		
 		 
 			// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
-			log_a[r1-start1] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+			log_a[outer_indx] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
 			      
 			// Check if it is the new maximum of log_a
-	       	if(log_a[r1-start1]>val_max1){
-	       		idx_max1 = r1-start1;
-	       		val_max1 = log_a[r1-start1];
+	       	if(log_a[outer_indx]>val_max1){
+	       		idx_max1 = outer_indx;
+	       		val_max1 = log_a[outer_indx];
 	       	}
-	    */  	
+	       	outer_indx++;
 		}
 
 		// Complete the sum over all elements in log_a
@@ -572,36 +552,25 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_gr
 		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
 	}
 
-	Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
+	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
 	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
 	ComponentPrior& qM(*qM_ptr);
-	Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
 	// Convert Rcpp vector
 	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_groups);
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_groups);
 
-	//Rcpp::Rcout<<"Stampo n_i: ";
-	//for(std::size_t vv=0; vv<n_i.size(); vv++){
-		//Rcpp::Rcout<<n_i[vv]<<", ";
-	//}
-	//Rcpp::Rcout<<std::endl;
-	//Rcpp::Rcout<<"Stampo gamma: ";
-	//for(auto vv=0; vv<gamma.size(); vv++){
-		//Rcpp::Rcout<<gamma[vv]<<", ";
-	//}
-	//Rcpp::Rcout<<std::endl;
-
 	// Compute normalization constant
-	Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	//double V{ compute_Vprior(k, n_i, gamma, qM, M_max) }; 
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
-	Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
-	Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized(k, n_i, gamma)};
-	Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
