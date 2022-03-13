@@ -320,13 +320,18 @@ compute_logC <- function(n, scale, location) {
 }
 
 #' 
-p_distinct_prior_c_old <- function(k, n_groups, gamma_groups, prior, prior_param, M_max) {
-    .Call(`_GDFMM_p_distinct_prior_c_old`, k, n_groups, gamma_groups, prior, prior_param, M_max)
+p_distinct_prior_c_old <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_GDFMM_p_distinct_prior_c_old`, k, n_j, gamma_j, prior, prior_param, M_max)
 }
 
 #' 
-p_distinct_prior_c <- function(k, n_groups, gamma_groups, prior, prior_param, M_max) {
-    .Call(`_GDFMM_p_distinct_prior_c`, k, n_groups, gamma_groups, prior, prior_param, M_max)
+p_distinct_prior_c <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_GDFMM_p_distinct_prior_c`, k, n_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
+p_shared_prior_c <- function(s, n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_GDFMM_p_shared_prior_c`, s, n_j, gamma_j, prior, prior_param, M_max)
 }
 
 #' Test ComponentPrior

@@ -204,16 +204,33 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 //Recursive formula for d>2
 double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
+
+//Direct formula per d=1 or d=2
+double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
+
+//Recursive formula for d>2
+double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Rcpp call functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
 //' 
 // [[Rcpp::export]] 
-double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
+double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
 						  	  const Rcpp::List& prior_param, unsigned int M_max  );
 
 
 //' 
 // [[Rcpp::export]] 
-double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_groups, const Rcpp::NumericVector& gamma_groups, const Rcpp::String& prior, 
+double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
 							  const Rcpp::List& prior_param, unsigned int M_max  );
+
+//' 
+// [[Rcpp::export]] 
+double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+					 	const Rcpp::List& prior_param, unsigned int M_max  );
+
 
 
 // Queste sono solo per i test

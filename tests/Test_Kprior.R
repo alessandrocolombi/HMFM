@@ -1,6 +1,6 @@
 
 # Test one group
-n = 2
+n = 250
 tot = 0
 for(i in 0:n){
   pp = p_distinct_prior(k=i, n_j = n, gamma = 2, prior = "Poisson", lambda = 2, Max_iter = 1000)
@@ -8,11 +8,10 @@ for(i in 0:n){
   tot = tot + pp
 }
 tot
-# Esplode per n>=104
 
 
 # Test 2 groups
-n1 = 2;n2 = 2
+n1 = 7;n2 = 9
 n = c(n1,n2)
 tot = 0
 for(i in 0:sum(n)){
@@ -22,7 +21,6 @@ for(i in 0:sum(n)){
 }
 tot
 
-# Se una delle n è > 100 esplode
 
 # Test 3 groups
 n1 = 2;n2 = 2;n3=0
@@ -50,7 +48,29 @@ tot
 
 
 
+# Test Shared species
+
+# d=2
+n1 = 50;n2 = 30
+n = c(n1,n2)
+tot = 0
+for(i in 0:min(n)){
+  pp = p_shared_prior(s=i, n_j = n, gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+
 
 library(GDFMM)
-p_distinct_prior(k=3, n_j = c(1,1,0), gamma = c(2,2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
+p_distinct_prior(k=1, n_j = c(0,0,1), gamma = c(2,2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
+p_distinct_prior(k=10, n_j = c(7,7), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
+p_distinct_prior(k=0, n_j = 0, gamma = 2, prior = "Poisson", lambda = 2, Max_iter = 10)
 
+
+library(GDFMM)
+p_shared_prior(s=3,n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
+
+
+0.2640364+0.6431628+0.09280082

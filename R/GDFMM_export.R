@@ -398,6 +398,8 @@ p_distinct_prior = function(k,n_j, gamma, prior = "Poisson", ..., Max_iter = 100
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Check trivial cases
+  if(k<0)
+    stop("Error, the number of distinct species k can not be negative")
   if(k==0)
     return (0)
   if(k > sum(n_j))
@@ -407,24 +409,26 @@ p_distinct_prior = function(k,n_j, gamma, prior = "Poisson", ..., Max_iter = 100
   return (  p_distinct_prior_c(k,n_j,gamma,prior,prior_params,Max_iter)  )
 }
 
-#' Test_multiple_groups -> old, use p_distinct_prior
+
+#' p_shared_prior
 #'
-#' This function computes the a priori probability that the number of distinct species is equal to \code{k}.
-#' @param k integer, the number of distinct species whose probability has to be computed.
-#' @param n_groups an positive integer in the case of exchangeable data or a vector of size 2 in the case of partially exchangeable data.
-#' @param gamma real valued, it must be of the same size of n_groups.
+#' This function computes the a priori probability that the number of shared species is equal to \code{s}.
+#' @param s integer, the number of shared species whose probability has to be computed.
+#' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
+#' @param gamma real valued, it must be of the same size of \code{n_j}
 #' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
 #' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
 #'
 #' @export
-Test_multiple_groups = function(k,n_groups, gamma, prior = "Poisson", ..., Max_iter = 100){
+p_shared_prior = function(s,n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
   l = list(...)
   L = length(l)
 
-  if(length(n_groups)!=length(gamma))
-    stop("The length of n_groups must be equal to the length of gamma")
-  if( any(n_groups<0) || any(gamma<=0) )
-    stop("The elements of n_groups must the non negative and the elements of gamma must be strictly positive")
+  #checks
+  if(length(n_j)!=length(gamma))
+    stop("The length of n_j must be equal to the length of gamma")
+  if( any(n_j<0) || any(gamma<=0) )
+    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
   if(Max_iter<=0)
     stop("The number of iterations must be strictly positive")
 
@@ -451,14 +455,14 @@ Test_multiple_groups = function(k,n_groups, gamma, prior = "Poisson", ..., Max_i
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Check trivial cases
-  if(k==0)
+  if(s<0)
+    stop("Error, the number of shared species s can not be negative")
+  if(s > min(n_j))
     return (0)
-  if(k > sum(n_groups))
-    return (0)
+
+
 
   # Compute non trivial cases
-  return (  Test_multiple_groups_c(k,n_groups,gamma,prior,prior_params,Max_iter)  )
+  return (  p_shared_prior_c(s,n_j,gamma,prior,prior_params,Max_iter)  )
 }
-
-
 
