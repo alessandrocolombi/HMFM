@@ -677,7 +677,8 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 }
 
 //Direct formula per d=2
-double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
+double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma)
+{
 
 			//Rcpp::Rcout<<"Dentro compute_SK_prior_unnormalized"<<std::endl;
 	double inf = std::numeric_limits<double>::infinity();
@@ -752,7 +753,128 @@ double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& 
 
 //Recursive formula for d>2
 double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
-	return -1.0;
+
+			//Rcpp::Rcout<<"Dentro compute_SK_prior_unnormalized_recursive"<<std::endl;
+	double inf = std::numeric_limits<double>::infinity();
+
+	//Checks
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_SK_prior_unnormalized_recursive, the length of n_i (group sizes) and gamma has to be equal");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_SK_prior_unnormalized_recursive, the length of n_i (group sizes) must be equal to 1 or 2");
+	// d=1
+	if(n_i.size() == 1){
+		throw std::runtime_error("Error in compute_SK_prior_unnormalized_recursive, the length of n_i (group sizes) can not be zero");
+		//Se finisco qua, una possibilità è chiamare compute_Kprior_unnormalized
+	}
+	// d=2 case
+	if(n_i.size() == 2)
+		return compute_SK_prior_unnormalized(k,s,n_i,gamma);
+	// k=0 case
+	if(k==0){
+		if( s==0 & *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ 
+			Rcpp::Rcout<<"Sono in compute_SK_prior_unnormalized_recursive e sono finito nel caso P(K=0,S=0) con tutti i termini di n_i nulli"<<std::endl;
+			return 0.0;
+		}	
+		else
+			return -inf;
+	}
+	// k<s case, if here k>0
+	if(k<s)
+		return -inf;
+	// k>n1+...+nd case
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) //The probability of having more distinc values than observations must be zero
+		return -inf;
+	// s > min(n1,...,nd) case
+	if( s > *std::min_element(n_i.cbegin(),n_i.cend()) )
+		return -inf;
+
+	
+	// if here, n_i.size()>2 in a non trivial case
+	
+	// Initialize quantities for sum on s1
+	std::vector<double> log_s1(k-s+1, -inf);    
+	// Initialize quantities to find the maximum of log_s1
+	unsigned int idx_max0(0);
+	double val_max0(log_s1[idx_max0]);
+
+	// Start loop on s1
+	for(std::size_t s1 = 0; s1<=k-s; ++s1){
+				//Rcpp::Rcout<<"^^^^ Dentro s1 = "<<s1<<std::endl;
+		// Compute coeff that depends only on s1
+		log_s1[s1] = my_log_falling_factorial(s,(double)(s+s1));
+		
+		// Initialize quantities for inner sums
+		const unsigned int k_s_s1 = k-s-s1;
+		// Compute the log of the inner sum on h and t
+		std::vector<double> log_a(k_s_s1+1, -inf);    
+		// Initialize quantities to find the maximum of log_a
+		unsigned int idx_max1(0);
+		double val_max1(log_a[idx_max1]);
+
+		// Start for loop on h
+		for(std::size_t h=0; h <= k_s_s1; ++h){
+
+					//Rcpp::Rcout<<"----> Dentro a h = "<<h<<std::endl;
+			// Compute recursive formula
+			log_a[h] = compute_SK_prior_unnormalized_recursive(k-h, s+s1, {n_i.cbegin(), n_i.cend()-1} , {gamma.cbegin(), gamma.cend()-1} ); 
+					//Rcpp::Rcout<<"log_a["<<h<<"] = "<<"NNP(S^(2) = "<<s+s1<<", K^(2) = "<<k-h<<") = "<<log_a[h]<<std::endl;
+
+
+			// Prepare for computing the second term
+			const unsigned int k_s_s1_h = k-s-s1-h;
+			// Initialize vector of results
+			std::vector<double> log_vect_res(k_s_s1_h+1, -inf ); 
+
+			// Initialize quantities to find the maximum of log_vect_res
+			unsigned int idx_max2(0);
+			double val_max2(log_vect_res[idx_max2]);
+			
+			// Inner loop on t
+			unsigned int inner_indx{0};
+			for(std::size_t t=0; t<= k_s_s1_h; ++t){
+						//Rcpp::Rcout<<"***** Dentro a t = "<<t<<std::endl;
+				
+				// Compute last element
+							//Rcpp::Rcout<<"********************"<<std::endl;
+							//Rcpp::Rcout<<"Coef = "<<std::exp(my_log_falling_factorial(s,(double)(s+s1)) + gsl_sf_lnchoose(k_s_s1_h,t) + gsl_sf_lnchoose(s+h+t,s) + my_log_falling_factorial(t,(double)(h+t)))<<std::endl;
+							//Rcpp::Rcout<<"Coef giusto = "<< ( gsl_sf_fact(s+s1)*gsl_sf_fact(k-s-s1-h)*gsl_sf_fact(s+h+t) )/(gsl_sf_fact(s)*gsl_sf_fact(s1)*gsl_sf_fact(h)*gsl_sf_fact(t)*gsl_sf_fact(k-s-s1-h-t)  ) <<std::endl;
+							//Rcpp::Rcout<<"--------------------"<<std::endl;
+				log_vect_res[inner_indx] = gsl_sf_lnchoose(k_s_s1_h,t) + gsl_sf_lnchoose(s+h+t,s) + my_log_falling_factorial(t,(double)(h+t)) +
+										   compute_Kprior_unnormalized( s+h+t, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  );
+					
+			 	// Check if it is the new maximum of log_vect_res
+		       	if(log_vect_res[inner_indx]>val_max2){
+		       		idx_max2 = inner_indx;
+		       		val_max2 = log_vect_res[inner_indx];
+		       	}
+		   		inner_indx++;
+			}
+			// Update outer vector
+			log_a[h] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+						//Rcpp::Rcout<<"Updated log_a["<<h<<"] = "<<log_a[h]<<std::endl;	      
+			// Check if it is the new maximum of log_a
+		   	if(log_a[h]>val_max1){
+		    	idx_max1 = h;
+		      	val_max1 = log_a[h];
+		    }   
+		}
+
+		// End of loop on h. Update the sum on s1
+		log_s1[s1] += log_stable_sum(log_a, TRUE, val_max1, idx_max1);
+
+		// Check if it is the new maximum of log_s1
+	   	if(log_s1[s1]>val_max0){
+	    	idx_max0 = s1;
+	      	val_max0 = log_s1[s1];
+	    }   
+
+	}
+
+
+	// Complete the sum over all elements in log_s1
+	return log_stable_sum(log_s1, TRUE, val_max0, idx_max0);
+
 }
 
 
@@ -864,12 +986,12 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 	double res{0.0};
 	const unsigned int Kmax{ std::accumulate(n_i.cbegin(), n_i.cend(), 0) }; 
 
-	const unsigned int start{ std::max(1,(int)s) }; //max(1,s) --> 
+	const unsigned int start{ std::max(1,(int)s) }; //max(1,s) 
 	//start can not be 0! However, it is possible that s=0 and k should range form s to n1+n2
 	//The problem is that when k=0, it does not make any sense to compute compute_log_Vprior(0), one gets none. Actually it rises an error at the moment.
 	//Of course, P(K=0,S=0) is zero (at least, it is zero when n1+n2>0). This term is computed separately and should be 0 (or it can be omitted)
 	if(s==0){ //can be omitted in this function 
-		res += std::exp(compute_SK_prior_unnormalized(0, s, n_i, gamma));
+		res += std::exp(compute_SK_prior_unnormalized_recursive(0, s, n_i, gamma));
 	}
 	for(unsigned int k=start; k<=Kmax; k++){
 				//Rcpp::Rcout<<"++++ k = "<<k<<std::endl;
@@ -880,11 +1002,13 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 
 		// Compute unnormalized probability
 				//Rcpp::Rcout<<"Calcolo log_SK:"<<std::endl;
-		double log_SK{compute_SK_prior_unnormalized(k, s, n_i, gamma)};
+		double log_SK{compute_SK_prior_unnormalized_recursive(k, s, n_i, gamma)};
 				//Rcpp::Rcout<<"log_SK = "<<log_SK<<std::endl;
 
 		// Compute P(K=k,S=s) and cumulate 
 		res += std::exp(log_V + log_SK);
+				//Rcpp::Rcout<<"P(K="<<k<<", S="<<s<<") = "<<std::exp(log_V + log_SK)<<std::endl;
+				//Rcpp::Rcout<<"res:"<<std::endl<<res<<std::endl;
 	}
 
 	//return 

@@ -61,6 +61,34 @@ for(i in 0:min(n)){
 }
 tot
 
+# d=3
+n1 = 5;n2 = 7;n3=10
+n = c(n1,n2,n3)
+tot = 0
+for(i in 0:min(n)){
+  pp = p_shared_prior(s=i, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+# Test d groups
+d = 4
+n_max =10
+n = sample(1:n_max,size = d,replace = T)
+n
+tot = 0
+for(i in 0:min(n)){
+  pp = p_shared_prior(s=i, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+
+
+
+
 
 
 library(GDFMM)
@@ -70,7 +98,7 @@ p_distinct_prior(k=0, n_j = 0, gamma = 2, prior = "Poisson", lambda = 2, Max_ite
 
 
 library(GDFMM)
-p_shared_prior(s=3,n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
+p_shared_prior(s=0,n_j = c(2,2,2), gamma = c(2,2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
 
 
-0.2640364+0.6431628+0.09280082
+0.4848428 + 0.4662059 + 0.0248566
