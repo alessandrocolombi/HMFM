@@ -43,6 +43,11 @@ double log_stable_sum(const std::vector<double>& a, const bool is_log);
 // [[Rcpp::export]]
 int try_rcpp(int x);
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Factorials and Pochammer
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 //' Raising Factorial
 //'
 //' \loadmathjax This function computes the rising factorial \mjseqn{(a)^{n}} using the gsl code for the Pochhammer symbol, i.e
@@ -133,6 +138,13 @@ double compute_Pochhammer(const unsigned int& x, const double& a);
 // [[Rcpp::export]]
 double compute_log_Pochhammer(const unsigned int& x, const double& a);
 
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	C numbers
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 //' Build matrix of logC numbers
 //'
 //' This is the recursive function called by \code{\link{my_logC}} that builds the matrix containing all the log(|C(n,k)|) numbers.
@@ -189,14 +201,16 @@ Eigen::VectorXd my_logC2_central(const unsigned int& n, const double& scale);
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location);
 
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	A priori functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 // Da Testare
 double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
 
-
-
 // Tutta da testare
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
-
 
 //Direct formula per d=1 or d=2
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
@@ -211,6 +225,24 @@ double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& 
 //Recursive formula for d>2
 double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	A posteriori functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
+									  const ComponentPrior& qM, unsigned int M_max = 100 );
+
+// r are the distinct species in the new sample of size m_i
+// k are the distinct species in the new sample of size n_i
+double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
+
+// r are the distinct species in the new sample of size m_i
+// k are the distinct species in the new sample of size n_i
+// Only for d=1 or d=2
+double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 		  const std::vector<double>& gamma);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -232,8 +264,15 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 					 	const Rcpp::List& prior_param, unsigned int M_max  );
 
 
+//' 
+// [[Rcpp::export]] 
+double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, 
+						      const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max );
 
-// Queste sono solo per i test
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Tests
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 // This function computes prod_{i=1}^{n}( f(a_i*b_i) )
 // Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare

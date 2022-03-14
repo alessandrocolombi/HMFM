@@ -334,6 +334,11 @@ p_shared_prior_c <- function(s, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_GDFMM_p_shared_prior_c`, s, n_j, gamma_j, prior, prior_param, M_max)
 }
 
+#' 
+p_distinct_posterior_c <- function(r, k, m_j, n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_GDFMM_p_distinct_posterior_c`, r, k, m_j, n_j, gamma_j, prior, prior_param, M_max)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

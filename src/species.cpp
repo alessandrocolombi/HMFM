@@ -133,6 +133,11 @@ int try_rcpp(int x){
 	return x+10;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Factorials and Pochammer
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 double raising_factorial_poch(const unsigned int& n, const double& a)
 {
 	return( gsl_sf_poch(a, (double)n ) );
@@ -246,8 +251,6 @@ double my_falling_factorial(const unsigned int& n, const double& a)
 	}
 }
 
-
-
 double compute_Pochhammer(const unsigned int& x, const double& a)
 {
 	return( gsl_sf_poch(a,x ) );
@@ -257,6 +260,12 @@ double compute_log_Pochhammer(const unsigned int& x, const double& a)
 {
 	return( gsl_sf_lnpoch(a,x ) );
 }
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	C numbers
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 void build_logC_matrix(const unsigned int& n, const unsigned int& k, const double& s, const double& r, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& res){
 
@@ -400,6 +409,10 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 	return (LogC_old);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	A priori functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 // Da Testare
 double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
@@ -417,17 +430,19 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 }
 
 
-// Sembra funzionare bene anche nel caso d=2
+// Works for d>2
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max ){
 
-	//Rcpp::Rcout<<"Dentro compute_log_Vprior"<<std::endl;
 	if(k == 0)
 		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 
 	if(n_i.size() == 0)
 		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Initialize vector of results
 	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
@@ -528,9 +543,9 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 
-		const int start1 = std::max( 0, (int)k - (int)n_i[0] ); //max(0, k-n1)
-		const int start2 = std::max( 0, (int)k - (int)n_i[1] ); //max(0, k-n2)
-		const int end1   = std::min( (int)k, (int)n_i[1] );     //min(k,n2)
+		const unsigned int start1 = std::max( 0, (int)k - (int)n_i[0] ); //max(0, k-n1)
+		const unsigned int start2 = std::max( 0, (int)k - (int)n_i[1] ); //max(0, k-n2)
+		const unsigned int end1   = std::min( (int)k, (int)n_i[1] );     //min(k,n2)
 					//Rcpp::Rcout<<"start1 = "<<start1<<std::endl; 
 					//Rcpp::Rcout<<"start2 = "<<start2<<std::endl; 
 					//Rcpp::Rcout<<"end1   = "<<end1<<std::endl; 
@@ -877,8 +892,258 @@ double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsi
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	A posteriori functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 
-double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max  ){
+std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
+									  const ComponentPrior& qM, unsigned int M_max )
+{
+	// checks !!
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in build_log_qM_post, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in build_log_qM_post, the length of n_i (group sizes) and gamma has to be equal");
+
+
+	if(k == 0){
+		// The behaviour of such cases is indefined beacuse i am not sure if the need to be handled for coherence or not
+		if( *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ //if(n_i.size()==1 & n_i[0]==0)  // old version
+			throw std::runtime_error("Error in build_log_qM_post. The behaviuor of this function when k=0 and n_i is exactly zero is indefined.");
+		}	
+		else
+			throw std::runtime_error("Error in build_log_qM_post. It does not make any sense to evaluate this function when k=0 and n_i is not exactly zero. The behaviuor is indefined");
+	}
+
+	// Compute all terms from 0 to M_max+k
+	const unsigned int end{M_max+k};
+	// Initialize vector of results
+	std::vector<double> log_vect_res(end+1, -std::numeric_limits<double>::infinity() );
+	// Initialize quantities to find the maximum
+	unsigned int idx_max{0};
+	double val_max(log_vect_res[idx_max]);
+
+	// Start the loop, let us compute all the elements
+	for(std::size_t Mstar=0; Mstar <= end; ++Mstar){
+
+		// Formula implementation
+		log_vect_res[Mstar] = log_raising_factorial(k,Mstar+1 ) +
+							  qM.log_eval_prob(Mstar + k) -
+							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
+			       					   			); 
+			      					   			       					   		
+		// Check if it is the new maximum
+	    if(log_vect_res[Mstar]>val_max){
+	       	idx_max = Mstar;
+	       	val_max = log_vect_res[Mstar];
+	    }
+
+	}
+
+	// Formula to compute the log of all the sums in a stable way
+	double log_norm_const{log_stable_sum(log_vect_res, TRUE, val_max, idx_max)};
+
+	// Normalize all terms
+	std::for_each(log_vect_res.begin(), log_vect_res.end(), [&log_norm_const](double& x){return x - log_norm_const;});
+	//return
+	return log_vect_res;
+}
+
+double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max )
+{
+
+	//Checks
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vpost, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != m_i.size())
+		throw std::runtime_error("Error in compute_log_Vpost, the length of n_i (old group sizes) and m_i (new group sizes) has to be equal");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vpost, the length of n_i (group sizes) and gamma has to be equal");
+
+	// Special cases
+	if( *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ 
+		Rcpp::Rcout<<"The compute_log_Vpost has been called but vector n_i of previous observations is made of all zeros. Call the compute_log_Vprior function instead."<<std::endl;
+		return compute_log_Vprior(r, m_i, gamma, qM, M_max );
+	}
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vpost. If here, n_i is not exactly zero but k is set to 0. This makes no sense, such behaviuor is indefined");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vpost. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	//if(r == 0) --> r may be 0 in posterior calculations
+		
+	std::vector<double> log_qM_post{ build_log_qM_post(k, n_i, gamma, qM, M_max) }; //should be a vector of size M_max+k+1
+
+	// Initialize vector of results
+	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	// Initialize quantities to find the maximum
+	unsigned int idx_max{0};
+	double val_max(log_vect_res[idx_max]);
+
+	// Can not use inner_product with 3 inputs. Need to compute in advance the vector of the arguments of log_raising_factorial
+	std::vector<double> fact_argument(n_i.size(), 0.0);
+	// Start the loop, let us compute all the elements
+	unsigned int indx{0};
+	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+		//Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
+
+		// Fill the elements of fact_argument
+		std::transform(n_i.cbegin(),n_i.cend(),gamma.cbegin(),fact_argument.begin(),
+					   [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return ( (double)nj + (double)(Mstar+k)*gamma_j );} );
+
+		// Formula implementation
+		if(Mstar >= r){
+			
+			log_vect_res[indx] = my_log_falling_factorial(r, (double)Mstar ) +
+								  log_qM_post[Mstar + k] -
+								  std::inner_product( m_i.cbegin(),m_i.cend(),fact_argument.cbegin(), 0.0, std::plus<>(),
+				       					   			  [](const unsigned int& mj, const double& xj){return log_raising_factorial( mj, xj );}
+				       					   			);
+
+			// Check if it is the new maximum
+			if(log_vect_res[Mstar]>val_max){
+			    idx_max = Mstar;
+			    val_max = log_vect_res[Mstar];
+			}	    
+
+			indx++;
+		}
+
+
+	}
+	// Formula to compute the log of all the sums in a stable way
+	return log_stable_sum(log_vect_res, TRUE, val_max, idx_max);   
+}	
+
+
+//questa è sola per 1 o 2 gruppi
+double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 		  const std::vector<double>& gamma)
+{
+
+	//Rcpp::Rcout<<"Dentro a compute_Kpost_unnormalized: ";
+	//for(auto __v : n_i)
+		//Rcpp::Rcout<<__v<<", ";
+	//Rcpp::Rcout<<std::endl;
+
+	double inf = std::numeric_limits<double>::infinity();
+
+	//Checks
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_Kpost_unnormalized, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != m_i.size())
+		throw std::runtime_error("Error in compute_Kpost_unnormalized, the length of n_i (old group sizes) and m_i (new group sizes) has to be equal");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Kpost_unnormalized, the length of n_i (group sizes) and gamma has to be equal");
+	
+
+	// Special cases
+	if( *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ //check it is a prior case
+		Rcpp::Rcout<<"The compute_Kpost_unnormalized has been called but vector n_i of previous observations is made of all zeros. Call the compute_Kprior_unnormalized function instead"<<std::endl;
+		return compute_Kprior_unnormalized(r, m_i, gamma );
+	}
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) // check that the known data are coherent
+		throw std::runtime_error("Error in compute_Kpost_unnormalized. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+	
+	if( r > std::accumulate(m_i.cbegin(), m_i.cend(), 0.0)  ) //The probability of having more distinc values than observations must be zero
+		return -inf;
+
+	if( *std::max_element(m_i.cbegin(),m_i.cend()) == 0 ){
+		    if( r == 0 ) 
+		    	return 0.0;
+		    else
+		    	return -inf; //This case is handle just for completeness and to sake of clarity. However, the case n1=n2=0 and r>0 is handled in the previous if (r > n1+n2)
+	}
+
+	// if here, it is not possible that n1=n2=0. 
+	if( (n_i.size()==1) || ( n_i.size()==2 && m_i[1] == 0 ) ){ // one group only or m2=0
+		Rcpp::NumericVector absC = compute_logC(  m_i[0], -gamma[0], - ( (double)k*gamma[0] + (double)n_i[0] )  ); //absC[i] = |C(m1,i,-gamma1,-(k*gamma1 + n1))| for i = 0,...,m1
+		return absC[r];
+	}
+	else if( n_i.size()==2 && m_i[0] == 0 ){ // m1=0
+		Rcpp::NumericVector absC = compute_logC(  m_i[1], -gamma[1], - ( (double)k*gamma[1] + (double)n_i[1] )  ); //absC[i] = |C(m2,i,-gamma2,-(k*gamma2 + n2))| for i = 0,...,m2
+		return absC[r];
+	}
+	else{ // two groups case. 
+
+		// Compute all C numbers required
+		Rcpp::NumericVector absC1 = compute_logC(  m_i[0], -gamma[0], - ( (double)k*gamma[0] + (double)n_i[0] )  ); //absC[i] = |C(m1,i,-gamma1,-(k*gamma1 + n1))| for i = 0,...,m1
+		Rcpp::NumericVector absC2 = compute_logC(  m_i[1], -gamma[1], - ( (double)k*gamma[1] + (double)n_i[1] )  ); //absC[i] = |C(m2,i,-gamma2,-(k*gamma2 + n2))| for i = 0,...,m2
+
+		const unsigned int start1 = std::max( 0, (int)r - (int)m_i[0] ); //max(0, r-m1)
+		const unsigned int start2 = std::max( 0, (int)r - (int)m_i[1] ); //max(0, r-m2)
+		const unsigned int end1   = std::min( (int)r, (int)m_i[1] );     //min(r,m2)
+					//Rcpp::Rcout<<"start1 = "<<start1<<std::endl; 
+					//Rcpp::Rcout<<"start2 = "<<start2<<std::endl; 
+					//Rcpp::Rcout<<"end1   = "<<end1<<std::endl; 
+  
+		std::vector<double> log_a(end1-start1+1, -inf);    // This vector contains all the quantities that depend only on r1
+		// Initialize quantities to find the maximum of log_a
+		unsigned int idx_max1(0);
+		double val_max1(log_a[idx_max1]);
+
+		// Start for loop
+		unsigned int outer_indx{0};
+		for(std::size_t r1=start1; r1 <= end1; ++r1){
+
+			// Compute a_r1 using its definition
+			log_a[outer_indx] =  absC1[r-r1];
+			
+			// Prepare for computing the second term
+			const unsigned int end2{r-r1};     								//r-r1, this is just for coherence of notation, no operation is needed
+			// Initialize vector of results
+			std::vector<double> log_vect_res(end2-start2+1, -inf );
+
+			// Initialize quantities to find the maximum of log_vect_res
+			unsigned int idx_max2(0);
+			double val_max2(log_vect_res[idx_max2]);
+		
+			// Inner loop on r2
+			unsigned int inner_indx{0};
+			for(std::size_t r2=start2; r2<= end2; ++r2){
+
+				// Compute 
+				log_vect_res[inner_indx] = gsl_sf_lnchoose(r-r2,r1) + my_log_falling_factorial(r-r1-r2,(double)(r-r1)) +  absC2[r-r2];
+				
+				// Check if it is the new maximum of log_vect_res
+	        	if(log_vect_res[inner_indx]>val_max2){
+	        		idx_max2 = inner_indx;
+	        		val_max2 = log_vect_res[inner_indx];
+	        	}
+	        			//Rcpp::Rcout<<"Computing for r1 = "<<r1<<" and r2 = "<<r2<<std::endl;
+				inner_indx++;
+			}
+		
+		 
+			// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
+			log_a[outer_indx] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+			      
+			// Check if it is the new maximum of log_a
+	       	if(log_a[outer_indx]>val_max1){
+	       		idx_max1 = outer_indx;
+	       		val_max1 = log_a[outer_indx];
+	       	}
+	       	outer_indx++;
+		}
+
+		// Complete the sum over all elements in log_a
+		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
+
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Rcpp call functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+							  const Rcpp::List& prior_param, unsigned int M_max  )
+{
 
 	// Component prior preliminary operations
 	ComponentPrior_Parameters qM_params;
@@ -917,7 +1182,9 @@ double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& 
 	return std::exp(log_V + log_K);
 }
 
-double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max  ){
+double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+						  const Rcpp::List& prior_param, unsigned int M_max  )
+{
 
 	// Component prior preliminary operations
 	ComponentPrior_Parameters qM_params;
@@ -942,14 +1209,14 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	// Compute normalization constant
-			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+			Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
-			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+			Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
-			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+			Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized_recursive(k, n_i, gamma)};
-			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+			Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
@@ -1015,6 +1282,49 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 	return res;
 }
 
+double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, 
+						      const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max )
+{
+	// Component prior preliminary operations
+	ComponentPrior_Parameters qM_params;
+	if(prior == "Poisson"){
+		qM_params.Lambda = prior_param["lambda"];
+	}
+	else if(prior == "NegativeBinomial"){
+		qM_params.p = prior_param["p"];
+		qM_params.n_succ = prior_param["r"];
+	}
+	else{
+		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
+	}
+
+	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
+	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> m_i   = Rcpp::as< std::vector<unsigned int> >(m_j);
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_j);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
+
+	// Compute normalization constant
+			Rcpp::Rcout<<"Calcolo log_V posteriori:"<<std::endl;
+	double log_Vpost{ compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) };
+			Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
+
+	// Compute unnormalized probability
+			Rcpp::Rcout<<"Calcolo log_K posteriori:"<<std::endl;
+	double log_Kpost{compute_Kpost_unnormalized(r, k, m_i, n_i, gamma)};
+			Rcpp::Rcout<<"log_Kpost = "<<log_Kpost<<std::endl;
+
+	//return 
+	return std::exp(log_Vpost + log_Kpost);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Tests
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 void Test_Prior(){
