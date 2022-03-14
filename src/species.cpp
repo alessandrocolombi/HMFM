@@ -943,9 +943,21 @@ std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<u
 
 	// Formula to compute the log of all the sums in a stable way
 	double log_norm_const{log_stable_sum(log_vect_res, TRUE, val_max, idx_max)};
+			//Rcpp::Rcout<<"Stampo log_vect_res: ";		
+			//for(auto __v : log_vect_res)
+				//Rcpp::Rcout<<__v<<", ";
+			//Rcpp::Rcout<<std::endl;
+		//
+			//Rcpp::Rcout<<"log_norm_const:"<<std::endl<<log_norm_const<<std::endl;
 
 	// Normalize all terms
-	std::for_each(log_vect_res.begin(), log_vect_res.end(), [&log_norm_const](double& x){return x - log_norm_const;});
+	std::transform(log_vect_res.begin(), log_vect_res.end(), log_vect_res.begin(), [&log_norm_const](double& x){return x - log_norm_const;}); // MA NON HA MODIFICATO NIENTE!!
+
+			//Rcpp::Rcout<<"POST NORMALIZZAZIONE"<<std::endl;
+				//Rcpp::Rcout<<"Stampo log_vect_res: ";		
+			//for(auto __v : log_vect_res)
+				//Rcpp::Rcout<<__v<<", ";
+			//Rcpp::Rcout<<std::endl;
 	//return
 	return log_vect_res;
 }
@@ -976,9 +988,16 @@ double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std
 	//if(r == 0) --> r may be 0 in posterior calculations
 		
 	std::vector<double> log_qM_post{ build_log_qM_post(k, n_i, gamma, qM, M_max) }; //should be a vector of size M_max+k+1
+	//Rcpp::Rcout<<"Stampo log_qM_post: ";		
+	//for(auto __v : log_qM_post)
+		//Rcpp::Rcout<<__v<<", ";
+	//Rcpp::Rcout<<std::endl;
+
+	const unsigned int start = r;
+	const unsigned int end   = M_max;
 
 	// Initialize vector of results
-	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	std::vector<double> log_vect_res(end-start+1, -std::numeric_limits<double>::infinity() );
 	// Initialize quantities to find the maximum
 	unsigned int idx_max{0};
 	double val_max(log_vect_res[idx_max]);
@@ -1004,16 +1023,22 @@ double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std
 				       					   			);
 
 			// Check if it is the new maximum
-			if(log_vect_res[Mstar]>val_max){
-			    idx_max = Mstar;
-			    val_max = log_vect_res[Mstar];
+			if(log_vect_res[indx]>val_max){
+			    idx_max = indx;
+			    val_max = log_vect_res[indx];
 			}	    
 
 			indx++;
+
 		}
 
 
 	}
+			//Rcpp::Rcout<<"Stampo log_vect_res: ";		
+			//for(auto __v : log_vect_res)
+				//Rcpp::Rcout<<__v<<", ";
+			//Rcpp::Rcout<<std::endl;
+
 	// Formula to compute the log of all the sums in a stable way
 	return log_stable_sum(log_vect_res, TRUE, val_max, idx_max);   
 }	
