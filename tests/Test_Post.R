@@ -1,14 +1,11 @@
-# Test one group
-p_distinct_posterior(r=4,k=3, m_j = c(2,2), n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
 
-0.08390593 + 0.01777113 + 0.002102252 + 0.0001277483 + 0
 # Test one group
-n = 4
-m = 4
-k = 2
+m = 1
+n = 10
+k = 3
 tot = 0
 for(i in 0:m){
-  pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = 2, prior = "Poisson", lambda = 2, Max_iter = 1000)
+  pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = 2, prior = "Poisson", lambda = 2, Max_iter = 100)
   print(pp)
   tot = tot + pp
 }
@@ -16,15 +13,49 @@ tot
 
 
 # Test 2 groups
-n1 = 7;n2 = 9
+m1 = 1;m2 = 1
+n1 = 10;n2 = 10
 n = c(n1,n2)
+m = c(m1,m2)
+k = 3
 tot = 0
-for(i in 0:sum(n)){
-  pp = p_distinct_prior(k=i, n_j = n, gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 1000)
+for(i in 0:sum(m)){
+  pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
   print(pp)
   tot = tot + pp
 }
 tot
+
+
+# Test 3 groups
+m1 = 1;m2 = 1;m3=1
+n1 = 10;n2 = 10;n3=10
+n = c(n1,n2,n3)
+m = c(m1,m2,m3)
+k = 3
+tot = 0
+for(i in 0:sum(m)){
+  pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+# Test d groups
+d = 4
+n_max = 10
+n = sample(1:n_max,size = d,replace = T)
+m = rep(1,d)
+k = 3
+n
+tot = 0
+for(i in 0:sum(m)){
+  pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
 
 
 library(GDFMM)

@@ -1246,7 +1246,7 @@ double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigne
 						 		 		    const std::vector<double>& gamma)
 {
 	double inf = std::numeric_limits<double>::infinity();
-	
+
 	//Checks
 	if(n_i.size() == 0)
 		throw std::runtime_error("Error in compute_Kpost_unnormalized_recursive, the length of n_i (group sizes) must be positive");
@@ -1507,15 +1507,15 @@ double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, cons
 	// Compute normalization constant
 			//Rcpp::Rcout<<"Calcolo log_V posteriori:"<<std::endl;
 	double log_Vpost{ compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) };
-			Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
+			//Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
 
 			//Rcpp::Rcout<<"Calcolo NAIVE log_V posteriori:"<<std::endl;
 	double log_Vpost_naive{ compute_log_Vpost_naive(r, k, m_i, n_i, gamma, qM, M_max ) };
-			Rcpp::Rcout<<"log_Vpost_NAIVE = "<<log_Vpost_naive<<std::endl;		
+			//Rcpp::Rcout<<"log_Vpost_NAIVE = "<<log_Vpost_naive<<std::endl;		
 	// Compute unnormalized probability
 			//Rcpp::Rcout<<"Calcolo log_K posteriori:"<<std::endl;
 	double log_Kpost{compute_Kpost_unnormalized_recursive(r, k, m_i, n_i, gamma)};
-			Rcpp::Rcout<<"log_Kpost = "<<log_Kpost<<std::endl;
+			//Rcpp::Rcout<<"log_Kpost = "<<log_Kpost<<std::endl;
 
 	//return 
 	//return std::exp(log_Vpost + log_Kpost);
