@@ -238,6 +238,9 @@ std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<u
 double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
 
+double compute_log_Vpost_naive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 	   const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100);
+
 // r are the distinct species in the new sample of size m_i
 // k are the distinct species in the new sample of size n_i
 // Only for d=1 or d=2
