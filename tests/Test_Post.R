@@ -28,7 +28,7 @@ tot
 
 
 library(GDFMM)
-p_distinct_posterior(r=0,k=1, m_j = c(1,0), n_j = c(2,78), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
+p_distinct_posterior(r=0,k=2, m_j = c(1,1), n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
 
 0.7816969 + 0.1995299 +0.01877326
 compute_logC(  1, -2, - ( 1*2 + 1 )  )
@@ -70,8 +70,9 @@ log(sum_M) - log(Vprior)
 
 
 
+p_distinct_posterior(r=0,k=2, m_j = c(1,1,0), n_j = c(2,2,0), gamma = c(2,2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
 
-
+0.9160297 + 0.07794079 + 0.005827313 + 0.000202199
 
 
 

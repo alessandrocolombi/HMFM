@@ -1241,6 +1241,97 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 	}
 }
 
+// Per d>2
+double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 		 		    const std::vector<double>& gamma)
+{
+	double inf = std::numeric_limits<double>::infinity();
+	
+	//Checks
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_Kpost_unnormalized_recursive, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != m_i.size())
+		throw std::runtime_error("Error in compute_Kpost_unnormalized_recursive, the length of n_i (old group sizes) and m_i (new group sizes) has to be equal");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_Kpost_unnormalized_recursive, the length of n_i (group sizes) and gamma has to be equal");
+	
+
+	// Special cases
+	if( *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ //check it is a prior case
+		Rcpp::Rcout<<"The compute_Kpost_unnormalized_recursive has been called but vector n_i of previous observations is made of all zeros. Call the compute_Kprior_unnormalized_recursive function instead"<<std::endl;
+		return compute_Kprior_unnormalized_recursive(r, m_i, gamma );
+	}
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) // check that the known data are coherent
+		throw std::runtime_error("Error in compute_Kpost_unnormalized_recursive. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+	
+	if( r > std::accumulate(m_i.cbegin(), m_i.cend(), 0.0)  ) //The probability of having more distinc values than observations must be zero
+		return -inf;
+
+	if( *std::max_element(m_i.cbegin(),m_i.cend()) == 0 ){
+		    if( r == 0 ) 
+		    	return 0.0;
+		    else
+		    	return -inf; //This case is handle just for completeness and to sake of clarity. However, the case n1=n2=0 and r>0 is handled in the previous if (r > n1+n2)
+	}
+
+	// if d=1 or d=2
+	if( n_i.size() <= 2)
+		return compute_Kpost_unnormalized(r, k, m_i, n_i, gamma);
+	
+	// if here, n_i.size()>2 
+	std::vector<double> log_a(r+1, -inf);    
+	// Initialize quantities to find the maximum of log_a
+	unsigned int idx_max1(0);
+	double val_max1(log_a[idx_max1]);
+
+	// Start for loop
+	for(std::size_t k1=0; k1 <= r; ++k1){
+				//Rcpp::Rcout<<"----> Dentro a k1 = "<<k1<<std::endl;
+
+		// Compute recursive formula
+		log_a[k1] = compute_Kpost_unnormalized_recursive(k1, k, {m_i.cbegin(), m_i.cend()-1}, {n_i.cbegin(), n_i.cend()-1} , {gamma.cbegin(), gamma.cend()-1} ); 
+
+
+		// Prepare for computing the second term
+		
+		// Initialize vector of results
+		std::vector<double> log_vect_res(k1+1, -inf ); 
+
+		// Initialize quantities to find the maximum of log_vect_res
+		unsigned int idx_max2(0);
+		double val_max2(log_vect_res[idx_max2]);
+		
+		// Inner loop on r2
+		unsigned int inner_indx{0};
+		for(std::size_t k2=r-k1; k2<= r; ++k2){
+					//Rcpp::Rcout<<"***** Dentro a k2 = "<<k2<<std::endl;
+			
+			// Compute coefficient and non-normalized prob			
+			log_vect_res[inner_indx] = gsl_sf_lnchoose(k2,r-k1) + my_log_falling_factorial(k1+k2-r, k1) + 
+									   compute_Kpost_unnormalized( k2, k, {m_i[m_i.size()-1]}, {n_i[n_i.size()-1]}, {gamma[gamma.size()-1]}  );
+				
+		 	// Check if it is the new maximum of log_vect_res
+	       	if(log_vect_res[inner_indx]>val_max2){
+	       		idx_max2 = inner_indx;
+	       		val_max2 = log_vect_res[inner_indx];
+	       	}
+	   		inner_indx++;
+		}
+
+		// Update outer vector
+		log_a[k1] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
+
+		// Check if it is the new maximum of log_a
+	   	if(log_a[k1]>val_max1){
+	    	idx_max1 = k1;
+	      	val_max1 = log_a[k1];
+	    }   
+	}
+
+	// Complete the sum over all elements in log_a
+	return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1423,7 +1514,7 @@ double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, cons
 			Rcpp::Rcout<<"log_Vpost_NAIVE = "<<log_Vpost_naive<<std::endl;		
 	// Compute unnormalized probability
 			//Rcpp::Rcout<<"Calcolo log_K posteriori:"<<std::endl;
-	double log_Kpost{compute_Kpost_unnormalized(r, k, m_i, n_i, gamma)};
+	double log_Kpost{compute_Kpost_unnormalized_recursive(r, k, m_i, n_i, gamma)};
 			Rcpp::Rcout<<"log_Kpost = "<<log_Kpost<<std::endl;
 
 	//return 

@@ -230,6 +230,7 @@ double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsi
 //	A posteriori functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// NON USARLA, è BUGGATA
 std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
 									  const ComponentPrior& qM, unsigned int M_max = 100 );
 
@@ -246,6 +247,12 @@ double compute_log_Vpost_naive(const unsigned int& r, const unsigned int& k, con
 // Only for d=1 or d=2
 double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 		  const std::vector<double>& gamma);
+
+// r are the distinct species in the new sample of size m_i
+// k are the distinct species in the new sample of size n_i
+// This is for d>2
+double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 		 		    const std::vector<double>& gamma);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
