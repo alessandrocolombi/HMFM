@@ -1,6 +1,6 @@
 
 # Test one group
-n = 250
+n = 25
 tot = 0
 for(i in 0:n){
   pp = p_distinct_prior(k=i, n_j = n, gamma = 2, prior = "Poisson", lambda = 2, Max_iter = 1000)

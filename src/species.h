@@ -253,6 +253,16 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 // This is for d>2
 double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 		 		    const std::vector<double>& gamma);
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Rcpp call functions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// The same code was repeated multiple times in different functions. Hence it has been collected in a single function.
+// Wrap the call for the ComponentPrior from Rcpp objects to c++ object
+std::unique_ptr< ComponentPrior > Wrapper_ComponentPrior(const Rcpp::String& prior, const Rcpp::List& prior_param);
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------

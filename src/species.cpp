@@ -1332,15 +1332,14 @@ double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigne
 	// Complete the sum over all elements in log_a
 	return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 }
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
-							  const Rcpp::List& prior_param, unsigned int M_max  )
+// Wrap the call for the ComponentPrior from Rcpp objects to c++ object
+std::unique_ptr< ComponentPrior > Wrapper_ComponentPrior(const Rcpp::String& prior, const Rcpp::List& prior_param)
 {
-
 	// Component prior preliminary operations
 	ComponentPrior_Parameters qM_params;
 	if(prior == "Poisson"){
@@ -1355,7 +1354,19 @@ double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& 
 	}
 
 	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
-	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	return Select_ComponentPrior(prior, qM_params);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Prior selection
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+							  const Rcpp::List& prior_param, unsigned int M_max  )
+{
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
@@ -1383,20 +1394,7 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 {
 
 	// Component prior preliminary operations
-	ComponentPrior_Parameters qM_params;
-	if(prior == "Poisson"){
-		qM_params.Lambda = prior_param["lambda"];
-	}
-	else if(prior == "NegativeBinomial"){
-		qM_params.p = prior_param["p"];
-		qM_params.n_succ = prior_param["r"];
-	}
-	else{
-		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
-	}
-
-	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
-	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
@@ -1424,20 +1422,7 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 {
 
 	// Component prior preliminary operations
-	ComponentPrior_Parameters qM_params;
-	if(prior == "Poisson"){
-		qM_params.Lambda = prior_param["lambda"];
-	}
-	else if(prior == "NegativeBinomial"){
-		qM_params.p = prior_param["p"];
-		qM_params.n_succ = prior_param["r"];
-	}
-	else{
-		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
-	}
-
-	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
-	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
@@ -1482,20 +1467,7 @@ double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, cons
 						      const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max )
 {
 	// Component prior preliminary operations
-	ComponentPrior_Parameters qM_params;
-	if(prior == "Poisson"){
-		qM_params.Lambda = prior_param["lambda"];
-	}
-	else if(prior == "NegativeBinomial"){
-		qM_params.p = prior_param["p"];
-		qM_params.n_succ = prior_param["r"];
-	}
-	else{
-		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
-	}
-
-	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
-	auto qM_ptr = Select_ComponentPrior(prior, qM_params);
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
