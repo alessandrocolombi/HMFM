@@ -1568,7 +1568,7 @@ double compute_SK_post_unnormalized_recursive(const unsigned int& r, const unsig
 	return log_stable_sum(log_s1, TRUE, val_max0, idx_max0);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------
-//	Rcpp call functions
+//	Prior selection
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Wrap the call for the ComponentPrior from Rcpp objects to c++ object
@@ -1592,7 +1592,7 @@ std::unique_ptr< ComponentPrior > Wrapper_ComponentPrior(const Rcpp::String& pri
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
-//	Prior selection
+//	Rcpp call functions for computing probabilities
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 double p_distinct_prior_c_old(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
@@ -1637,14 +1637,14 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	// Compute normalization constant
-			Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
-			Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
-			Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized_recursive(k, n_i, gamma)};
-			Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
@@ -1716,9 +1716,11 @@ double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, cons
 	double log_Vpost{ compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) };
 			//Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
 
+			// That was just a check
 			//Rcpp::Rcout<<"Calcolo NAIVE log_V posteriori:"<<std::endl;
-	double log_Vpost_naive{ compute_log_Vpost_naive(r, k, m_i, n_i, gamma, qM, M_max ) };
+			//double log_Vpost_naive{ compute_log_Vpost_naive(r, k, m_i, n_i, gamma, qM, M_max ) };
 			//Rcpp::Rcout<<"log_Vpost_NAIVE = "<<log_Vpost_naive<<std::endl;		
+	
 	// Compute unnormalized probability
 			//Rcpp::Rcout<<"Calcolo log_K posteriori:"<<std::endl;
 	double log_Kpost{compute_Kpost_unnormalized_recursive(r, k, m_i, n_i, gamma)};
@@ -1749,26 +1751,133 @@ double p_shared_posterior_c(const unsigned int& t, const unsigned int& k, const 
 	// r ranges from t to m1+...+md
 	// when t=0, it is possible that r=0.
 	for(unsigned int r=t; r<=r_max; ++r){
-				Rcpp::Rcout<<"++++ r = "<<r<<std::endl;
+				//Rcpp::Rcout<<"++++ r = "<<r<<std::endl;
 
 		// Compute normalization constant
-				Rcpp::Rcout<<"Calcolo log_Vpost:"<<std::endl;
+				//Rcpp::Rcout<<"Calcolo log_Vpost:"<<std::endl;
 		double log_Vpost{ compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) };
-				Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
+				//Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
 
 		// Compute unnormalized probability
-				Rcpp::Rcout<<"Calcolo log_SK_post:"<<std::endl;
+				//Rcpp::Rcout<<"Calcolo log_SK_post:"<<std::endl;
 		double log_SK_post{compute_SK_post_unnormalized_recursive(r, t, k, m_i, n_i, gamma)};
-				Rcpp::Rcout<<"log_SK_post = "<<log_SK_post<<std::endl;
+				//Rcpp::Rcout<<"log_SK_post = "<<log_SK_post<<std::endl;
 
 		// Compute P(K=r,S=t|X) and cumulate 
 		res += std::exp(log_Vpost + log_SK_post);
-				Rcpp::Rcout<<"P(K="<<r<<", S="<<r<<" | X ) = "<<std::exp(log_Vpost + log_SK_post)<<std::endl;
-				Rcpp::Rcout<<"res:"<<std::endl<<res<<std::endl;
+				//Rcpp::Rcout<<"P(K="<<r<<", S="<<r<<" | X ) = "<<std::exp(log_Vpost + log_SK_post)<<std::endl;
+				//Rcpp::Rcout<<"res:"<<std::endl<<res<<std::endl;
 	}
 
 	//return 
 	return res;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Rcpp call functions for computing expected values
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
+					    const Rcpp::List& prior_param, unsigned int M_max, double tol  )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_j);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
+
+	double cumulative_prob{0.0};
+	double res{0.0};
+	const double stop_criteria{1.0-tol};
+	// distinct case
+	if(type == "distinct"){
+		const unsigned int Kmax = *std::max_element(n_i.cbegin(),n_i.cend()) ;
+		unsigned int k{1};
+
+		while(k<=Kmax & cumulative_prob < stop_criteria){
+			const double prob = std::exp(compute_log_Vprior(k, n_i, gamma, qM, M_max) + compute_Kprior_unnormalized_recursive(k, n_i, gamma));
+			cumulative_prob += prob;
+			res += k*prob;
+			k++;
+		}
+		return res;
+	}
+	else if(type == "shared"){ // shared case
+		const unsigned int Smax = *std::min_element(n_i.cbegin(),n_i.cend()) ;
+		unsigned int s{0}; // s=0 is useless from the point of view of computing the expected value but it is usefull to compute the cumulative_prob
+
+		while(s<=Smax & cumulative_prob < stop_criteria){
+			const double prob = p_shared_prior_c(s, n_j, gamma_j, prior, prior_param, M_max  ); // not the most efficient call
+			cumulative_prob += prob;
+			res += s*prob;
+			s++;
+		}
+		return res;
+	}
+	else{
+		throw std::runtime_error("Error in Expected_prior_c. type can only be equal to distinct or shared ");
+		return -1.0;
+	}
+}
+
+
+double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
+						    const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol)
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> m_i   = Rcpp::as< std::vector<unsigned int> >(m_j);
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_j);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
+
+	double cumulative_prob{0.0};
+	double res{0.0};
+	const double stop_criteria{1.0-tol};
+
+	// distinct case
+	if(type == "distinct"){
+		const unsigned int r_max = *std::max_element(m_i.cbegin(),m_i.cend()) ;
+		unsigned int r{0}; // it is possible that r=0. This case is useless to compute the expected value but it is useful to compute cumulative_prob
+
+		while(r<=r_max & cumulative_prob < stop_criteria){
+			const double prob = std::exp(compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) + compute_Kpost_unnormalized_recursive(r, k, m_i, n_i, gamma));
+			cumulative_prob += prob;
+			//Rcpp::Rcout<<"r:"<<std::endl<<r<<std::endl;
+			//Rcpp::Rcout<<"prob:"<<std::endl<<prob<<std::endl;
+			//Rcpp::Rcout<<"cumulative_prob:"<<std::endl<<cumulative_prob<<std::endl;
+			res += r*prob;
+			r++;
+		}
+		return res;
+	}
+	else if(type == "shared"){ // shared case
+		const unsigned int sigma_max = *std::min_element(m_i.cbegin(),m_i.cend()) ;
+		unsigned int sigma{0}; // sigma=0 is useless from the point of view of computing the expected value but it is usefull to compute the cumulative_prob
+
+		while(sigma<=sigma_max & cumulative_prob < stop_criteria){
+
+			const double prob = p_shared_posterior_c(sigma, k, m_j, n_j, gamma_j, prior, prior_param, M_max); // not the most efficient call
+			cumulative_prob += prob;
+			Rcpp::Rcout<<"sigma:"<<std::endl<<sigma<<std::endl;
+			Rcpp::Rcout<<"prob:"<<std::endl<<prob<<std::endl;
+			Rcpp::Rcout<<"cumulative_prob:"<<std::endl<<cumulative_prob<<std::endl;
+			res += sigma*prob;
+			sigma++;
+		}
+		return res;
+	}
+	else{
+		throw std::runtime_error("Error in Expected_posterior_c. type can only be equal to distinct or shared ");
+		return -1.0;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------

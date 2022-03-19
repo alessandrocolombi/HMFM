@@ -13,11 +13,11 @@ tot
 
 
 # Test 2 groups
-m1 = 1;m2 = 1
-n1 = 10;n2 = 10
+m1 = 10;m2 = 10
+n1 = 100;n2 = 100
 n = c(n1,n2)
 m = c(m1,m2)
-k = 3
+k = 50
 tot = 0
 for(i in 0:sum(m)){
   pp = p_distinct_posterior(r=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)

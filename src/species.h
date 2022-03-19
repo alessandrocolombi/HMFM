@@ -277,7 +277,7 @@ double compute_SK_post_unnormalized_recursive(const unsigned int& r, const unsig
 std::unique_ptr< ComponentPrior > Wrapper_ComponentPrior(const Rcpp::String& prior, const Rcpp::List& prior_param);
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
-//	Rcpp call functions
+//	Rcpp call functions for computing probabilities
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //' 
@@ -306,6 +306,22 @@ double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, cons
 // [[Rcpp::export]] 
 double p_shared_posterior_c(const unsigned int& t, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, 
 						    const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max );
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Rcpp call functions for computing expected values
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//' 
+// [[Rcpp::export]] 
+double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
+					    const Rcpp::List& prior_param, unsigned int M_max, double tol  );
+
+
+//' 
+// [[Rcpp::export]] 
+double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
+						    const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol);
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

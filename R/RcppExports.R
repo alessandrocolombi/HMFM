@@ -344,6 +344,16 @@ p_shared_posterior_c <- function(t, k, m_j, n_j, gamma_j, prior, prior_param, M_
     .Call(`_GDFMM_p_shared_posterior_c`, t, k, m_j, n_j, gamma_j, prior, prior_param, M_max)
 }
 
+#' 
+Expected_prior_c <- function(n_j, gamma_j, type, prior, prior_param, M_max, tol) {
+    .Call(`_GDFMM_Expected_prior_c`, n_j, gamma_j, type, prior, prior_param, M_max, tol)
+}
+
+#' 
+Expected_posterior_c <- function(k, m_j, n_j, gamma_j, type, prior, prior_param, M_max, tol) {
+    .Call(`_GDFMM_Expected_posterior_c`, k, m_j, n_j, gamma_j, type, prior, prior_param, M_max, tol)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

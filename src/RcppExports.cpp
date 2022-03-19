@@ -533,6 +533,42 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Expected_prior_c
+double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol);
+RcppExport SEXP _GDFMM_Expected_prior_c(SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP typeSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type gamma_j(gamma_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(Expected_prior_c(n_j, gamma_j, type, prior, prior_param, M_max, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Expected_posterior_c
+double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol);
+RcppExport SEXP _GDFMM_Expected_posterior_c(SEXP kSEXP, SEXP m_jSEXP, SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP typeSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type m_j(m_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type gamma_j(gamma_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(Expected_posterior_c(k, m_j, n_j, gamma_j, type, prior, prior_param, M_max, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Test_Prior
 void Test_Prior();
 RcppExport SEXP _GDFMM_Test_Prior() {
@@ -594,6 +630,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_p_shared_prior_c", (DL_FUNC) &_GDFMM_p_shared_prior_c, 6},
     {"_GDFMM_p_distinct_posterior_c", (DL_FUNC) &_GDFMM_p_distinct_posterior_c, 8},
     {"_GDFMM_p_shared_posterior_c", (DL_FUNC) &_GDFMM_p_shared_posterior_c, 8},
+    {"_GDFMM_Expected_prior_c", (DL_FUNC) &_GDFMM_Expected_prior_c, 7},
+    {"_GDFMM_Expected_posterior_c", (DL_FUNC) &_GDFMM_Expected_posterior_c, 9},
     {"_GDFMM_Test_Prior", (DL_FUNC) &_GDFMM_Test_Prior, 0},
     {"_GDFMM_Test_prod_sum", (DL_FUNC) &_GDFMM_Test_prod_sum, 0},
     {NULL, NULL, 0}
