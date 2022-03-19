@@ -254,7 +254,20 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 		 		    const std::vector<double>& gamma);
 
+// r = distinct in new sample of size m_i
+// t = shared in new sample of size m_i
+// k = distinct in observed sample of size n_i
+// This is only for d=2 
+double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
+						 		    const std::vector<double>& gamma);
 
+
+// r = distinct in new sample
+// sigma = shared in new sample
+// k = distinct in observed sample
+//Recursive formula for d>2
+double compute_SK_post_unnormalized_recursive(const unsigned int& r, const unsigned int& sigma, const unsigned int& k, const std::vector<unsigned int>& m_i, 
+											  const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Rcpp call functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -289,6 +302,10 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, 
 						      const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max );
 
+//' 
+// [[Rcpp::export]] 
+double p_shared_posterior_c(const unsigned int& t, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, 
+						    const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max );
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

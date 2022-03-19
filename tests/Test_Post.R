@@ -56,6 +56,39 @@ for(i in 0:sum(m)){
 }
 tot
 
+# Shared components tests
+# Test 2 groups
+m1 = 1;m2 = 1
+n1 = 2;n2 = 2
+n = c(n1,n2)
+m = c(m1,m2)
+k = 1
+tot = 0
+for(i in 0:min(m)){
+  pp = p_shared_posterior(t=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+
+# Test 3 groups
+m1 = 1;m2 = 0;m3=1
+n1 = 10;n2 = 10;n3=10
+n = c(n1,n2,n3)
+m = c(m1,m2,m3)
+k = 3
+tot = 0
+for(i in 0:min(m)){
+  pp = p_shared_posterior(t=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
+# prove brutte ------------------------------------------------------------
+library(GDFMM)
+p_shared_posterior(t=1,k=1, m_j = c(1,0), n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)
 
 
 library(GDFMM)
