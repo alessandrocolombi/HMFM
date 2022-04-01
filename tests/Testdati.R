@@ -88,7 +88,7 @@ niter <-5000
 burnin <- 5000
 thin <- 2
 
-option<-list("Mstar0" =10,"Lambda0" = 2,"mu0" = 0,"nu0"=10,"sigma0"= 1,
+option<-list("Mstar0" =10,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
@@ -402,7 +402,7 @@ legend("topright", legend = c("real", "1 group at a time", "3 groups considered"
 # Simulated Data testing --------------------------------------------------
 
 # 1) base simulation
-n_simul = 50
+n_simul = 1
 group_dim = c(100, 120, 12, 90, 60, 80, 70, 110, 15, 40)
 p_mix = rbind( c(1/2, 1/2, 0), c(1/3, 1/10, 17/30), c(0, 2/3, 1/3),
                c(0.2, 0.3, 0.5), c(0.4, 0.35, 0.25), c(0.2, 0.25, 0.55),

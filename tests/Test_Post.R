@@ -86,6 +86,21 @@ for(i in 0:min(m)){
 }
 tot
 
+# Test d groups
+d = 4
+n_max = 100
+n = sample(1:n_max,size = d,replace = T)
+m = rep(10,d)
+k = 3
+n
+tot = 0
+for(i in 0:sum(m)){
+  pp = p_shared_posterior(t=i,k=k, m_j = m, n_j = n, gamma = rep(2,length(n)), prior = "Poisson", lambda = 2, Max_iter = 100)
+  print(pp)
+  tot = tot + pp
+}
+tot
+
 # prove brutte ------------------------------------------------------------
 library(GDFMM)
 p_shared_posterior(t=1,k=1, m_j = c(1,0), n_j = c(2,2), gamma = c(2,2), prior = "Poisson", lambda = 2, Max_iter = 100)

@@ -65,7 +65,16 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-
+        //NOTE: it is enough to remove from fc the parametres that do not want to be updated. For example,
+        /*
+        // This removes Lambda and gamma
+        std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
+                                                            Partition_ptr,
+                                                            Mstar_ptr,
+                                                            S_ptr,
+                                                            tau_ptr
+                                                            };                                                                
+        */
         std::swap(FullConditionals, fc);
 
     }
