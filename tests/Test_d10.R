@@ -91,7 +91,7 @@ dat[12, 1:length(data_level12)] <- data_level12
 
 # Gibbs Sampler 1st run ---------------------------------------------------
 
-niter <-5000
+niter <-100
 burnin <- 1
 thin <- 1
 

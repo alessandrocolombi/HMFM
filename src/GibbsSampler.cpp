@@ -115,6 +115,15 @@ void GibbsSampler::GS_Step() {
         // elapsed time in ms
         // double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
         // Rcpp::Rcout << "It took "<< elapsed_time_ms <<" msecond(s) to update "<< full_cond->name<<std::endl;
+
+        //Check for User Interruption
+        try{
+            Rcpp::checkUserInterrupt();
+        }
+        catch(Rcpp::internal::InterruptedException e){ 
+            //Print error and return
+            throw std::runtime_error("Execution stopped by the user");
+        }
     }
 }
 
