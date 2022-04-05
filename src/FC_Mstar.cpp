@@ -24,6 +24,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         else
             gs_data.Mstar = Poisson(gs_engine, lambda*exp(-log_sum));
 
+        Rcpp::Rcout<<"Mstar = "<<gs_data.Mstar<<std::endl;
         // Update M in the Gibbs Sampler
         gs_data.M = k + gs_data.Mstar;
         // Initialize S according to new M

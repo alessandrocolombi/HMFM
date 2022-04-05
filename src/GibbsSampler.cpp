@@ -82,6 +82,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 
 void GibbsSampler::sample() {
     for(unsigned int it = 0; it <= burn_in + n_iter*thin; it++){
+        if(it%50 == 0)
+            Rcpp::Rcout<<"it = "<<it<<std::endl;
+        
         // Sample from all full conditional
         this->GS_Step();
 

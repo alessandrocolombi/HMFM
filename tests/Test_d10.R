@@ -92,15 +92,20 @@ dat[12, 1:length(data_level12)] <- data_level12
 # Gibbs Sampler 1st run ---------------------------------------------------
 
 niter <-5000
-burnin <- 5000
-thin <- 2
+burnin <- 1
+thin <- 1
 
-option<-list("Mstar0" =10,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
+option<-list("Mstar0" = 50,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
 
 GDFMM = GDFMM_sampler(dat, niter, burnin, thin, seed = 123, option = option)
+
+# Interessante questo caso con Mstar0 = 25.
+# Inizialmente mixa bene, è che quando arriva Mstar=0 poi non si muove più. In particolare, interessante
+# il traceplot di lambda
+
 
 #K
 x11()
@@ -115,13 +120,13 @@ diagplot(GDFMM$M, "black", "M")
 #lambda
 x11()
 par(mfrow = c(2,1))
-diagplot(GDFMM$lambda, "black")
+diagplot(GDFMM$lambda, "black", "lambda")
 
 #gamma
 x11()
 par(mfcol = c(2, 3))
-for (j in 1:dim(GDFMM_fixed$gamma)[1]){
-  diagplot(GDFMM_fixed$gamma[j,], "black", "Gamma", j)
+for (j in 1:dim(GDFMM$gamma)[1]){
+  diagplot(GDFMM$gamma[j,], "black", "Gamma", j)
 }
 
 #mu
@@ -130,6 +135,7 @@ par(mfcol = c(2, 3))
 for (j in 1:length(GDFMM_fixed$mu)[1]){
   diagplot(GDFMM_fixed$mu[[j]], "black", "mu", j)
 }
+
 #sigma
 x11()
 par(mfcol = c(2, 3))
@@ -139,17 +145,13 @@ for (j in 1:length(GDFMM_fixed$sigma)[1]){
 
 
 
-
+# U
 U = GDFMM$U
-par(mfrow = c(2,1))
-diagplot(GDFMM$U, "black", "U")
-
-
-summary(U)
 x11();matplot(t(U), type = 'l')
+
 log_sum_u = apply(log(U), 2, sum)
 
 x11();plot(log_sum_u, type = 'l')
-x11();plot(exp(log_sum_u), type = 'l')
+x11();plot(exp(-log_sum_u), type = 'l')
 
 min(exp(log_sum_u))

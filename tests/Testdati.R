@@ -84,11 +84,11 @@ dat[3, 1:length(data_level3)] <- data_level3
 
 # Gibbs Sampler 1st run ---------------------------------------------------
 
-niter <-5000
-burnin <- 5000
+niter <-500
+burnin <- 500
 thin <- 2
 
-option<-list("Mstar0" =10,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
+option<-list("Mstar0" =100,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)

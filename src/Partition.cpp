@@ -20,6 +20,8 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         unsigned int k = gs_data.K; // number of cluster
         unsigned int d = gs_data.d; // number of group
         unsigned int M = gs_data.M; // number of components
+        
+        //GDFMM_Traits::MatRow& S = gs_data.S; // MODIFIED, PUT IT CONST AGAIN
         const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
         const std::vector<double>& mu = gs_data.mu; // Vector of means
@@ -37,6 +39,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             for(unsigned int i=0; i<n_j[j]; i++){
                 // compute "probability" each m component for y_ji 
                 for(unsigned int m=0; m<M; m++){
+
                     probs_vec(m) = log(S(j,m)) + log_norm(data[j][i], mu[m], sigma[m]);
                 }
                 // get the maximum "probability"
@@ -45,7 +48,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                 // scale values of probs_vec
                 for(unsigned int m=0; m<M; m++){
                     probs_vec(m) = exp(probs_vec(m) - probs_max);
-                // Rcpp::Rcout<<" p:"<<probsvec(m)<<" ";
+                 //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
                 }
                 // Assign y_ji to a component sampling from a multinomial
                 C[j][i] = sample_index(gs_engine, probs_vec);
