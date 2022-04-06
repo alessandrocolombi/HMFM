@@ -81,10 +81,10 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 }
 
 void GibbsSampler::sample() {
+
+    Progress progress_bar(burn_in + n_iter*thin, TRUE); // Initialize progress bar
+
     for(unsigned int it = 0; it <= burn_in + n_iter*thin; it++){
-        if(it%50 == 0)
-            Rcpp::Rcout<<"it = "<<it<<std::endl;
-        
         // Sample from all full conditional
         this->GS_Step();
 
@@ -100,6 +100,8 @@ void GibbsSampler::sample() {
             // Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
             //             <<"\n"<<std::endl;
         }
+
+        progress_bar.increment(); //update progress bar
     }
 }
 

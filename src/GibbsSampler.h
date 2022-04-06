@@ -1,6 +1,9 @@
 #ifndef GDFMM_GIBBSSAMPLER_H
 #define GDFMM_GIBBSSAMPLER_H
 
+// [[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>      // For progress bar
+#include <progress_bar.hpp>
 #include <gsl/gsl_rng.h>     //For random number generators
 #include <gsl/gsl_randist.h> //For random variates and probability density functions
 #include <gsl/gsl_cdf.h> 	 //For cumulative density functions

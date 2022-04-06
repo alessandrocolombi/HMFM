@@ -150,7 +150,7 @@ rmix <- function(n, p, mu, sigma){
 }
 
 #' simulate_data : function to simulate data from the specified configuration of Gaussian
-#'                 mixtures in different groups. Results for each one of the *n_simul*
+#'                 mixtures in different groups. Results for each one of the \code{n_simul}
 #'                 datasets are saved in a directory create with the time-stamp of the simulation.
 #' @param n_simul number of datasets to be simulated
 #' @param group_dim vector of numerosity for each group in a dataset
