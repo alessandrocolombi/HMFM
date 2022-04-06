@@ -1,3 +1,10 @@
+# Esempio su come generare da rmix
+?rmix
+mix = rmix(n = 5000, p = c(1/3, 1/3, 1/3), mu = c(-5,0,10), sigma = c(1,1,1) )
+d = density(mix)
+plot(d$x, d$y, type = 'l')
+points(x = mix, y = rep(0,length(mix)), pch = 16 )
+
 
 y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp
 y1_m2 = rnorm(20, 0, 1/2) # 1st level, 2nd comp
