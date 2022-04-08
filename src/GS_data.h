@@ -36,15 +36,15 @@ struct GS_data{
 
     // Constructor with default prior (Normal-InvGamma)
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, std::vector<unsigned int> part_vec) : 
+            const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
+            double nu0, double sigma0, double gamma0, std::vector<unsigned int> part_vec) : 
                         GS_data(dat, n_iter, burnin, thin, gs_engine, Mstar0, Lambda0, mu0, nu0,
-                                sigma0, "Normal-InvGamma", part_vec){}
+                                sigma0, gamma0, "Normal-InvGamma", part_vec){}
     
     // Constructor with user defined prior
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, std::string P0_prior_name, std::vector<unsigned int> part_vec);
+                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec);
 
     GS_data(){};
     ~GS_data(){};

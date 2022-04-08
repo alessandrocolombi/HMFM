@@ -15,9 +15,9 @@
 
         double var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
         double mean(std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j, const std::vector<std::vector<double>>& data);
-        FC_tau(/* args */) {};
-        FC_tau(std::string na, double nu0, double sigma0, double mu0, double k0):nu_0(nu0)
-                                , sigma_0(sigma0), mu_0(mu0), k_0(k0){name = na;};
+        FC_tau(bool _keepfixed) :FullConditional("tau", _keepfixed){};
+        FC_tau(std::string na, double nu0, double sigma0, double mu0, double k0, bool _keepfixed):FullConditional(na,_keepfixed),nu_0(nu0)
+                                , sigma_0(sigma0), mu_0(mu0), k_0(k0) {};
         ~FC_tau() {};
         void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
     };

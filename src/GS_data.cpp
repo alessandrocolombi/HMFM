@@ -4,9 +4,8 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
+                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
                 prior(P0_prior_name) {
-    
     iterations = 0;
     lambda = Lambda0;
     Mstar = Mstar0;
@@ -53,7 +52,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     // Rcpp::Rcout << "Partition Initialized "<< std::endl;
     
     // Initialization of gamma and U vector
-    gamma = std::vector<double>(d, 1.0);
+    gamma = std::vector<double>(d, gamma0);
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 0.0);
     

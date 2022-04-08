@@ -8,9 +8,9 @@ class FC_U : public FullConditional{
 
 public:
 
-    FC_U(/* args */){name = "U";};
+    FC_U(bool _keepfixed){name = "U"; keep_fixed = _keepfixed;};
+    FC_U(std::string na, bool _keepfixed){name = na; keep_fixed = _keepfixed;};
     ~FC_U() {};
-    FC_U(std::string na){name = na;};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 
 };

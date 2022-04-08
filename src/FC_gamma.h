@@ -23,9 +23,9 @@ private:
 
 public:
 
-    FC_gamma(std::string na){name=na;};
-    FC_gamma(std::string na, double h1, double h2, double pow, double adapt_var0, int a, int b) : hyp1(h1),
-            hyp2(h2), power(pow), adapt_var_pop_gamma(adapt_var0), alpha(a), beta(b) {name = na;};
+    FC_gamma(std::string na, bool _keepfixed) : FullConditional(na,_keepfixed){};//keep_fixed(_keepfixed){name=na;};
+    FC_gamma(std::string na, double h1, double h2, double pow, double adapt_var0, int a, int b, bool _keepfixed) : FullConditional(na,_keepfixed), hyp1(h1),
+            hyp2(h2), power(pow), adapt_var_pop_gamma(adapt_var0), alpha(a), beta(b){};
     ~FC_gamma() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 

@@ -32,6 +32,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         double mu0 = Rcpp::as<double>(option["mu0"]);
         double nu0 = Rcpp::as<double>(option["nu0"]);
         double sigma0 = Rcpp::as<double>(option["sigma0"]);
+        double gamma0 = Rcpp::as<double>(option["gamma0"]);
         double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
         double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
         unsigned int pow = Rcpp::as<unsigned int>(option["Adapt_MH_power_lim"]);
@@ -41,20 +42,26 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
+        bool FixedU = !Rcpp::as<bool>(option["UpdateU"]);
+        bool FixedM = !Rcpp::as<bool>(option["UpdateM"]);
+        bool FixedGamma = !Rcpp::as<bool>(option["UpdateGamma"]);
+        bool FixedS = !Rcpp::as<bool>(option["UpdateS"]);
+        bool FixedTau = !Rcpp::as<bool>(option["UpdateTau"]);
+        bool FixedLambda = !Rcpp::as<bool>(option["UpdateLambda"]);
 
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
-        gs_data = GS_data(data, n_iter, burn_in, thin, random_engine,
-                        Mstar0, Lambda0, mu0, nu0, sigma0, P0_prior_name, partition_vec);
+        gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
+                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
 
 
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
-        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart);
-        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, adapt_var0, a1, b1);
-        auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0);
-        auto U_ptr = std::make_shared<FC_U>("U");
-        auto S_ptr = std::make_shared<FC_S>("S");
-        auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2);
+        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);
+        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, adapt_var0, a1, b1, FixedGamma);
+        auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
+        auto U_ptr = std::make_shared<FC_U>("U", FixedU);
+        auto S_ptr = std::make_shared<FC_S>("S", FixedS);
+        auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
 
         //Full Conditional vector that we will loop
         std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
@@ -111,7 +118,9 @@ void GibbsSampler::GS_Step() {
         // Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
-        full_cond->update(gs_data, random_engine);
+        if(!full_cond->keep_fixed){
+            full_cond->update(gs_data, random_engine);
+        }
         // ending timer to measure updating time
         // auto t_end = std::chrono::high_resolution_clock::now();
         // elapsed time in ms
