@@ -730,3 +730,58 @@ Expected_posterior = function(k, m_j, n_j, gamma, type, prior = "Poisson", ..., 
   # Compute non trivial cases
   return( Expected_posterior_c(k, m_j, n_j, gamma, type, prior, prior_params, Max_iter, tol)  )
 }
+
+
+
+
+#' genera_mix_gas
+#'
+#' @export
+genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(1,1))){
+    p <- length(pro)
+    if(length(means)!=p){stop("The number of component do not coincides with the number of means components")}
+    if(length(sds)!=p){stop("The number of component do not coincides with the number of standard deviation components")}
+    
+    y <- vector(length=n)
+    clu <- vector(length=n)
+    
+    for(i in 1:n){
+      u <- runif(1)
+      
+      cmp <- sample(1:p,1,prob=pro)
+      
+      y[i]=rnorm(1,mean=means[cmp],sd=sds[cmp])
+      clu[i] <- cmp
+    }
+    
+    return(list(y=y,clu=clu))
+}
+
+
+# The following function takes as input the grid (gr) on which we want to
+# compute the predictive and fit
+# The result will be the predictive of a univariate normal mixture model
+# whit the 95%credible bounds
+# --> non completata perché c'è un problema con le dimensioni delle mu.
+# gruppo è l'indice di gruppo, grid una griglia di punti e fit l'output del modello (quindi GDFMM nel nostro caso)
+pred_uninorm <- function(gruppo, grid, fit){
+    G <- length(fit$K) #nuber of iterations
+    lgr <- length(grid)
+    MIX <- matrix(0, nrow=G,ncol=lgr)
+    # This loop computes the predictive
+    for(g in 1:G){
+
+      Mg <- fit$K[g] + fit$Mstar[g]
+      S_g = fit$S[[g]][gruppo,]
+      T_g = sum(S_g)
+      ##### da qua in poi non è aggiornata
+      mug <- fit$mu[[g]]
+      sig2g <- fit$sig2[[g]]
+      XX <- matrix(ncol=lgr,nrow=Mg)
+      for(m in 1:Mg){ XX[m,] <- dnorm(grid,mean=mug[m],sd=sqrt(sig2g[m]))}
+      MIX[g,] <- (S_g/T_g) %*% XX
+    }
+    # Density estimation and credible bounds
+    pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+    return(pred_est)
+}

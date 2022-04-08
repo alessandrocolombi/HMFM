@@ -88,10 +88,13 @@ niter <-500
 burnin <- 500
 thin <- 2
 
-option<-list("Mstar0" =100,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1,
+option<-list("Mstar0" = 5,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1)
+             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
+             "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
+             "UpdateTau" = T, "UpdateLambda" = T
+)
 
 GDFMM = GDFMM_sampler(dat, niter, burnin, thin, seed = 123, option = option)
 

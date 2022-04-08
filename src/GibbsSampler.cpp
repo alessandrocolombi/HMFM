@@ -84,6 +84,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         */
         std::swap(FullConditionals, fc);
 
+        // Initialize return structure for S
+        out.S.reserve(burn_in + n_iter*thin);
+        //std::for_each(out.S.begin(), out.S.end(), [&data](std::vector<std::vector<double>>& inner_S){inner_S.reserve(data.rows());}  );
     }
 }
 
@@ -140,6 +143,7 @@ void GibbsSampler::GS_Step() {
 
 void GibbsSampler::store_params_values() {
     
+
     if(!Partition_fixed){
         out.K.push_back(gs_data.K);
         out.Mstar.push_back(gs_data.Mstar);
@@ -154,6 +158,9 @@ void GibbsSampler::store_params_values() {
     out.lambda.push_back(gs_data.lambda);
     out.U.insert(out.U.end(), gs_data.U.begin(), gs_data.U.end() );
     out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
+
+    //Update S
+    out.S.push_back(gs_data.S);
 }
 
 void GibbsSampler::store_w_jk(){
@@ -186,7 +193,7 @@ void GibbsSampler::store_tau(){
     // Check that current_K doesn't exceed size_tau
     if(out.mu.empty()){
         for(unsigned int k = 0; k < current_K; k++){
-            out.mu.push_back(std::vector<double>{gs_data.mu[k]});
+            out.mu.push_back(std::vector<double>{gs_data.mu[k]});  
             out.sigma.push_back(std::vector<double>{gs_data.sigma[k]});
         }
         return;
