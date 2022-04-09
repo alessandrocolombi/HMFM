@@ -39,7 +39,7 @@ Once you did it to create the library and use all functions implemented you need
 The first command compile the c++ code (it creates the GDFMM.so library actually) and update the documentation. The second one simulate the building of the R package.
 
 ## Install the package
-To install **GSL** library, open git bash and run
+To install **GSL** library, open the Rtools bash terminal al type
 ```shell
 $ pacman -Sy 
 $ pacman -S mingw-w64-{x86_64,i686}-gsl
