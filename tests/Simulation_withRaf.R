@@ -25,13 +25,13 @@ for(j in 1:d){
 }
 
 
-x11();hist(data[1,])
+#x11();hist(data[1,])
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 2500
-burnin <- 2500
-thin   <- 2
+niter  <- 2000
+burnin <- 1000
+thin   <- 1
 
 option<-list("Mstar0" = 5,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
@@ -78,12 +78,30 @@ lapply(Pred_all, function(pred){
 })
 
 # questo plot è sbagliatissimo. trova praticamente una sola componenti
-# - continua ad usare pred_uninorm perché le altre mi sembrano sbagliate. quando poi saremo sicuri, usa le altre
-# - con predictive() escono dei NaN
 # - guarda i valori che escono in (mu,sigma):
 # --> Ci sono tante mu vicino a -10 ma quella componente praticamente non si vede.
 ## --> Le sigma sono orrende, c'è sempre un valore enorme e uno vicino a 0.
 
+
+
+# Test predictive ---------------------------------------------------------
+# Test solo per vedere se le funzioni pred_uniform e predictive sono corrette
+niter  <- 10
+GDFMM$Mstar = rep(0,niter)
+GDFMM$K     = rep(3,niter)
+for(i in 1:niter){
+  GDFMM$mu[[i]] = c(-20,0,20) + rnorm(n=1,sd=0.01)
+  GDFMM$sigma[[i]] = c(1,1,1)
+  GDFMM$S[[i]] = matrix(1/d,nrow = d, ncol = GDFMM$K[i] + GDFMM$Mstar[i], byrow = T)
+}
+
+
+l_grid = 100
+grid = seq(-25,25,length.out = l_grid)
+
+Pred = pred_uninorm(idx_group = 1, grid = grid, fit = GDFMM)
+Pred = predictive(idx_group = 1, grid = grid, fit = GDFMM)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
 
 
 
