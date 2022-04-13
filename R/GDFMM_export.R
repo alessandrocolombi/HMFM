@@ -780,14 +780,16 @@ pred_uninorm <- function(idx_group, grid, fit){
 
       # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
       # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
-      XX = sapply(1:M_it, simplify = "matrix",
-                    function(x){
-                      dnorm( x = grid, mean=mu_it[x], sd=sig2_it[x] )
-                    }
-                  )
+      #XX = sapply(1:M_it, simplify = "matrix",
+                    #function(m){
+                      #dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
+                    #}
+                  #)
+      XX <- matrix(ncol=l_grid,nrow=M_it)
+      for(m in 1:M_it){ XX[m,] <- dnorm(grid,mean=mu_it[m],sd=sqrt(sig2_it[m]))}
 
       # Compute predicted density at iteration it
-      MIX[it,] <- (S_it/T_it) %*% t(XX)
+      MIX[it,] <- (S_it/T_it) %*% XX
     }
 
     # Density estimation and credible bounds
@@ -798,6 +800,12 @@ pred_uninorm <- function(idx_group, grid, fit){
 #' predictive
 #'
 #' Same as \code{\link{pred_uninorm}} before but using apply insted of for
+#'
+#' @param idx_group [integer] the index of the group
+#' @param grid [vector] a grid where the normal kernel is evaluated
+#' @param fit [list] the output of \code{\link{GDFMM_sampler}}
+#'
+#' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}
 #' @export
 predictive <- function(idx_group, grid, fit){
 
@@ -807,7 +815,6 @@ predictive <- function(idx_group, grid, fit){
 
     # MIX is a n_iter x l_grid matrix
     # This loop computes the predictive
-    #for(it in 1:n_iter){
     MIX = t(sapply(1:n_iter, simplify = "matrix",
                     function(it){
                       # Get sampled values
@@ -821,7 +828,7 @@ predictive <- function(idx_group, grid, fit){
                       # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
                       XX = sapply(1:M_it, simplify = "matrix",
                                     function(x){
-                                      dnorm( x = grid, mean=mu_it[x], sd=sig2_it[x] ) # returns a vector of length equal to l_grid
+                                      dnorm( x = grid, mean=mu_it[x], sd=sqrt(sig2_it[m]) ) # returns a vector of length equal to l_grid
                                     }
                                   )
 
@@ -836,3 +843,13 @@ predictive <- function(idx_group, grid, fit){
     return(pred_est)
 }
 
+#' pred_uninorm
+#' 
+#' This function can easily be parallelized!
+#' @inheritParams predictive
+#' @return [list] of length \code{d} where each element is the return object of \code{\link{predictive}}.
+#' @export
+predictive_all_groups <- function(grid, fit){
+  d = nrow(fit$gamma)
+  lapply(1:d, predictive, grid = grid, fit = fit)
+}

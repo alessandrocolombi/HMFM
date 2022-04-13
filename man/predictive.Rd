@@ -6,6 +6,16 @@
 \usage{
 predictive(idx_group, grid, fit)
 }
+\arguments{
+\item{idx_group}{\link{integer} the index of the group}
+
+\item{grid}{\link{vector} a grid where the normal kernel is evaluated}
+
+\item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
+}
+\value{
+\link{matrix} of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}
+}
 \description{
 Same as \code{\link{pred_uninorm}} before but using apply insted of for
 }

@@ -29,9 +29,9 @@ x11();hist(data[1,])
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 250
-burnin <- 1
-thin   <- 1
+niter  <- 2500
+burnin <- 2500
+thin   <- 2
 
 option<-list("Mstar0" = 5,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
@@ -61,22 +61,28 @@ x11();plot(GDFMM$Mstar, type = 'l')
 
 
 
-l_grid = 1000
-grid = seq(-25,10,length.out = l_grid)
-Pred  = pred_uninorm(idx_group = 1, grid = grid, fit = GDFMM)
-Pred2 = predictive(idx_group = 1, grid = grid, fit = GDFMM)
+# Predictive --------------------------------------------------------------
 
-x11();matplot(t(Pred), type = 'l', col = 'red')
-x11();matplot(t(Pred2), type = 'l', col = 'red')
-View(pred_uninorm)
+l_grid = 10000
+grid = seq(-25,25,length.out = l_grid)
 
+Pred = pred_uninorm(idx_group = 1, grid = grid, fit = GDFMM)
+Pred = predictive(idx_group = 1, grid = grid, fit = GDFMM)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
 
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM)
 
-dim(Pred)
-dim(Pred2)
+x11();par(mfrow = c(d,1))
+lapply(Pred_all, function(pred){
+  matplot(t(pred), type = 'l', col = 'red', main = 'Predictive')
+})
 
-
-
+# questo plot è sbagliatissimo. trova praticamente una sola componenti
+# - continua ad usare pred_uninorm perché le altre mi sembrano sbagliate. quando poi saremo sicuri, usa le altre
+# - con predictive() escono dei NaN
+# - guarda i valori che escono in (mu,sigma):
+# --> Ci sono tante mu vicino a -10 ma quella componente praticamente non si vede.
+## --> Le sigma sono orrende, c'è sempre un valore enorme e uno vicino a 0.
 
 
 
