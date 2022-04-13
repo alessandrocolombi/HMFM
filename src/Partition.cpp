@@ -1,8 +1,8 @@
 #include "Partition.h"
 // Constructor 
 Partition::Partition(std::string na, const unsigned int d, const std::vector<unsigned int> & n_j,
-                    bool FixPart) : Partition_fixed(FixPart){
-    name = na;
+                    bool FixPart) : FullConditional(na,FixPart), Partition_fixed(FixPart){
+    //name = na;
     C.clear();
     for(size_t j = 0; j < d; j++){
         std::vector<unsigned int> row_j(n_j[j], 1);
@@ -16,6 +16,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
     }
     else{
+        //Rcpp::Rcout<<"Dentro Partition"<<std::endl;
         // From gs_data all needed variable are retrived
         unsigned int k = gs_data.K; // number of cluster
         unsigned int d = gs_data.d; // number of group
@@ -26,6 +27,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
         const std::vector<double>& mu = gs_data.mu; // Vector of means
         const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
+        
         // Define data taken from gs_data
         const std::vector<std::vector<double>>& data = gs_data.data;
         // Create vector to store probabilities for the M components

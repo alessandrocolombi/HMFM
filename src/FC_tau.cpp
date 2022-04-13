@@ -40,26 +40,26 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             ind_j.clear();
             for (unsigned int j = 0; j <d ; ++j) {
                 for (unsigned int i = 0; i < n_j[j] ; ++i) {
+                    //Rcpp::Rcout<<"Ctilde[j][i]:"<<std::endl<<Ctilde[j][i]<<std::endl;
                     if(Ctilde[j][i] == m){
                         ind_i.push_back(i);
                         ind_j.push_back(j);
                     }
                 }
             }
-
             double nu_n_clust = nu_0 + N_k[m];
-            //Rcpp::Rcout<<nu_n_clust<<std::endl;
+            //Rcpp::Rcout<<"nu_n_clust:"<<std::endl<<nu_n_clust<<std::endl;
             double lpk = k_0 + N_k[m];
-            //Rcpp::Rcout<<lpk;
+            //Rcpp::Rcout<<"lpk:"<<std::endl<<lpk<<std::endl;
             double y_bar_clust= mean(ind_i,ind_j,data);
-            //Rcpp::Rcout<<y_bar_clust;
+            //Rcpp::Rcout<<"y_bar_clust:"<<std::endl<<y_bar_clust<<std::endl;
             double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
-            // Rcpp::Rcout<<s2_clust;
+             //Rcpp::Rcout<<"s2_clust:"<<std::endl<<s2_clust<<std::endl;
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
             double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
-            //Rcpp::Rcout<<mu_n_clust;
+            //Rcpp::Rcout<<"mu_n_clust:"<<std::endl<<mu_n_clust<<std::endl;
             double sigma2_n_clust = (nu_0 * sigma_0 + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
-            // Rcpp::Rcout<<sigma2_n_clust;
+            //Rcpp::Rcout<<"sigma2_n_clust:"<<std::endl<<sigma2_n_clust<<std::endl;
             //Campionamento
             double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, 2 / sigma2_n_clust );
             double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));

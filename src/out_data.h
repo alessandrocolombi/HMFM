@@ -3,6 +3,8 @@
 
 #include "include_headers.h"
 #include "recurrent_traits.h"
+#include <Rcpp.h>
+#include <RcppEigen.h>
 
 struct out_data{
   /* DATA */
@@ -12,8 +14,12 @@ struct out_data{
   std::vector<std::vector< std::vector<unsigned int>>> Ctilde;
 
   // PARAMETERS OF MIXTURES
-  std::vector< std::vector<double>> mu;
+  /* Old version - ragazzi
+  std::vector< std::vector<double>> mu; 
   std::vector< std::vector<double>> sigma;
+  */
+  std::vector< Rcpp::NumericVector > mu; 
+  std::vector< Rcpp::NumericVector > sigma;
   std::vector< GDFMM_Traits::MatRow > S;
   // if partition is fixed estimated weights for the components are stored in w_jk
   std::vector<GDFMM_Traits::MatRow> w_jk; 

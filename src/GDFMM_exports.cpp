@@ -17,7 +17,6 @@
 Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
 			 					unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
 								bool FixPart, Rcpp::List option){
-
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
 	// Do not use deafult values here
@@ -27,11 +26,12 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 	GibbsSampler Gibbs(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
     Gibbs.sample();
 	// Take output data from the sample
-	out_data out = Gibbs.out;
+	out_data out = Gibbs.out; //copia inutile
 	auto n_j = Gibbs.get_nj();
 
-	std::vector<std::vector<double>> mu = out.mu;
-	std::vector<std::vector<double>> sigma = out.sigma;
+	// A cosa servono queste cose? Non sono copie inutili?
+	//std::vector<std::vector<double>> mu = out.mu; // old version - secondo me non serve nemmeno
+	//std::vector<std::vector<double>> sigma = out.sigma; // old version - secondo me non serve nemmeno
 	std::vector< GDFMM_Traits::MatRow > S = out.S;
     std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk;
 	std::vector<double> lambda = out.lambda;
@@ -40,8 +40,8 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 
 	if(FixPart){
 		
-		return Rcpp::List::create( Rcpp::Named("mu") = mu,
-                                  	Rcpp::Named("sigma") = sigma,
+		return Rcpp::List::create( Rcpp::Named("mu") = out.mu,
+                                  	Rcpp::Named("sigma") = out.sigma,
 									Rcpp::Named("w_jk") =  w_jk,
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
@@ -67,14 +67,14 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 				fprowvec.insert(fprowvec.end(), C[it][j].begin(), C[it][j].end());
 			}
 			
-			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() );
+			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() ); //fpmatr[it,:] in R notation
 		}
 
 		return Rcpp::List::create( Rcpp::Named("K") = K,
 									Rcpp::Named("Mstar") = Mstar,
 									Rcpp::Named("Partition") = fpmatr,
-									Rcpp::Named("mu") = mu,
-                                  	Rcpp::Named("sigma") = sigma,
+									Rcpp::Named("mu") = out.mu,
+                                  	Rcpp::Named("sigma") = out.sigma,
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U,
@@ -86,5 +86,51 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 
 
 
+//' Test
+//' @export
+// [[Rcpp::export]]
+void Test_Rcpp(){
+
+	std::vector<double> vec_c(5);
+	std::iota(vec_c.begin(), vec_c.end(), 1.0);
+	Rcpp::Rcout<<"Stampo vec_c: ";		
+	for(auto __v : vec_c)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	Rcpp::NumericVector vec_rcpp1(vec_c.begin(),vec_c.end());
+	Rcpp::Rcout<<"Stampo vec_rcpp1: ";		
+	for(auto __v : vec_rcpp1)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	Rcpp::Rcout<<"Questo non va (uso std::copy)"<<std::endl;
+	Rcpp::NumericVector vec_rcpp2;
+	std::copy(vec_c.begin(), vec_c.end(), vec_rcpp2.begin()); 
+	Rcpp::Rcout<<"Stampo vec_rcpp2: ";		
+	for(auto __v : vec_rcpp2)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	Rcpp::NumericVector vec_rcpp3;
+	Rcpp::NumericVector vec_rcpp_temp(vec_c.begin(),vec_c.end());
+	Rcpp::Rcout<<"Stampo vec_rcpp_temp: ";		
+	for(auto __v : vec_rcpp_temp)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	std::swap(vec_rcpp3, vec_rcpp_temp);
+	//vec_rcpp3.reserve(5);
+	Rcpp::Rcout<<"Stampo vec_rcpp3: ";		
+	for(auto __v : vec_rcpp3)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	Rcpp::Rcout<<"Stampo vec_rcpp_temp: ";		
+	for(auto __v : vec_rcpp_temp)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	
+	
+} 
 
 #endif

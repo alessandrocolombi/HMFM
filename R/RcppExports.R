@@ -6,6 +6,12 @@ GDFMM_sampler_c <- function(dat, n_iter, burn_in, thin, seed, P0_prior_name, Fix
     .Call(`_GDFMM_GDFMM_sampler_c`, dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option)
 }
 
+#' Test
+#' @export
+Test_Rcpp <- function() {
+    invisible(.Call(`_GDFMM_Test_Rcpp`))
+}
+
 #' Falling Factorial - Raf
 #'
 #' @export

@@ -13,7 +13,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
     n_iter = n_it;
     burn_in = b_in;
     thin = thn;
-
     if(P0_prior_name == "Normal-InvGamma"){
 
         // Manage cases if Partition is fixed
@@ -26,7 +25,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         else{
             Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         }
-
         // Read all hyper-parameters passed with option
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
@@ -48,11 +46,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         bool FixedS = !Rcpp::as<bool>(option["UpdateS"]);
         bool FixedTau = !Rcpp::as<bool>(option["UpdateTau"]);
         bool FixedLambda = !Rcpp::as<bool>(option["UpdateLambda"]);
-
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
-
 
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
@@ -62,7 +58,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         auto U_ptr = std::make_shared<FC_U>("U", FixedU);
         auto S_ptr = std::make_shared<FC_S>("S", FixedS);
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
-
         //Full Conditional vector that we will loop
         std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
                                                             Partition_ptr,
@@ -84,9 +79,10 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         */
         std::swap(FullConditionals, fc);
 
-        // Initialize return structure for S
+        // Initialize return structure for S and tau
         out.S.reserve(burn_in + n_iter*thin);
-        //std::for_each(out.S.begin(), out.S.end(), [&data](std::vector<std::vector<double>>& inner_S){inner_S.reserve(data.rows());}  );
+        out.mu.reserve(burn_in + n_iter*thin);
+        out.sigma.reserve(burn_in + n_iter*thin);
     }
 }
 
@@ -118,7 +114,7 @@ void GibbsSampler::sample() {
 void GibbsSampler::GS_Step() {
     //Loop for updating every fullconditional
     for(auto full_cond: FullConditionals){
-        // Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
+         //Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){
@@ -154,7 +150,11 @@ void GibbsSampler::store_params_values() {
         store_w_jk();
     }
     // Common output values retrived
-    store_tau();
+    //store_tau(); //Old version - ragazzi
+    // Save tau
+    out.mu.push_back( Rcpp::NumericVector (gs_data.mu.begin(),gs_data.mu.end()) );  //create temporary vector with current values within push_back call. It is as creating a temporary vector and push it back, but more efficient
+    out.sigma.push_back(  Rcpp::NumericVector (gs_data.sigma.begin(),gs_data.sigma.end())  ); //create temporary vector with current values within push_back call. It is as creating a temporary vector and push it back, but more efficient
+    // Save lambda - U - gamma
     out.lambda.push_back(gs_data.lambda);
     out.U.insert(out.U.end(), gs_data.U.begin(), gs_data.U.end() );
     out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
@@ -185,6 +185,7 @@ void GibbsSampler::store_w_jk(){
     }
 }
 
+/* Old version - ragazzi
 void GibbsSampler::store_tau(){
     unsigned int current_it = (gs_data.iterations - burn_in)/thin;
     unsigned int current_K = gs_data.K;
@@ -223,3 +224,4 @@ void GibbsSampler::store_tau(){
         }
     }
 }
+*/

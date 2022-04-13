@@ -346,7 +346,8 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
 
   #Check options
       # if(FixPartition){ check che una partition sia passata}
-
+  if( any(is.na(data)) )
+    stop("There are nan in data")
   # This is just an example, of course you can save the c++ output and perform further operations in R
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
