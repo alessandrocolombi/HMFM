@@ -489,7 +489,7 @@ p_distinct_posterior = function(r, k, m_j, n_j, gamma, prior = "Poisson", ..., M
   if(length(n_j)!=length(gamma))
     stop("The length of n_j must be equal to the length of gamma")
   if(length(n_j)!=length(m_j))
-    stop("The length of m_j must be equal to the length of n_j")  
+    stop("The length of m_j must be equal to the length of n_j")
   if( any(m_j<0) || any(n_j<0) || any(gamma<=0) )
     stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
   if(Max_iter<=0)
@@ -530,7 +530,7 @@ p_distinct_posterior = function(r, k, m_j, n_j, gamma, prior = "Poisson", ..., M
     return (0)
   if( r == 0 && sum(m_j) == 0 ){
     return (1) # just for coherence
-  }  
+  }
 
   # Compute non trivial cases
   return (  p_distinct_posterior_c(r,k,m_j,n_j,gamma,prior,prior_params,Max_iter)  )
@@ -556,7 +556,7 @@ p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max
   if(length(n_j)!=length(gamma))
     stop("The length of n_j must be equal to the length of gamma")
   if(length(n_j)!=length(m_j))
-    stop("The length of m_j must be equal to the length of n_j")  
+    stop("The length of m_j must be equal to the length of n_j")
   if( any(m_j<0) || any(n_j<0) || any(gamma<=0) )
     stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
   if(Max_iter<=0)
@@ -596,7 +596,7 @@ p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max
   if(t<0)
     stop("Error, the number of shared species t can not be negative")
   if(t > min(m_j))
-    return (0)  
+    return (0)
 
   # Compute non trivial cases
   return (p_shared_posterior_c(t, k, m_j, n_j, gamma, prior, prior_params, Max_iter ) )
@@ -609,7 +609,7 @@ p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max
 #' This function computes the expected value of the a priori probability of distinct or shared species.
 #' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
 #' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species. 
+#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species.
 #' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
 #' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
 #'
@@ -670,7 +670,7 @@ Expected_prior = function(n_j, gamma, type, prior = "Poisson", ..., Max_iter = 1
 #' @param m_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
 #' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
 #' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species. 
+#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species.
 #' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
 #' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
 #'
@@ -742,47 +742,97 @@ genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(
     p <- length(pro)
     if(length(means)!=p){stop("The number of component do not coincides with the number of means components")}
     if(length(sds)!=p){stop("The number of component do not coincides with the number of standard deviation components")}
-    
+
     y <- vector(length=n)
     clu <- vector(length=n)
-    
+
     for(i in 1:n){
       u <- runif(1)
-      
+
       cmp <- sample(1:p,1,prob=pro)
-      
+
       y[i]=rnorm(1,mean=means[cmp],sd=sds[cmp])
       clu[i] <- cmp
     }
-    
+
     return(list(y=y,clu=clu))
 }
 
 
-# The following function takes as input the grid (gr) on which we want to
-# compute the predictive and fit
-# The result will be the predictive of a univariate normal mixture model
-# whit the 95%credible bounds
-# --> non completata perché c'è un problema con le dimensioni delle mu.
-# gruppo è l'indice di gruppo, grid una griglia di punti e fit l'output del modello (quindi GDFMM nel nostro caso)
-pred_uninorm <- function(gruppo, grid, fit){
-    G <- length(fit$K) #nuber of iterations
-    lgr <- length(grid)
-    MIX <- matrix(0, nrow=G,ncol=lgr)
-    # This loop computes the predictive
-    for(g in 1:G){
+#' pred_uninorm
+#'
+#' @export
+pred_uninorm <- function(idx_group, grid, fit){
 
-      Mg <- fit$K[g] + fit$Mstar[g]
-      S_g = fit$S[[g]][gruppo,]
-      T_g = sum(S_g)
-      ##### da qua in poi non è aggiornata
-      mug <- fit$mu[[g]]
-      sig2g <- fit$sig2[[g]]
-      XX <- matrix(ncol=lgr,nrow=Mg)
-      for(m in 1:Mg){ XX[m,] <- dnorm(grid,mean=mug[m],sd=sqrt(sig2g[m]))}
-      MIX[g,] <- (S_g/T_g) %*% XX
+    n_iter <- length(fit$K) #number of iterations
+    l_grid <- length(grid)
+    MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+
+    # This loop computes the predictive
+    for(it in 1:n_iter){
+
+      # Get sampled values
+      M_it <- fit$K[it] + fit$Mstar[it] # compute the number of components (allocated or not)
+      S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+      T_it = sum(S_it)                  # compute the sum of the vector above
+      mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
+      sig2_it <- fit$sigma[[it]]        # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+
+      # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
+      # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+      XX = sapply(1:M_it, simplify = "matrix",
+                    function(x){
+                      dnorm( x = grid, mean=mu_it[x], sd=sig2_it[x] )
+                    }
+                  )
+
+      # Compute predicted density at iteration it
+      MIX[it,] <- (S_it/T_it) %*% t(XX)
     }
+
     # Density estimation and credible bounds
     pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
     return(pred_est)
 }
+
+#' predictive
+#'
+#' Same as \code{\link{pred_uninorm}} before but using apply insted of for
+#' @export
+predictive <- function(idx_group, grid, fit){
+
+    n_iter <- length(fit$K) #number of iterations
+    l_grid <- length(grid)
+    #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+
+    # MIX is a n_iter x l_grid matrix
+    # This loop computes the predictive
+    #for(it in 1:n_iter){
+    MIX = t(sapply(1:n_iter, simplify = "matrix",
+                    function(it){
+                      # Get sampled values
+                      M_it <- fit$K[it] + fit$Mstar[it] # compute the number of components (allocated or not)
+                      S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+                      T_it = sum(S_it)                  # compute the sum of the vector above
+                      mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
+                      sig2_it <- fit$sigma[[it]]        # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+
+                      # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
+                      # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+                      XX = sapply(1:M_it, simplify = "matrix",
+                                    function(x){
+                                      dnorm( x = grid, mean=mu_it[x], sd=sig2_it[x] ) # returns a vector of length equal to l_grid
+                                    }
+                                  )
+
+                      # Compute predicted density at iteration it
+                      (S_it/T_it) %*% t(XX)
+                    }
+                ))
+
+
+    # Density estimation and credible bounds
+    pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+    return(pred_est)
+}
+

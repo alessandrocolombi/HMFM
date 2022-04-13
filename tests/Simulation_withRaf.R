@@ -1,4 +1,4 @@
-
+library(GDFMM)
 # data generation ---------------------------------------------------------
 
 d = 3 #number of groups
@@ -25,11 +25,11 @@ for(j in 1:d){
 }
 
 
-#x11();hist(data[1,])
+x11();hist(data[1,])
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 5000
+niter  <- 250
 burnin <- 1
 thin   <- 1
 
@@ -61,17 +61,19 @@ x11();plot(GDFMM$Mstar, type = 'l')
 
 
 
+l_grid = 1000
+grid = seq(-25,10,length.out = l_grid)
+Pred  = pred_uninorm(idx_group = 1, grid = grid, fit = GDFMM)
+Pred2 = predictive(idx_group = 1, grid = grid, fit = GDFMM)
+
+x11();matplot(t(Pred), type = 'l', col = 'red')
+x11();matplot(t(Pred2), type = 'l', col = 'red')
+View(pred_uninorm)
 
 
 
-
-
-
-
-
-
-
-
+dim(Pred)
+dim(Pred2)
 
 
 
