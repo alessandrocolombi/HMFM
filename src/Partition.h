@@ -3,6 +3,7 @@
 
 #include "FullConditional.h"
 #include "recurrent_traits.h"
+#include <Rcpp.h>
 
 class FullConditional;
 

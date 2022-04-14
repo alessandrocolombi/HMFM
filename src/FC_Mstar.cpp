@@ -31,5 +31,8 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         gs_data.allocate_S(gs_data.M);
         // Initialize tau according to new M
         gs_data.allocate_tau(gs_data.M);
+
+        // Quando fanno questa allocate, distruggono il contenuto di tau e S. 
+        // Sembra vada bene perché poi aggiornano gamma, S, tau che sembrano non aver bisogno del contenuto di gs_data.S o gs_data.mu/sigma
     }
 }

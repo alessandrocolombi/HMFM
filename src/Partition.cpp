@@ -28,6 +28,15 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const std::vector<double>& mu = gs_data.mu; // Vector of means
         const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
         
+        //Rcpp::Rcout<<"Stampo mu: ";        
+        //for(auto __v : mu)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+
+        //Rcpp::Rcout<<"Stampo sigma: ";        
+        //for(auto __v : sigma)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
         // Define data taken from gs_data
         const std::vector<std::vector<double>>& data = gs_data.data;
         // Create vector to store probabilities for the M components
@@ -51,7 +60,10 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                 for(unsigned int m=0; m<M; m++){
                     probs_vec(m) = exp(probs_vec(m) - probs_max);
                  //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
+                    if(std::isnan(probs_vec(m)))
+                        throw std::runtime_error("Error in Partition.cpp, get a nan in probs_vec ");
                 }
+                 //Rcpp::Rcout<<std::endl;
                 // Assign y_ji to a component sampling from a multinomial
                 C[j][i] = sample_index(gs_engine, probs_vec);
             }
@@ -80,6 +92,15 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             Rcpp::Rcout<<gs_data.N_k[m]<< " ";
         }
         */
+
+        //Check for User Interruption
+        try{
+            Rcpp::checkUserInterrupt();
+        }
+        catch(Rcpp::internal::InterruptedException e){ 
+            //Print error and return
+            throw std::runtime_error("Execution stopped by the user");
+        }
     }
 }
 

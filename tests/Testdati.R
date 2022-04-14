@@ -59,7 +59,7 @@ data_all <- c(data_level1, data_level2,data_level3)
 # Plots -------------------------------------------------------------------
 
 
-plot = F
+plot = T
 if(plot){
     x11()
     par(mfrow = c(2,2))
@@ -76,10 +76,11 @@ if(plot){
 # Data pre-processing -------------------------------------------------------
 d=3
 ncol_data <- max(length(data_level1), length(data_level2),length(data_level3))
-dat <- matrix(NA, nrow = d, ncol = ncol_data)
+dat <- matrix(0, nrow = d, ncol = ncol_data)
 dat[1, 1:length(data_level1)] <- data_level1
 dat[2, 1:length(data_level2)] <- data_level2
 dat[3, 1:length(data_level3)] <- data_level3
+
 
 
 # Gibbs Sampler 1st run ---------------------------------------------------

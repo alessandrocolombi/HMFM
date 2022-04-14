@@ -18,6 +18,15 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
 
+    
+    //Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
+    //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+    //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+    //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+    //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
+    //Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
+
+
     if (prior == "Normal-InvGamma") {
 
         sample::rgamma Gamma;
@@ -30,7 +39,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
              gs_data.sigma[m] = sigma2_na;
-             //Rcpp::Rcout << "mu[" << m << "] = " << mu_na << std::endl;
+             //Rcpp::Rcout << "Non Allocate: mu[" << m << "] = " << mu_na << std::endl;
              //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
         } 
         
@@ -47,6 +56,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     }
                 }
             }
+            //Rcpp::Rcout<<"N_k["<<m<<"]: "<<std::endl<<N_k[m]<<std::endl;
             double nu_n_clust = nu_0 + N_k[m];
             //Rcpp::Rcout<<"nu_n_clust:"<<std::endl<<nu_n_clust<<std::endl;
             double lpk = k_0 + N_k[m];
@@ -54,25 +64,28 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             double y_bar_clust= mean(ind_i,ind_j,data);
             //Rcpp::Rcout<<"y_bar_clust:"<<std::endl<<y_bar_clust<<std::endl;
             double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
-             //Rcpp::Rcout<<"s2_clust:"<<std::endl<<s2_clust<<std::endl;
+            //Rcpp::Rcout<<"s2_clust:"<<std::endl<<s2_clust<<std::endl;
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
             double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
             //Rcpp::Rcout<<"mu_n_clust:"<<std::endl<<mu_n_clust<<std::endl;
-            double sigma2_n_clust = (nu_0 * sigma_0 + (N_k[m] - 1) * s2_clust+ k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) / (lpk));
+            double sigma2_n_clust = (  nu_0 * sigma_0 + 
+                                      (N_k[m] - 1) * s2_clust + 
+                                      ( k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (lpk) 
+                                    );
             //Rcpp::Rcout<<"sigma2_n_clust:"<<std::endl<<sigma2_n_clust<<std::endl;
             //Campionamento
             double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, 2 / sigma2_n_clust );
             double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
-            //Rcpp::Rcout << "mu[" << m << "] = " << mu_a << std::endl;
+            //Rcpp::Rcout << "Allocate: mu[" << m << "] = " << mu_a << std::endl;
             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_a << std::endl;
         }
     }
 }
 
 // Function to compute the mean of the data (y_mean) for a group
-double FC_tau::mean (std::vector<unsigned int> ind_i, std::vector<unsigned int> ind_j,
+double FC_tau::mean (const std::vector<unsigned int>& ind_i, const std::vector<unsigned int>& ind_j,
         const std::vector<std::vector<double>>& data){
 
     int count = 0;
@@ -84,16 +97,21 @@ double FC_tau::mean (std::vector<unsigned int> ind_i, std::vector<unsigned int> 
     return sum/count;
 }
 // Function to compute the variance of the data
-double FC_tau::var(double mean,std::vector<unsigned int> ind_i,std::vector<unsigned int>ind_j,
-        const std::vector<std::vector<double>>& data){
-
+double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const std::vector<unsigned int>& ind_j,
+                    const std::vector<std::vector<double>>& data){
+    if(ind_i.size() == 1)
+        return 0.0;
     double vari=0.0;
     int count=0;
      for (size_t ii = 0; ii <ind_i.size() ; ++ii) {
          vari += (data.at(ind_j[ii]).at(ind_i[ii]) - mean) *(data.at(ind_j[ii]).at(ind_i[ii]) - mean) ;
          count++;
+         //Rcpp::Rcout<<data.at(ind_j[ii]).at(ind_i[ii])<<",";
      }
-     return vari/count;
+     //Rcpp::Rcout<<std::endl;
+     return vari/(count-1); 
+     //!!!!---->   ATTENZIONE, QUA MANCA UN -1, però, mistero della fede, se metto -1 qua poi il codice si pianta dopo un po' di iterazioni nell'update della partizione!
+     // è perché si possono generare dei nan (li ho visti, ma perché ci sono? perché count è 1?)
 }
 
 // mean e var vanno bene qui e poi si possono chiamare tranquillamente da dentro senza definire il namespace?

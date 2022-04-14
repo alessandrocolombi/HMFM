@@ -49,7 +49,6 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
-
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
         auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);
@@ -113,13 +112,34 @@ void GibbsSampler::sample() {
 
 void GibbsSampler::GS_Step() {
     //Loop for updating every fullconditional
+    //Rcpp::Rcout<<"Mstar = "<<gs_data.Mstar<<"; K = "<<gs_data.K<<std::endl;
     for(auto full_cond: FullConditionals){
+         
+         //Rcpp::Rcout<<"-------------------------------------------"<<std::endl;
+         //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+         //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+         //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+         //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
          //Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
+
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){
             full_cond->update(gs_data, random_engine);
         }
+        else if(full_cond->name.compare("Mstar") == 0){ //if they are equal
+            Rcpp::Rcout<<"Aggiorno M senza aggiornare Mstar"<<std::endl;
+            gs_data.M = gs_data.K + gs_data.Mstar;
+            gs_data.allocate_S(gs_data.M); // Initialize S according to new M 
+            gs_data.allocate_tau(gs_data.M); // Initialize tau according to new M
+        }
+
+        //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+        //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+        //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+        //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
+        //Rcpp::Rcout<<"********************************************"<<std::endl;
+
         // ending timer to measure updating time
         // auto t_end = std::chrono::high_resolution_clock::now();
         // elapsed time in ms

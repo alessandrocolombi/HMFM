@@ -781,10 +781,10 @@ pred_uninorm <- function(idx_group, grid, fit){
       # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
       # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
       XX = t(sapply(1:M_it, simplify = "matrix",
-      function(m){
-      dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
-      }
-      ))
+                    function(m){
+                      dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
+                    }
+            ))
       # XX <- matrix(ncol=l_grid,nrow=M_it)
       # for(m in 1:M_it){ XX[m,] <- dnorm(grid,mean=mu_it[m],sd=sqrt(sig2_it[m]))}
 
