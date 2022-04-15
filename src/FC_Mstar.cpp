@@ -2,7 +2,7 @@
 
 void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     if(Partition_fixed){
-        // Rcpp::Rcout << "Mstar is not updated because partition is fixed "<< std::endl;
+         Rcpp::Rcout << "Mstar is not updated because partition is fixed "<< std::endl;
     }
     else{
         // From gs_data all needed variable are retrived

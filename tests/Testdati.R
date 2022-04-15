@@ -34,7 +34,7 @@ diagplot<-function (param, color, title = "title", it = 0){
 
 # Data generation -----------------------------------------------------
 
-y1_m1 = rnorm(20,-3, 1/2) # 1st level, 1st comp
+y1_m1 = rnorm(200,-3, 1/2) # 1st level, 1st comp
 y1_m2 = rnorm(20, 0, 1/2) # 1st level, 2nd comp
 y2_m1 = rnorm(200,-3, 1/2) # 2nd level, 1st comp
 y2_m2 = rnorm(200, 3, 1/2) # 2nd level, 2nd comp
@@ -42,9 +42,9 @@ y3_m1 = rnorm(200,-3, 1/2) # 3nd level, 1st comp
 y3_m2 = rnorm(20, 3, 1/2) # 3nd level, 2nd comp
 y3_m3 = rnorm(200, 0, 1/2) # 3nd level, 3rd comp
 
-real_partition = c(rep(0, 20), rep(1, 20), rep(0, 200), rep(2, 200), rep(0, 200),
-                   rep(2, 50), rep(1, 200) )
-
+real_partition = c(rep(0, 200), rep(1, 20), rep(0, 200), rep(2, 200), rep(0, 200),
+                   rep(2, 20), rep(1, 200) )
+length(real_partition)
 data_level1 <- c(y1_m1, y1_m2)
 data_level2 <- c(y2_m1, y2_m2)
 data_level3 <- c(y3_m1, y3_m2, y3_m3)
@@ -54,8 +54,10 @@ comp_0 <- c(y1_m2, y3_m3)
 comp_3 <- c(y2_m2, y3_m2)
 
 data_all <- c(data_level1, data_level2,data_level3)
-
-
+length(data_all)
+length(data_level1)
+length(data_level2)
+length(data_level3)
 # Plots -------------------------------------------------------------------
 
 
@@ -81,11 +83,11 @@ dat[1, 1:length(data_level1)] <- data_level1
 dat[2, 1:length(data_level2)] <- data_level2
 dat[3, 1:length(data_level3)] <- data_level3
 
-
+dim(dat)
 
 # Gibbs Sampler 1st run ---------------------------------------------------
 
-niter <-50
+niter <-5000
 burnin <- 1
 thin <- 1
 
@@ -98,6 +100,24 @@ option<-list("Mstar0" = 5,"Lambda0" = 5,"mu0" = 0,"nu0"=10,"sigma0"= 1, "gamma0"
 )
 
 GDFMM = GDFMM_sampler(dat, niter, burnin, thin, seed = 123, option = option)
+
+# predictive --------------------------------------------------------------
+
+l_grid = 1000
+grid = seq(-20,20,length.out = l_grid)
+
+#Pred = pred_uninorm(idx_group = 1, grid = grid, fit = GDFMM)
+Pred = predictive(idx_group = 1, grid = grid, fit = GDFMM)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
+hist(data_level1, freq = F, add = T, col = ACutils::t_col("darkred", 20) )
+
+Pred = predictive(idx_group = 2, grid = grid, fit = GDFMM)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
+hist(data_level2, freq = F, add = T, col = ACutils::t_col("darkred", 20) )
+
+Pred = predictive(idx_group = 3, grid = grid, fit = GDFMM)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
+hist(data_level3, freq = F, add = T, col = ACutils::t_col("darkred", 20) )
 
 # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
 
@@ -115,7 +135,7 @@ estimate_partition = as.vector(binder_dahl)
 
 # Gibbs Sampler second run ------------------------------------------------
 
-option_fixed <- list("Mstar0" = 100, "Lambda0"= 2, "mu0"=0, "nu0"=10, "sigma0"= 1, "gamma0" = 1,
+option_fixed <- list("Mstar0" = 10, "Lambda0"= 2, "mu0"=0, "nu0"=10, "sigma0"= 1, "gamma0" = 1,
                      "Adapt_MH_hyp1"=0.7,"Adapt_MH_hyp2"=0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
                      "k0"= 1/14, "alpha_gamma"=1,
                      "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1, "partition" = real_partition,
@@ -124,6 +144,11 @@ option_fixed <- list("Mstar0" = 100, "Lambda0"= 2, "mu0"=0, "nu0"=10, "sigma0"= 
 
 
 GDFMM_fixed = GDFMM_sampler(dat, niter, burnin, 3, seed = 123, FixPartition = T, option = option_fixed)
+View(GDFMM_fixed)
+
+Pred = predictive(idx_group = 1, grid = grid, fit = GDFMM_fixed)
+x11();matplot(x = grid, y = t(Pred), type = 'l', col = 'red')
+hist(data_level1, freq = F, add = T, col = ACutils::t_col("darkred", 20) )
 
 
 # Inference on parameters -------------------------------------------------

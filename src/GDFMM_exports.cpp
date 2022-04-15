@@ -42,7 +42,7 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 		
 		return Rcpp::List::create( Rcpp::Named("mu") = out.mu,
                                   	Rcpp::Named("sigma") = out.sigma,
-									Rcpp::Named("w_jk") =  w_jk,
+									Rcpp::Named("S") =  S,  //Rcpp::Named("w_jk") =  w_jk, //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U

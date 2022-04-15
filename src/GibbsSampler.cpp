@@ -126,9 +126,10 @@ void GibbsSampler::GS_Step() {
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){
             full_cond->update(gs_data, random_engine);
+            //Rcpp::Rcout<<" --> done! "<<std::endl;
         }
         else if(full_cond->name.compare("Mstar") == 0){ //if they are equal
-            Rcpp::Rcout<<"Aggiorno M senza aggiornare Mstar"<<std::endl;
+            //Rcpp::Rcout<<"Aggiorno M senza aggiornare Mstar"<<std::endl;
             gs_data.M = gs_data.K + gs_data.Mstar;
             gs_data.allocate_S(gs_data.M); // Initialize S according to new M 
             gs_data.allocate_tau(gs_data.M); // Initialize tau according to new M

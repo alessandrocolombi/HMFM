@@ -315,6 +315,35 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 }
 
 
+
+#' arrange_partition: 
+#'
+#' DA FARE, SISTEMA LA PARTIZIONE PER COME LA VUOLE IL SAMPLER
+#' @param partition [vector] with desidered partition
+#' @return [vector] containing the partition following the requirement of the sampler
+#' @export
+arrange_partition = function(partition){
+
+  num = sort(unique(partition)) #get passed indices
+  idx = seq(0, length(num)-1, by=1) #create sequence with correct indices
+
+  for(h in 1:length(num)){
+    if(num[h]!=idx[h])
+      partition[partition == num[h]] = idx[h]
+  }
+
+  # A possible way to do this operation using apply is
+  #apply(as.array(partition), MARGIN = 1, FUN = function(x){
+          #h = which(num == x)
+          #if(num[h]!=idx[h]) return (idx[h])
+          #else return (x)
+  #})
+  # but it looks more expensive to me
+  return (partition)
+}
+
+
+
 #' GDFMM Gibbs Sampler: function to run the GDFMM model. There is the possibility to fix
 #'                      the partition, passing TRUE to FixPartition and specifying the
 #'                      partion in the option. Default prior for P0 is an inverse gamma
@@ -345,7 +374,16 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
   #Check P0.prior
 
   #Check options
-      # if(FixPartition){ check che una partition sia passata}
+    if(FixPartition){ 
+        if(is.null(option$partition) )
+          stop("If FixPartition is selected, a partition must be provided in option$partition")
+    }    
+
+    if( !is.null(option$partition) ){
+      cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")    
+      option$partition = arrange_partition(option$partition)
+    }
+
   if( any(is.na(data)) )
     stop("There are nan in data")
   # This is just an example, of course you can save the c++ output and perform further operations in R
@@ -808,8 +846,7 @@ pred_uninorm <- function(idx_group, grid, fit){
 #' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}
 #' @export
 predictive <- function(idx_group, grid, fit){
-
-    n_iter <- length(fit$K) #number of iterations
+    n_iter <- length(fit$mu) #number of iterations
     l_grid <- length(grid)
     #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
 
@@ -818,7 +855,8 @@ predictive <- function(idx_group, grid, fit){
     MIX = t(sapply(1:n_iter, simplify = "matrix",
                     function(it){
                       # Get sampled values
-                      M_it <- fit$K[it] + fit$Mstar[it] # compute the number of components (allocated or not)
+                      M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
+                      #M_it <- fit$K[it] + fit$Mstar[it] # compute the number of components (allocated or not)
                       S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
                       T_it = sum(S_it)                  # compute the sum of the vector above
                       mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})

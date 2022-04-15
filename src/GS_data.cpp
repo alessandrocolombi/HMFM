@@ -49,7 +49,6 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     else{
         initialize_Partition(part_vec);
     }
-    // Rcpp::Rcout << "Partition Initialized "<< std::endl;
     
     // Initialization of gamma and U vector
     gamma = std::vector<double>(d, gamma0);
@@ -57,9 +56,9 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     U = std::vector<double>(d, 0.0);
     
     // Random Initialization of S and tau form the prior
-    initialize_S(M, gs_engine);
+    initialize_S(M, gs_engine); // NON va molto bene in ottica tener fisso S ad un valore iniziale!
     // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
-    initialize_tau(M, nu0, mu0, sigma0, gs_engine);
+    initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
     // Rcpp::Rcout << "tau Initialized "<< std::endl;
 }
 
@@ -82,7 +81,8 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     K =  *max_it + 1;
     M = K;
     Mstar = 0;
-    // Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
+    Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
+    Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
     // Allocate Ctilde, N, N_k 
     Ctilde.clear();
@@ -114,6 +114,8 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
 
 // Initialize partition (Ctilde, N, N_k) when M and K are RANDOM
 void GS_data::initialize_Partition(){
+
+    Rcpp::Rcout<<"initialize_Partition with EMPTY partition_vec"<<std::endl;
     // Initialize Ctilde so that it assign every observation to the same cluster
     Ctilde.clear();
     for(size_t j = 0; j < d; j++){
@@ -132,12 +134,13 @@ void GS_data::allocate_S(unsigned int M){
     S = GDFMM_Traits::MatRow(d, M);
     for (unsigned int j = 0; j <d ; ++j) {
         for (unsigned int m = 0; m <M ; ++m) {
-            S(j,m) = 0;
+            S(j,m) = 1;
         }
     }
 }
 
 void GS_data::initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine){
+    Rcpp::Rcout<<"Chiamato initialize_S con gs_engine, mette casuale!"<<std::endl;
   //sample::rgamma rgamma;
   sample::rgamma Gamma;
   S = GDFMM_Traits::MatRow(d, M);

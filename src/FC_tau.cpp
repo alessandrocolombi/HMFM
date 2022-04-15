@@ -39,8 +39,8 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
              gs_data.sigma[m] = sigma2_na;
-             //Rcpp::Rcout << "Non Allocate: mu[" << m << "] = " << mu_na << std::endl;
-             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
+             Rcpp::Rcout << "Non Allocate: mu[" << m << "] = " << mu_na << std::endl;
+             Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
         } 
         
         //Allocated tau
@@ -49,13 +49,43 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             ind_j.clear();
             for (unsigned int j = 0; j <d ; ++j) {
                 for (unsigned int i = 0; i < n_j[j] ; ++i) {
-                    //Rcpp::Rcout<<"Ctilde[j][i]:"<<std::endl<<Ctilde[j][i]<<std::endl;
+                    //Rcpp::Rcout<<"Ctilde["<<j<<"]["<<i<<"]: "<<std::endl<<Ctilde[j][i]<<std::endl;
                     if(Ctilde[j][i] == m){
                         ind_i.push_back(i);
                         ind_j.push_back(j);
                     }
                 }
             }
+            //Esempio:
+            /*
+                
+                Ctilde[0][0]: 0
+                Ctilde[0][1]: 0
+                Ctilde[1][0]: 0
+                Ctilde[1][1]: 1
+
+                Per m = 0 ho,
+                Stampo ind_i: 0, 1, 0, 
+                Stampo ind_j: 0, 0, 1, 
+
+                Per m = 1 ho,
+                Stampo ind_i: 1, 
+                Stampo ind_j: 1, 
+
+                Immagina Ctilde come una matrice, ind_i e ind_j mi dicono le coordinate che dovrò leggere componente per componente. Infatti nell'esempio,
+                data[0,0] - data[0,1] - data[1,0] stanno nel primo cluster e data[1,1] sta nel secondo
+            */
+
+            //Rcpp::Rcout<<"Stampo ind_i: ";        
+            //for(auto __v : ind_i)
+                //Rcpp::Rcout<<__v<<", ";
+            //Rcpp::Rcout<<std::endl;
+//
+            //Rcpp::Rcout<<"Stampo ind_j: ";        
+            //for(auto __v : ind_j)
+                //Rcpp::Rcout<<__v<<", ";
+            //Rcpp::Rcout<<std::endl;
+
             //Rcpp::Rcout<<"N_k["<<m<<"]: "<<std::endl<<N_k[m]<<std::endl;
             double nu_n_clust = nu_0 + N_k[m];
             //Rcpp::Rcout<<"nu_n_clust:"<<std::endl<<nu_n_clust<<std::endl;

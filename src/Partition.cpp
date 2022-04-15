@@ -37,6 +37,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //for(auto __v : sigma)
             //Rcpp::Rcout<<__v<<", ";
         //Rcpp::Rcout<<std::endl;
+        
         // Define data taken from gs_data
         const std::vector<std::vector<double>>& data = gs_data.data;
         // Create vector to store probabilities for the M components
