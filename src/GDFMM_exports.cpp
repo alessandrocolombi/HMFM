@@ -28,24 +28,25 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 	// Take output data from the sample
 	out_data out = Gibbs.out; //copia inutile
 	auto n_j = Gibbs.get_nj();
-
 	// A cosa servono queste cose? Non sono copie inutili?
 	//std::vector<std::vector<double>> mu = out.mu; // old version - secondo me non serve nemmeno
 	//std::vector<std::vector<double>> sigma = out.sigma; // old version - secondo me non serve nemmeno
-	std::vector< GDFMM_Traits::MatRow > S = out.S;
-    std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk;
-	std::vector<double> lambda = out.lambda;
+	std::vector< GDFMM_Traits::MatRow > S = out.S; //copia inutile
+    //std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk; //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
+	std::vector<double> lambda = out.lambda; //copia inutile
 	Rcpp::NumericMatrix gamma(dat.rows(), n_iter, out.gamma.begin());
 	Rcpp::NumericMatrix U(dat.rows(), n_iter, out.U.begin());
-
 	if(FixPart){
 		
-		return Rcpp::List::create( Rcpp::Named("mu") = out.mu,
+		return Rcpp::List::create( Rcpp::Named("K") = out.K,
+									Rcpp::Named("Mstar") = out.Mstar,
+									Rcpp::Named("mu") = out.mu,
                                   	Rcpp::Named("sigma") = out.sigma,
-									Rcpp::Named("S") =  S,  //Rcpp::Named("w_jk") =  w_jk, //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
+									Rcpp::Named("S") =  out.S,  //Rcpp::Named("w_jk") =  w_jk, //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
-									Rcpp::Named("U") = U
+									Rcpp::Named("U") = U,
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è exp(-log_sum)
 									);
 	}
 	else{
@@ -78,7 +79,8 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U,
-									Rcpp::Named("S") =  S //aggiunto
+									Rcpp::Named("S") =  S, //aggiunto
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è exp(-log_sum)
 									);
 	}
     

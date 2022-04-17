@@ -22,9 +22,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         if(Partition_fixed){
             partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
         }
-        else{
+        //else{
             Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
-        }
+        //}
         // Read all hyper-parameters passed with option
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
@@ -119,7 +119,6 @@ void GibbsSampler::GS_Step() {
          //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
          //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
          //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-         //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
          //Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
 
         // starting timer to measure updating time
@@ -138,7 +137,6 @@ void GibbsSampler::GS_Step() {
         //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
         //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
         //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-        //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
         //Rcpp::Rcout<<"********************************************"<<std::endl;
 
         // ending timer to measure updating time
@@ -160,16 +158,21 @@ void GibbsSampler::GS_Step() {
 
 void GibbsSampler::store_params_values() {
     
-
+    out.K.push_back(gs_data.K); //modified
+    out.Mstar.push_back(gs_data.Mstar); //modified
     if(!Partition_fixed){
-        out.K.push_back(gs_data.K);
-        out.Mstar.push_back(gs_data.Mstar);
+        //out.K.push_back(gs_data.K);
+        //out.Mstar.push_back(gs_data.Mstar);
         out.Ctilde.push_back(gs_data.Ctilde);
     }
 
+    /*
+    //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
     if(Partition_fixed){
         store_w_jk();
     }
+    */
+
     // Common output values retrived
     //store_tau(); //Old version - ragazzi
     // Save tau
@@ -182,6 +185,9 @@ void GibbsSampler::store_params_values() {
 
     //Update S
     out.S.push_back(gs_data.S);
+
+    //Nuovo, salvo log_sum
+    out.log_prod_psiU.push_back(gs_data.log_sum);
 }
 
 void GibbsSampler::store_w_jk(){

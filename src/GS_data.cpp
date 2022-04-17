@@ -80,8 +80,9 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     const auto max_it = std::max_element(partition_vec.cbegin(), partition_vec.cend());
     K =  *max_it + 1;
     M = K;
-    Mstar = 0;
+    //Mstar = 0; //Ho modificato, ora anche se passo la partizione, Mstar non è messo a zero ma a Mstar0
     Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
+    Rcpp::Rcout<<"Watch out modification: Mstar is not set to zero but to Mstar0"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
     // Allocate Ctilde, N, N_k 

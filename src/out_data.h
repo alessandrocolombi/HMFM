@@ -22,13 +22,14 @@ struct out_data{
   std::vector< Rcpp::NumericVector > sigma;
   std::vector< GDFMM_Traits::MatRow > S;
   // if partition is fixed estimated weights for the components are stored in w_jk
-  std::vector<GDFMM_Traits::MatRow> w_jk; 
+  std::vector<GDFMM_Traits::MatRow> w_jk; //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
 
   // ALGORITHIMC INTERESTING VALUES
   std::vector<double> lambda; // M|lambda ~ Poi(lambda)
   std::vector<double> U; // auxiliary variable
   std::vector<double> gamma; // vector of d gamma, one for each group
   std::vector<double> adapt_var;
+  std::vector<double> log_prod_psiU;
   //-----------------------------------------------------------//
   /* CONSTRUCTOR */
 };

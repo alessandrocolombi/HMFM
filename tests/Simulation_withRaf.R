@@ -34,35 +34,35 @@ for(j in 1:d){
 # partion_within_sampler = arrange_partition(real_partition)
 N_m = table(real_partition)
 
-x11();hist(data[1,])
-x11();hist(data[2,])
-x11();hist(data[3,])
+#x11();hist(data[1,])
+#x11();hist(data[2,])
+#x11();hist(data[3,])
 
 
 data_level1 = data[cluster==1]
 data_level2 = data[cluster==2]
 data_level3 = data[cluster==3]
 
-mean1 = mean(data_level1); var1 = var(data_level1); x11(); hist(data_level1); N_m1 = length(data_level1)
-mean2 = mean(data_level2); var2 = var(data_level2); x11(); hist(data_level2); N_m2 = length(data_level2)
-mean3 = mean(data_level3); var3 = var(data_level3); x11(); hist(data_level3); N_m3 = length(data_level3)
-c(N_m1, N_m2, N_m3)
-c(mean1, mean2, mean3)
-c(var1, var2, var3)
+#mean1 = mean(data_level1); var1 = var(data_level1); x11(); hist(data_level1); N_m1 = length(data_level1)
+#mean2 = mean(data_level2); var2 = var(data_level2); x11(); hist(data_level2); N_m2 = length(data_level2)
+#mean3 = mean(data_level3); var3 = var(data_level3); x11(); hist(data_level3); N_m3 = length(data_level3)
+#c(N_m1, N_m2, N_m3)
+#c(mean1, mean2, mean3)
+#c(var1, var2, var3)
 
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 1000
+niter  <- 5000
 burnin <- 1000
 thin   <- 1
 
-option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
+option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1000,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
-             "UpdateU" = T, "UpdateM" = F, "UpdateGamma" = T, "UpdateS" = T,
-             "UpdateTau" = T, "UpdateLambda" = F, "partition" = real_partition
+             "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = F, "UpdateS" = T,
+             "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
 )
 
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
