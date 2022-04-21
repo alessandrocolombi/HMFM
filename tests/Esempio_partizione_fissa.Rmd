@@ -337,6 +337,52 @@ for(j in 1:d){
 }
 ```
 
+Un aumento del valore a priori di `lambda` aiuta il mixing della catena di Mstar senza compromettere le predittive. 
+Forse però, questo vale solo finché la partizione è fissata. A priori,
+$$
+  \Lambda \sim Gamma(a_{\Lambda}, b_{\Lambda})
+$$
+quindi provo ad aumentare il primo parametro e tenere il secondo fisso a 1. Ho notato che mettendolo sopra 2o o 25 il numero cresce anche molto (le predittive andava sempre bene però). Qua tengo 15.
+
+```{r}
+niter  <- 5000
+burnin <- 1000
+thin   <- 1
+
+option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
+             "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
+             "beta_gamma"=1, "alpha_lambda"=15, "beta_lambda"=1,
+             "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
+             "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
+)
+
+GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+
+
+#Mstar
+summary(GDFMM$Mstar)
+plot(GDFMM$Mstar, type = 'l')
+
+
+# Predictive 
+
+l_grid = 1000
+grid = seq(-25,25,length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM)
+
+for(j in 1:d){
+  hist(data[j,], freq = F, breaks = l_grid/10, col = ACutils::t_col("darkred", 70), xlim = range(grid),
+             main = paste0("level = ",j))
+  matplot(x = grid, y = t(Pred_all[[j]]), type = 'l', col = 'black', lty = 1, lwd = 2, add = T)
+  points(x = data[j,], y = rep(0, length(data[j,])), pch = 16, col = ACutils::t_col("darkred", 10))
+
+}
+```
+
+
 
 ## d=10
 
@@ -417,6 +463,9 @@ for(j in 1:d){
 
 }
 ```
-
-
+Aumentare $\Lambda$ (sia tenendolo fissato a un valore grande, che modificare la prior) non serve già più a niente. Questo perché il pamatero della Poisson da cui si estrae `Mstar` è
+$$
+  \Lambda \prod_{j=1}^{d}\frac{1}{(1+U_j)^{\gamma_j} }
+$$
+e quel prodotto può essere nell'ordine di grandezza di  $\exp(-100)$ che è troppo piccolo per qualunque valore ottenibile di $\Lambda$.
 

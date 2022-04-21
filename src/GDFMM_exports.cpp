@@ -46,7 +46,7 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U,
-									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è exp(-log_sum)
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
 									);
 	}
 	else{
@@ -80,7 +80,7 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
 									Rcpp::Named("lambda") = lambda,
 									Rcpp::Named("U") = U,
 									Rcpp::Named("S") =  S, //aggiunto
-									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è exp(-log_sum)
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
 									);
 	}
     

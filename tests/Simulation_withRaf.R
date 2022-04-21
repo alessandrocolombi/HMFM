@@ -2,7 +2,7 @@ library(GDFMM)
 library(ACutils)
 # data generation ---------------------------------------------------------
 
-d = 10               # number of groups
+d = 3               # number of groups
 K = 3               # number of global clusters
 mu = c(-20,0,20)   # vectors of means
 sd = c(1,1,1)      # vector of sd
@@ -57,11 +57,11 @@ niter  <- 5000
 burnin <- 1000
 thin   <- 1
 
-option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1000,
+option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
-             "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = F, "UpdateS" = T,
+             "beta_gamma"=1, "alpha_lambda"=15, "beta_lambda"=1,
+             "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
              "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
 )
 
@@ -88,15 +88,20 @@ View(GDFMM)
 
 #K
 summary(GDFMM$K)
-x11();plot(GDFMM$K, type = 'l')
+x11();plot(GDFMM$K, type = 'l', main = "K")
 
 #Mstar
 summary(GDFMM$Mstar)
-x11();plot(GDFMM$Mstar, type = 'l')
+x11();plot(GDFMM$Mstar, type = 'l', main = "Mstar")
 
 
+#log_sum = sum(  gamma_j * log( (u_j + 1) )   )
+summary(GDFMM$log_sum)
+x11();plot(GDFMM$log_sum, type = 'l', main = "log_sum")
 
-
+#Parametro Poisson: lambda * exp(-log_sum)
+summary(GDFMM$lambda*exp(-GDFMM$log_sum))
+x11();plot(GDFMM$lambda*exp(-GDFMM$log_sum), type = 'l', main = "Poisson parameter")
 # Predictive --------------------------------------------------------------
 
 l_grid = 1000
