@@ -26,6 +26,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
             Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         //}
         // Read all hyper-parameters passed with option
+        double nu = Rcpp::as<double>(option["nu"]);    
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
         double nu0 = Rcpp::as<double>(option["nu0"]);
@@ -48,7 +49,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         bool FixedLambda = !Rcpp::as<bool>(option["UpdateLambda"]);
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
-                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
+                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec, nu);
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
         auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);

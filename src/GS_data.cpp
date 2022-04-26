@@ -4,12 +4,12 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
+                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec, double _nu) :
                 prior(P0_prior_name) {
     iterations = 0;
     lambda = Lambda0;
     Mstar = Mstar0;
-
+    nu = _nu;
     // Read Data and extract d, n_j
     for (unsigned int j = 0; j < dat.rows(); ++j) {
         std::vector<double> v;
@@ -69,7 +69,7 @@ void GS_data::update_log_sum(){
         //Rcpp::Rcout<<U[j]<<std::endl;
         //Rcpp::Rcout<<gamma[j]<<std::endl;
        //log_sum += log(U[j]+1.0)*gamma[j];
-       log_sum += log(U[j]*10.0+1.0)*gamma[j]; //trick, watch out
+       log_sum += log(U[j]*1.0/nu + 1.0)*gamma[j]; //trick, watch out
     }
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
 }
