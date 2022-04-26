@@ -68,7 +68,8 @@ void GS_data::update_log_sum(){
    for(size_t j=0; j<d; j++){
         //Rcpp::Rcout<<U[j]<<std::endl;
         //Rcpp::Rcout<<gamma[j]<<std::endl;
-       log_sum += log(U[j]+1)*gamma[j];
+       //log_sum += log(U[j]+1.0)*gamma[j];
+       log_sum += log(U[j]*10.0+1.0)*gamma[j]; //trick, watch out
     }
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
 }

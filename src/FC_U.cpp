@@ -22,6 +22,7 @@ void FC_U::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
     // Rcpp::Rcout << "T = ";
     for (unsigned j=0; j<d; j++) { // for loop per livelli
         gs_data.U[j]= Gamma(gs_engine, n_j[j], 1/T(j));
+        gs_data.U[j] *= 1.0/10.0; // trick, watch out!!
         // Rcpp::Rcout << T(j) << " ";
     }
     // Rcpp::Rcout << std::endl;

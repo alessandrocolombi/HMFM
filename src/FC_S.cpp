@@ -20,14 +20,14 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // Rcpp::Rcout << "[";
         for (unsigned k=0; k < K; k++) {//per ogni comp allocata
             S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1) );
-            //S(j, k) *= 100; // trick, watch out!!
+            S(j, k) *= 10.0; // trick, watch out!!
             // Rcpp::Rcout << S(j,k)<< " ";
         }
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
                 S(j, K + mstar) = Gamma(gs_engine, gamma[j],  1 /(U[j] + 1) );
-                //S(j, K + mstar) *= 100; // trick, watch out!!
+                S(j, K + mstar) *= 10.0; // trick, watch out!!
             }
         }
         // Rcpp::Rcout << "]";

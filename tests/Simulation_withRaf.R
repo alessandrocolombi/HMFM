@@ -2,7 +2,7 @@ library(GDFMM)
 library(ACutils)
 # data generation ---------------------------------------------------------
 
-d = 3               # number of groups
+d = 10               # number of groups
 K = 3               # number of global clusters
 mu = c(-20,0,20)   # vectors of means
 sd = c(1,1,1)      # vector of sd
@@ -53,14 +53,14 @@ data_level3 = data[cluster==3]
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 5000
+niter  <- 1000
 burnin <- 1000
 thin   <- 1
 
-option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
+option<-list("Mstar0" = 3, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=15, "beta_lambda"=1,
+             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
              "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
              "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
 )
@@ -104,7 +104,7 @@ summary(GDFMM$lambda*exp(-GDFMM$log_sum))
 x11();plot(GDFMM$lambda*exp(-GDFMM$log_sum), type = 'l', main = "Poisson parameter")
 # Predictive --------------------------------------------------------------
 
-l_grid = 1000
+l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
 
 # Predictive in all groups
