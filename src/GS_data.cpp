@@ -65,13 +65,23 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
 
 void GS_data::update_log_sum(){
     log_sum = 0.0;
+    //double psi_S = 0.0; //just for testing
+    //double psi_Sprime = 0.0; //just for testing
    for(size_t j=0; j<d; j++){
         //Rcpp::Rcout<<U[j]<<std::endl;
         //Rcpp::Rcout<<gamma[j]<<std::endl;
-       //log_sum += log(U[j]+1.0)*gamma[j];
-       log_sum += log(U[j]*1.0/nu + 1.0)*gamma[j]; //trick, watch out
+       //log_sum += log(U[j]+1.0)*gamma[j]; // this is the sum of log( psi_S(U) )
+       //psi_S += log(U[j]+1.0)*gamma[j]; // this is the sum of log( psi_S(U) ) //just for testing
+       
+       log_sum += log(U[j]*1.0/nu + 1.0)*gamma[j]; // this is the sum of log( psi_S(U'/nu) )
+       
+       //log_sum += gamma[j]* ( log(nu) - log(U[j] + nu) ) ; // this is the sum of log( psi_S'(U') )
+       //psi_Sprime += -gamma[j]* ( log(nu) - log(U[j] + nu) ) ; // this is the sum of log( psi_S'(U') ) //just for testing
     }
     // AL POSTO DEL FOR: log_sum = log( U.array() + 1).dot(gamma);
+            //Rcpp::Rcout<<"old psi_S(U) = "<<psi_S<<std::endl;
+            //Rcpp::Rcout<<"psi_S(U'/nu) = "<<log_sum<<std::endl;
+            //Rcpp::Rcout<<"psi_S'(U') = "<< psi_Sprime <<std::endl;
 }
 
 // Initialize partition (Ctilde, N, N_k) when it is FIXED
