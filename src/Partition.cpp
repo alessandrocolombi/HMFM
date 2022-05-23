@@ -84,15 +84,15 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         }
 
         k = clust_out.size(); //Set K=the size of clust out
+        //Rcpp::Rcout<<"K = "<<k<<std::endl;
         gs_data.K = k; // updating K in the struct gs_data
         gs_data.allocate_N(k); // initialize N according to new K
         gs_data.update_Ctilde(C, clust_out);
-        // Rcpp::Rcout<< "Numerosity in the "<< k << " clusters: ";
-        /*
-        for(unsigned int m=0; m<gs_data.K; m++){
-            Rcpp::Rcout<<gs_data.N_k[m]<< " ";
-        }
-        */
+                //Rcpp::Rcout<< "Numerosity in the "<< k << " clusters: ";
+                //Rcpp::Rcout<<"Stampo gs_data.N_k: ";        
+                //for(auto __v : gs_data.N_k)
+                    //Rcpp::Rcout<<__v<<", ";
+                //Rcpp::Rcout<<std::endl;
 
         //Check for User Interruption
         try{

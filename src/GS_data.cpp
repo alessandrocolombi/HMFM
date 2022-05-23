@@ -58,6 +58,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine); // NON va molto bene in ottica tener fisso S ad un valore iniziale!
     // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
+    
     initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
     // Rcpp::Rcout << "tau Initialized "<< std::endl;
 }
@@ -143,16 +144,22 @@ void GS_data::initialize_Partition(){
 }
 
 void GS_data::allocate_S(unsigned int M){
-    S = GDFMM_Traits::MatRow(d, M);
-    for (unsigned int j = 0; j <d ; ++j) {
-        for (unsigned int m = 0; m <M ; ++m) {
-            S(j,m) = 1;
-        }
-    }
+    //Rcpp::Rcout<<"Chiamo allocate_S"<<std::endl;
+    S = GDFMM_Traits::MatRow::Constant(d, M, 1.0);
+
+    // Old version
+    //S = GDFMM_Traits::MatRow(d, M);
+    //for (unsigned int j = 0; j <d ; ++j) {
+        //for (unsigned int m = 0; m <M ; ++m) {
+            //S(j,m) = 1;
+        //}
+    //}
 }
 
+
+// S influences the draw of the partition. Hence, this random initialization affects the first draw of the partition.
+// Then it is sampled from the full conditional of set equal to 1.
 void GS_data::initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine){
-    Rcpp::Rcout<<"Chiamato initialize_S con gs_engine, mette casuale!"<<std::endl;
   //sample::rgamma rgamma;
   sample::rgamma Gamma;
   S = GDFMM_Traits::MatRow(d, M);
@@ -178,11 +185,15 @@ void GS_data::initialize_tau(unsigned int M, double nu0, double mu0, double sigm
 }
 
 void GS_data::allocate_N(unsigned int K){
-    N = GDFMM_Traits::MatUnsCol(d, K);
-    for (unsigned int j = 0; j <d ; ++j) { // Andre : penso che il ciclo for sia totalmente inutile, perchè
-      for (unsigned int k = 0; k<K ; ++k){ //         l'inizializzazione dovrebbe già avvenire a 0 --> VERIFICARE
-        N(j,k) = 0;}
-    }
+    //Rcpp::Rcout<<"Chiamo allocate_N"<<std::endl;
+    N = GDFMM_Traits::MatUnsCol::Constant(d, K, 0);
+
+    // Old Version
+    //for (unsigned int j = 0; j <d ; ++j) { // Andre : penso che il ciclo for sia totalmente inutile, perchè
+      //for (unsigned int k = 0; k<K ; ++k){ //         l'inizializzazione dovrebbe già avvenire a 0 --> VERIFICARE
+        //N(j,k) = 0;}
+    //}
+
     N_k = std::vector<unsigned int>(K, 0);
 }
 

@@ -2,9 +2,7 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{simulate_data}
 \alias{simulate_data}
-\title{simulate_data : function to simulate data from the specified configuration of Gaussian
-mixtures in different groups. Results for each one of the \code{n_simul}
-datasets are saved in a directory create with the time-stamp of the simulation.}
+\title{simulate_data (never checked)}
 \usage{
 simulate_data(
   n_simul,
@@ -49,7 +47,7 @@ needed values}
 some metrics to evaluate the goodness of GDFMM
 }
 \description{
-simulate_data : function to simulate data from the specified configuration of Gaussian
+function to simulate data from the specified configuration of Gaussian
 mixtures in different groups. Results for each one of the \code{n_simul}
 datasets are saved in a directory create with the time-stamp of the simulation.
 }

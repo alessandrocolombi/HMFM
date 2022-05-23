@@ -17,6 +17,7 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     double nu; // S_jm ~ gamma(gamma_j, nu)
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
+    
     // vectors
     std::vector<std::vector<double>> data; // our data, y_ji
     std::vector< std::vector<unsigned int>> Ctilde; //output partition
@@ -27,25 +28,29 @@ struct GS_data{
     std::vector<double> mu; // vector of the mean for each component
     std::vector<double> sigma; // vector of the variance for each component
                                // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
+    
+    // strings
     std::string prior; //Name of the prior for tau
+    
     // matrix or vector of vectors
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
+
     //-----------------------------------------------------------//
     
     /* CONSTRUCTORS */
 
     // Constructor with default prior (Normal-InvGamma)
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-            const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-            double nu0, double sigma0, double gamma0, std::vector<unsigned int> part_vec, double _nu) : 
-                        GS_data(dat, n_iter, burnin, thin, gs_engine, Mstar0, Lambda0, mu0, nu0,
-                                sigma0, gamma0, "Normal-InvGamma", part_vec, _nu){}
+            const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
+            double nu0, double sigma0, double _gamma0, std::vector<unsigned int> _part_vec, double _nu) : 
+                        GS_data(dat, n_iter, burnin, thin, gs_engine, _Mstar0, _Lambda0, _mu0, nu0,
+                                sigma0, _gamma0, "Normal-InvGamma", _part_vec, _nu){}
     
     // Constructor with user defined prior
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
-                const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec, double _nu);
+                const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
+                double nu0, double sigma0, double _gamma0, std::string P0_prior_name, std::vector<unsigned int> _part_vec, double _nu);
 
     GS_data(){};
     ~GS_data(){};

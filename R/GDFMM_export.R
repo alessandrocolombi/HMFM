@@ -149,9 +149,11 @@ rmix <- function(n, p, mu, sigma){
   return( mix_sample )
 }
 
-#' simulate_data : function to simulate data from the specified configuration of Gaussian
-#'                 mixtures in different groups. Results for each one of the \code{n_simul}
-#'                 datasets are saved in a directory create with the time-stamp of the simulation.
+#' simulate_data (never checked)
+#'
+#' function to simulate data from the specified configuration of Gaussian
+#' mixtures in different groups. Results for each one of the \code{n_simul}
+#' datasets are saved in a directory create with the time-stamp of the simulation.
 #' @param n_simul number of datasets to be simulated
 #' @param group_dim vector of numerosity for each group in a dataset
 #' @param p_mix matrix with each row that specifies weights for the mixture in the corrispondent
@@ -316,11 +318,11 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 
 
 
-#' arrange_partition: 
+#' arrange_partition 
 #'
-#' DA FARE, SISTEMA LA PARTIZIONE PER COME LA VUOLE IL SAMPLER
-#' @param partition [vector] with desidered partition
-#' @return [vector] containing the partition following the requirement of the sampler
+#' This function takes as input a partition and fix it according to the notation used to define partitions in the sampler.
+#' @param partition [vector] the input partition.
+#' @return [vector] containing the partition following the requirement of the sampler.
 #' @export
 arrange_partition = function(partition){
 
@@ -775,6 +777,13 @@ Expected_posterior = function(k, m_j, n_j, gamma, type, prior = "Poisson", ..., 
 
 #' genera_mix_gas
 #'
+#' This function generate a random sample from a mixture of uni-dimensional Gaussian distributed random variables.
+#'
+#' @param n [integer] the number of points to be generated.
+#' @param pro [vector] the mixture proportions. Its length must be equal to the one of \code{means} and \code{sds}.
+#' @param means [vector] the centers of the mixture componentes. Its length must be equal to the one of \code{pro} and \code{sds}.
+#' @param sds [vector] the standard deviations of the mixture componentes. Its length must be equal to the one of \code{pro} and \code{means}.
+#' @return [list] with a vector named \code{y} containing the sampled values and a vector named \code{clu} with the cluster membership of each data point.
 #' @export
 genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(1,1))){
     p <- length(pro)
@@ -785,8 +794,6 @@ genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(
     clu <- vector(length=n)
 
     for(i in 1:n){
-      u <- runif(1)
-
       cmp <- sample(1:p,1,prob=pro)
 
       y[i]=rnorm(1,mean=means[cmp],sd=sds[cmp])
@@ -797,7 +804,7 @@ genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(
 }
 
 
-#' pred_uninorm
+#' pred_uninorm: this is the old version of Raf
 #'
 #' @export
 pred_uninorm <- function(idx_group, grid, fit){
@@ -835,24 +842,24 @@ pred_uninorm <- function(idx_group, grid, fit){
     return(pred_est)
 }
 
+
 #' predictive
 #'
-#' Same as \code{\link{pred_uninorm}} before but using apply insted of for
-#'
-#' @param idx_group [integer] the index of the group
-#' @param grid [vector] a grid where the normal kernel is evaluated
+#' This function computes the predictive distribution for group \code{idx_group} generated from the \code{\link{GDFMM_sampler}}.
+#' @param idx_group [integer] the index of the group of interest.
+#' @param grid [vector] a grid where the normal kernel is evaluated.
 #' @param fit [list] the output of \code{\link{GDFMM_sampler}}
 #'
-#' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}
+#' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
 #' @export
-predictive <- function(idx_group, grid, fit){
+predictive <- function(idx_group, grid, fit, burnin){
     n_iter <- length(fit$mu) #number of iterations
     l_grid <- length(grid)
-    #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+                            #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+                            # MIX is a n_iter x l_grid matrix
 
-    # MIX is a n_iter x l_grid matrix
     # This loop computes the predictive
-    MIX = t(sapply(1:n_iter, simplify = "matrix",
+    MIX = t(sapply(burnin:n_iter, simplify = "matrix",
                     function(it){
                       # Get sampled values
                       M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
@@ -882,11 +889,62 @@ predictive <- function(idx_group, grid, fit){
 
 #' pred_uninorm
 #'
-#' This function can easily be parallelized!
+#' This function computes the predictive distribution for all groups generated from the \code{\link{GDFMM_sampler}}.
 #' @inheritParams predictive
 #' @return [list] of length \code{d} where each element is the return object of \code{\link{predictive}}.
 #' @export
-predictive_all_groups <- function(grid, fit){
+predictive_all_groups <- function(grid, fit, burnin = 1){
   d = nrow(fit$gamma)
-  lapply(1:d, predictive, grid = grid, fit = fit)
+  lapply(1:d, predictive, grid = grid, fit = fit, burnin = burnin)
 }
+
+
+
+#' generate_data
+#'
+#' This function generate data to be used in the \code{\link{GDFMM_sampler}}. 
+#' A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
+#' @param d [integer] the number of levels in the data. 
+#' @param K [integer] the total number of clusters.
+#' @param mu [vector] of length \code{K} defining the means of the clusters.
+#' @param sd [vector] of length \code{K} defining the standard deviations of the clusters.
+#' @param n_j [vector] of length \code{d} defining the cardinality of each groups.
+#' @param seed [integer] the random seed.
+#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}} 
+#' and a vector named \code{real_partition} with the cluster membership of each data point.
+#' @export
+generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
+{
+  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
+  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
+
+  n = sum(n_j) #total number of data points
+  p = matrix(0, nrow = d, ncol = K) # matrix with components weights
+
+  set.seed(seed)
+  Kgruppo = c() # used to save the number of generated clusters in each level
+  componenti_gruppo = NULL # used to state what components are used to generate data in each level
+
+  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
+  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
+  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
+  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
+  # cluster label must always start from 0!
+  for(j in 1:d){
+    Kgruppo[j] = sample(1:K,1) # number of clusters in each level
+    componenti_gruppo[[j]] = sample(1:K,Kgruppo[j], replace = F) # choose the components
+    p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
+    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu[ componenti_gruppo[[j]] ],
+                              sds = sd[ componenti_gruppo[[j]] ] )
+
+    data[j, 1:n_j[j]] = appoggio$y
+    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
+    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
+    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
+  }
+  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
+  # quella che viene modificata dentro il sampler è
+  # partion_within_sampler = arrange_partition(real_partition)
+  return( list(data = data, real_partition = real_partition) )
+}
+

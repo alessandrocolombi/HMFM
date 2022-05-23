@@ -7,7 +7,7 @@
 predictive_all_groups(grid, fit)
 }
 \arguments{
-\item{grid}{\link{vector} a grid where the normal kernel is evaluated}
+\item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
 
 \item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
 }
@@ -15,5 +15,5 @@ predictive_all_groups(grid, fit)
 \link{list} of length \code{d} where each element is the return object of \code{\link{predictive}}.
 }
 \description{
-This function can easily be parallelized!
+This function computes the predictive distribution for all groups generated from the \code{\link{GDFMM_sampler}}.
 }

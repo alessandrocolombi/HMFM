@@ -25,6 +25,8 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         //else{
             Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
         //}
+
+        // Qua tutte copie inutili!!    
         // Read all hyper-parameters passed with option
         double nu = Rcpp::as<double>(option["nu"]);    
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
@@ -58,7 +60,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         auto U_ptr = std::make_shared<FC_U>("U", FixedU);
         auto S_ptr = std::make_shared<FC_S>("S", FixedS);
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
+
         //Full Conditional vector that we will loop
+        /*
         std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
                                                             Partition_ptr,
                                                             Mstar_ptr,
@@ -66,6 +70,16 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             S_ptr,
                                                             tau_ptr,
                                                             lambda_ptr
+                                                            };
+        */
+        // NEW
+        std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
+                                                            S_ptr,
+                                                            lambda_ptr,
+                                                            gamma_ptr,
+                                                            Mstar_ptr,
+                                                            U_ptr,
+                                                            Partition_ptr
                                                             };
         //NOTE: it is enough to remove from fc the parametres that do not want to be updated. For example,
         /*

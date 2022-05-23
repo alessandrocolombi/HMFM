@@ -2,16 +2,16 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{arrange_partition}
 \alias{arrange_partition}
-\title{arrange_partition:}
+\title{arrange_partition}
 \usage{
 arrange_partition(partition)
 }
 \arguments{
-\item{partition}{\link{vector} with desidered partition}
+\item{partition}{\link{vector} the input partition.}
 }
 \value{
-\link{vector} containing the partition following the requirement of the sampler
+\link{vector} containing the partition following the requirement of the sampler.
 }
 \description{
-DA FARE, SISTEMA LA PARTIZIONE PER COME LA VUOLE IL SAMPLER
+This function takes as input a partition and fix it according to the notation used to define partitions in the sampler.
 }

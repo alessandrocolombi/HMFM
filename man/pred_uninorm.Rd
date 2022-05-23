@@ -2,10 +2,10 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{pred_uninorm}
 \alias{pred_uninorm}
-\title{pred_uninorm}
+\title{pred_uninorm: this is the old version of Raf}
 \usage{
 pred_uninorm(idx_group, grid, fit)
 }
 \description{
-pred_uninorm
+pred_uninorm: this is the old version of Raf
 }
