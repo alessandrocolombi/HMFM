@@ -318,7 +318,7 @@ simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
 
 
 
-#' arrange_partition 
+#' arrange_partition
 #'
 #' This function takes as input a partition and fix it according to the notation used to define partitions in the sampler.
 #' @param partition [vector] the input partition.
@@ -367,28 +367,26 @@ arrange_partition = function(partition){
 GDFMM_sampler <- function(data, niter, burnin, thin, seed,
                             P0.prior = "Normal-InvGamma", FixPartition = F, option) {
 
-  #Data check and pre-processing
-  #--> handle here different types of input types. User you be able to pass the data the simplest possible ways. For example, this
-  #    function should be able to handle both matrixes and data.frames (or others if needed).
+  #Check option to be in the correct form
 
-  #Check number of iterations
-
-  #Check P0.prior
-
-  #Check options
-    if(FixPartition){ 
+  #Check partiton
+    if(FixPartition){
         if(is.null(option$partition) )
           stop("If FixPartition is selected, a partition must be provided in option$partition")
-    }    
+    }
 
     if( !is.null(option$partition) ){
-      cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")    
+      cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
       option$partition = arrange_partition(option$partition)
     }
 
   if( any(is.na(data)) )
     stop("There are nan in data")
-  # This is just an example, of course you can save the c++ output and perform further operations in R
+
+
+  # check that partiton and data are coherent?
+  
+  
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
 
@@ -902,15 +900,15 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
 
 #' generate_data
 #'
-#' This function generate data to be used in the \code{\link{GDFMM_sampler}}. 
+#' This function generate data to be used in the \code{\link{GDFMM_sampler}}.
 #' A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
-#' @param d [integer] the number of levels in the data. 
+#' @param d [integer] the number of levels in the data.
 #' @param K [integer] the total number of clusters.
 #' @param mu [vector] of length \code{K} defining the means of the clusters.
 #' @param sd [vector] of length \code{K} defining the standard deviations of the clusters.
 #' @param n_j [vector] of length \code{d} defining the cardinality of each groups.
 #' @param seed [integer] the random seed.
-#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}} 
+#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
 #' and a vector named \code{real_partition} with the cluster membership of each data point.
 #' @export
 generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
@@ -946,5 +944,50 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
   # quella che viene modificata dentro il sampler è
   # partion_within_sampler = arrange_partition(real_partition)
   return( list(data = data, real_partition = real_partition) )
+}
+
+
+#' set_options
+#'
+#' @param partition
+#' @param Mstar0
+#' @param nu
+#' @param Lambda0
+#' @param mu0
+#' @param sigma0
+#' @param gamma0
+#' @param Adapt_MH_hyp1
+#' @param Adapt_MH_hyp2
+#' @param Adapt_MH_power_lim
+#' @param Adapt_MH_var0
+#' @param k0
+#' @param nu0
+#' @param alpha_gamma
+#' @param beta_gamma
+#' @param alpha_lambda
+#' @param beta_lambda
+#' @param UpdateU
+#' @param UpdateM
+#' @param UpdateGamma
+#' @param UpdateS
+#' @param UpdateTau
+#' @param UpdateLambda
+#'
+#' @export
+set_options = function( partition = NULL, Mstar0 = 2, nu = 1,
+                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
+                        k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
+                        UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
+                      )
+{
+  option<-list("nu" = nu, "Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
+               "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
+               "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
+               "UpdateU" = UpdateU, "UpdateM" = UpdateM, "UpdateGamma" = UpdateGamma, "UpdateS" = UpdateS,
+               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
+              )
+  return (option)
 }
 

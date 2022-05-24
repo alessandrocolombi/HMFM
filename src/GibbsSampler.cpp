@@ -55,6 +55,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         bool FixedS = !Rcpp::as<bool>(option["UpdateS"]);
         bool FixedTau = !Rcpp::as<bool>(option["UpdateTau"]);
         bool FixedLambda = !Rcpp::as<bool>(option["UpdateLambda"]);
+        
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec, nu);
