@@ -4,7 +4,7 @@
 \alias{predictive_all_groups}
 \title{pred_uninorm}
 \usage{
-predictive_all_groups(grid, fit)
+predictive_all_groups(grid, fit, burnin = 1)
 }
 \arguments{
 \item{grid}{\link{vector} a grid where the normal kernel is evaluated.}

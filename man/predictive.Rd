@@ -4,7 +4,7 @@
 \alias{predictive}
 \title{predictive}
 \usage{
-predictive(idx_group, grid, fit)
+predictive(idx_group, grid, fit, burnin)
 }
 \arguments{
 \item{idx_group}{\link{integer} the index of the group of interest.}

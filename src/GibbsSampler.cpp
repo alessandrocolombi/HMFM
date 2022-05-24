@@ -15,16 +15,22 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
     thin = thn;
     if(P0_prior_name == "Normal-InvGamma"){
 
+        Rcpp::Rcout<<"GibbsSampler.cpp - Initialization"<<std::endl;
         // Manage cases if Partition is fixed
-        std::vector<unsigned int> partition_vec;
-        unsigned int Mstar0 = 0;
+        std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(option["partition"]) }; // NON FUNZIONA SE PARTION IS NOT AVAILABLE IN THE OPTION 
+        unsigned int Mstar0{Rcpp::as<unsigned int>(option["Mstar0"])}; 
+        
+        // Stampe
+        Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
+        Rcpp::Rcout<<"Partition: "<<std::endl;
+        for(unsigned int i = 0; i<partition_vec.size(); i++)
+            Rcpp::Rcout<<partition_vec[i]<<"; ";
 
-        if(Partition_fixed){
-            partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
-        }
-        //else{
-            Mstar0 = Rcpp::as<unsigned int>(option["Mstar0"]);
-        //}
+        Rcpp::Rcout<<std::endl;
+
+
+        //partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
+
 
         // Qua tutte copie inutili!!    
         // Read all hyper-parameters passed with option
@@ -62,7 +68,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
 
         //Full Conditional vector that we will loop
-        /*
+        
         std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
                                                             Partition_ptr,
                                                             Mstar_ptr,
@@ -71,8 +77,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-        */
+       
         // NEW
+                                                            /*
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
                                                             S_ptr,
                                                             lambda_ptr,
@@ -81,6 +88,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             U_ptr,
                                                             Partition_ptr
                                                             };
+                                                             */
         //NOTE: it is enough to remove from fc the parametres that do not want to be updated. For example,
         /*
         // This removes Lambda and gamma

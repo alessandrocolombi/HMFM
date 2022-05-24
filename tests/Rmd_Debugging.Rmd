@@ -34,24 +34,24 @@ mycol = hcl.colors(n=3,palette = "Zissou1")
 
 # data generation ---------------------------------------------------------
 
-d = 10               # number of groups
+d = 2               # number of groups
 K = 4               # number of global clusters
 mu = c(-20,-10,0, 10)   # vectors of means
 sd = c(1,1,1,1)      # vector of sd
-n_j = rep(100, d)  # set cardinality of the groups
+n_j = rep(4, d)  # set cardinality of the groups
 seed = 20051131
 
 genD = generate_data(d=d, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
-
+init_partition = rep(0,length(real_partition))
 
 
 mycol_cluster = brewer.pal(n=K, name = "Dark2")
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 5
+niter  <- 1
 burnin <- 1
 thin   <- 1
 
@@ -62,7 +62,7 @@ option<-list("nu" = 1/10, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "g
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
              "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
-             "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
+             "UpdateTau" = T, "UpdateLambda" = T, "partition" = init_partition
 )
 
 
