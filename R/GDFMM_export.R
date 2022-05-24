@@ -365,28 +365,40 @@ arrange_partition = function(partition){
 #' @return results of Gibbs Sampler
 #' @export
 GDFMM_sampler <- function(data, niter, burnin, thin, seed,
-                            P0.prior = "Normal-InvGamma", FixPartition = F, option) {
+                            P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
+
+  n = ncol(data)*nrow(data) - sum(is.na(data)) #get number of data points
 
   #Check option to be in the correct form
+  option_temp = set_options(partition = NULL)
+  if(is.null(option)) # no option, set default
+    option = option_temp
+
+  if(length(option) != length(option_temp))
+    stop("option parameter is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
+  if(!all(names(option) == names(option_temp) ))
+    stop("option parameter is malformed. The names are not the expected ones. Use set_options() function to set them correctely.")
 
   #Check partiton
-    if(FixPartition){
-        if(is.null(option$partition) )
-          stop("If FixPartition is selected, a partition must be provided in option$partition")
-    }
+  if(is.null(option$partition)){ # set empty partition
+    if(FixPartition)
+        stop("If FixPartition is selected, a partition must be provided in option$partition")
+    option$partition = rep(0,n)    
+  }else{
+    cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
+    option$partition = arrange_partition(option$partition)
 
-    if( !is.null(option$partition) ){
-      cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
-      option$partition = arrange_partition(option$partition)
-    }
+    # check that partiton and data are coherent
+    if(n != length(option$partition))
+      stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
+  }
 
-  if( any(is.na(data)) )
-    stop("There are nan in data")
+  #if( any(is.na(data)) )
+    #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
-
-  # check that partiton and data are coherent?
   
-  
+
+
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
 
@@ -850,7 +862,7 @@ pred_uninorm <- function(idx_group, grid, fit){
 #'
 #' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
 #' @export
-predictive <- function(idx_group, grid, fit, burnin){
+predictive <- function(idx_group, grid, fit, burnin = 1){
     n_iter <- length(fit$mu) #number of iterations
     l_grid <- length(grid)
                             #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
@@ -949,29 +961,29 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
 
 #' set_options
 #'
-#' @param partition
-#' @param Mstar0
-#' @param nu
-#' @param Lambda0
-#' @param mu0
-#' @param sigma0
-#' @param gamma0
-#' @param Adapt_MH_hyp1
-#' @param Adapt_MH_hyp2
-#' @param Adapt_MH_power_lim
-#' @param Adapt_MH_var0
-#' @param k0
-#' @param nu0
-#' @param alpha_gamma
-#' @param beta_gamma
-#' @param alpha_lambda
-#' @param beta_lambda
-#' @param UpdateU
-#' @param UpdateM
-#' @param UpdateGamma
-#' @param UpdateS
-#' @param UpdateTau
-#' @param UpdateLambda
+#' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
+#' @param Mstar0 [integer] the initial value of non-allocated components
+#' @param Lambda0 [double] the initial value for Lambda.
+#' @param gamma0 [double] the initial value for the gamma parameters.
+#' @param nu [double] the rate parameter in the prior of un-normalized jumps.
+#' @param mu0 [double] the mean parameter in the prior of mu.
+#' @param k0 [double] the parameter in the prior of mu.
+#' @param sigma0 [double] the rate parameter in the prior of sigma.
+#' @param nu0 [double] the shape parameter in the prior of sigma.
+#' @param Adapt_MH_hyp1 [double] default is 0.7.
+#' @param Adapt_MH_hyp2 [double] default is 0.234.
+#' @param Adapt_MH_power_lim [double] default is 10.
+#' @param Adapt_MH_var0 [double] default is 1.
+#' @param alpha_gamma [double] the shape parameter in the prior of gamma.
+#' @param beta_gamma [double] the rate parameter in the prior of gamma.
+#' @param alpha_lambda [double] the shape parameter in the prior of lambda.
+#' @param beta_lambda [double] the rate parameter in the prior of lambda.
+#' @param UpdateU [bool] set \code{TRUE} if U must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateM [bool] set \code{TRUE} if Mstar must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateGamma [bool] set \code{TRUE} if gamma must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateS [bool] set \code{TRUE} if S must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateTau [bool] set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
 #'
 #' @export
 set_options = function( partition = NULL, Mstar0 = 2, nu = 1,

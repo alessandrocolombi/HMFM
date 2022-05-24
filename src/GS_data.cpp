@@ -6,6 +6,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
                 double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec, double _nu) :
                 prior(P0_prior_name) {
+
     iterations = 0;
     lambda = Lambda0;
     Mstar = Mstar0;
@@ -14,7 +15,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     for (unsigned int j = 0; j < dat.rows(); ++j) {
         std::vector<double> v;
         for (unsigned int i = 0; i <dat.cols() ; ++i) {
-            if(!std::isnan(dat(j,i))){
+            if(!std::isnan(dat(j,i))){ //na are not included. Not fine if data contains missing data
                 v.push_back(dat(j,i));
             }
         }
@@ -41,10 +42,12 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     
     // Initialization of partition data structures
     if( part_vec.empty() ){
+        // Code should never arrive here
         K = 1;
         Mstar = Mstar0;
         M = K + Mstar;
         initialize_Partition();
+        throw std::runtime_error("part_vec was found empty. This should no longer happen, why here? ");
     }
     else{
         initialize_Partition(part_vec);
@@ -85,14 +88,13 @@ void GS_data::update_log_sum(){
             //Rcpp::Rcout<<"psi_S'(U') = "<< psi_Sprime <<std::endl;
 }
 
-// Initialize partition (Ctilde, N, N_k) when it is FIXED
+// Initialize partition (Ctilde, N, N_k) when part_vect is not empty
 void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_vec){
     
     // Extract number of clusters from partition vec
-    const auto max_it = std::max_element(partition_vec.cbegin(), partition_vec.cend());
+    const auto max_it = std::max_element(partition_vec.cbegin(), partition_vec.cend()); //get the maximum 
     K =  *max_it + 1;
-    M = K; // questo è sbagliato
-    //Mstar = 0; //Ho modificato, ora anche se passo la partizione, Mstar non è messo a zero ma a Mstar0
+    M = K + Mstar;
     Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
     Rcpp::Rcout<<"Watch out modification: Mstar is not set to zero but to Mstar0"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
@@ -125,7 +127,7 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     }
 }
 
-// Initialize partition (Ctilde, N, N_k) when M and K are RANDOM
+// Initialize partition (Ctilde, N, N_k) when part_vect is empty
 void GS_data::initialize_Partition(){
 
     Rcpp::Rcout<<"initialize_Partition with EMPTY partition_vec"<<std::endl;

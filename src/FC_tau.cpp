@@ -27,6 +27,9 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
 
 
+    //Initialize tau according to new M
+    gs_data.allocate_tau(gs_data.M); 
+
     if (prior == "Normal-InvGamma") {
 
         sample::rgamma Gamma;

@@ -14,7 +14,7 @@ GDFMM_sampler(
   seed,
   P0.prior = "Normal-InvGamma",
   FixPartition = F,
-  option
+  option = NULL
 )
 }
 \arguments{

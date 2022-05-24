@@ -17,16 +17,16 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 
         Rcpp::Rcout<<"GibbsSampler.cpp - Initialization"<<std::endl;
         // Manage cases if Partition is fixed
-        std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(option["partition"]) }; // NON FUNZIONA SE PARTION IS NOT AVAILABLE IN THE OPTION 
+        std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(option["partition"]) }; 
         unsigned int Mstar0{Rcpp::as<unsigned int>(option["Mstar0"])}; 
         
         // Stampe
-        Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
-        Rcpp::Rcout<<"Partition: "<<std::endl;
-        for(unsigned int i = 0; i<partition_vec.size(); i++)
-            Rcpp::Rcout<<partition_vec[i]<<"; ";
-
-        Rcpp::Rcout<<std::endl;
+        //Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
+        //Rcpp::Rcout<<"Partition: "<<std::endl;
+        //for(unsigned int i = 0; i<partition_vec.size(); i++)
+            //Rcpp::Rcout<<partition_vec[i]<<"; ";
+//
+        //Rcpp::Rcout<<std::endl;
 
 
         //partition_vec = Rcpp::as<std::vector<unsigned int>>(option["partition"]);
@@ -55,10 +55,11 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         bool FixedS = !Rcpp::as<bool>(option["UpdateS"]);
         bool FixedTau = !Rcpp::as<bool>(option["UpdateTau"]);
         bool FixedLambda = !Rcpp::as<bool>(option["UpdateLambda"]);
-        
+
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec, nu);
+
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
         auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);
@@ -70,6 +71,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 
         //Full Conditional vector that we will loop
         
+        /*
         std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
                                                             Partition_ptr,
                                                             Mstar_ptr,
@@ -78,28 +80,16 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-       
+        */       
         // NEW
-                                                            /*
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
                                                             S_ptr,
                                                             lambda_ptr,
                                                             gamma_ptr,
-                                                            Mstar_ptr,
                                                             U_ptr,
-                                                            Partition_ptr
-                                                            };
-                                                             */
-        //NOTE: it is enough to remove from fc the parametres that do not want to be updated. For example,
-        /*
-        // This removes Lambda and gamma
-        std::vector< std::shared_ptr<FullConditional> > fc{U_ptr,
                                                             Partition_ptr,
-                                                            Mstar_ptr,
-                                                            S_ptr,
-                                                            tau_ptr
-                                                            };                                                                
-        */
+                                                            Mstar_ptr
+                                                            };
         std::swap(FullConditionals, fc);
 
         // Initialize return structure for S and tau
@@ -112,23 +102,20 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 void GibbsSampler::sample() {
 
     Progress progress_bar(burn_in + n_iter*thin, TRUE); // Initialize progress bar
+    for(unsigned int it = 0; it < burn_in + n_iter*thin; it++){
 
-    for(unsigned int it = 0; it <= burn_in + n_iter*thin; it++){
+        // If we are in the right iteration store needed values
+        // If burn_in is set to zero, the first values to be saved are the initial values.
+        if(it>=burn_in && (it-burn_in)%thin == 0){
+            //Rcpp::Rcout<<"it = "<<it<<std::endl;
+            this->store_params_values();
+        }
+
         // Sample from all full conditional
         this->GS_Step();
 
         //updating number of iterations necessary for MH algorithm
         gs_data.iterations = it;
-
-        // If we are in the right iteration store needed values
-        if(it>burn_in && (it-burn_in)%thin == 0){
-            this->store_params_values();
-        }
-
-        if(!Partition_fixed){
-            // Rcpp::Rcout<< "\nIn this iteration we obtain K: "<< gs_data.K << " M: " << gs_data.M
-            //             <<"\n"<<std::endl;
-        }
 
         progress_bar.increment(); //update progress bar
     }
@@ -154,8 +141,6 @@ void GibbsSampler::GS_Step() {
         else if(full_cond->name.compare("Mstar") == 0){ //if they are equal
             //Rcpp::Rcout<<"Aggiorno M senza aggiornare Mstar"<<std::endl;
             gs_data.M = gs_data.K + gs_data.Mstar;
-            gs_data.allocate_S(gs_data.M); // Initialize S according to new M 
-            gs_data.allocate_tau(gs_data.M); // Initialize tau according to new M
         }
 
         //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;

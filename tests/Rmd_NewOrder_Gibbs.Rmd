@@ -1,5 +1,5 @@
 ---
-title: "Rmd_Clustering_part1"
+title: "Rmd_NewOrder_Gibbs"
 author: "Alessandro Colombi"
 date: "20/5/2022"
 output: pdf_document
@@ -34,38 +34,38 @@ mycol = hcl.colors(n=3,palette = "Zissou1")
 
 # data generation ---------------------------------------------------------
 
-d = 2               # number of groups
+d = 10               # number of groups
 K = 4               # number of global clusters
 mu = c(-20,-10,0, 10)   # vectors of means
 sd = c(1,1,1,1)      # vector of sd
-n_j = rep(4, d)  # set cardinality of the groups
+n_j = rep(100, d)  # set cardinality of the groups
 seed = 20051131
 
 genD = generate_data(d=d, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
-init_partition = rep(0,length(real_partition))
+
 
 
 mycol_cluster = brewer.pal(n=K, name = "Dark2")
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 1
-burnin <- 1
+niter  <- 3000
+burnin <- 0
 thin   <- 1
 
 
 
-option<-list("nu" = 1/10, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
+
+option = set_options(
+             "nu" = 1/10, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
              "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
-             "UpdateTau" = T, "UpdateLambda" = T, "partition" = init_partition
-)
-
-
+             "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
+        )
 
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
 GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
@@ -83,16 +83,13 @@ hist(GDFMM$K, main = "K")
 plot(GDFMM$Mstar, type = 'l', main = "Mstar")
 
 
-# U
-
-
 # Predictive --------------------------------------------------------------
 
 l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
 
 # Predictive in all groups
-Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 2500)
 
 # In questo plot sotto colori i pallini secondo il vero cluster.
 # Assurdo ma gli istogrammi non funzionano più, evidentemente raggruppa in modo diverso
@@ -141,6 +138,14 @@ sim_matrix <- psm(part_matrix)
 
 heatmap(sim_matrix)
 
+library(mcclust.ext)
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
 binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
@@ -158,11 +163,6 @@ cat('\n Miss classification table \n')
 Tab
 
 
-library(mcclust.ext)
-binder_sara = minbinder(sim_matrix)
-VI_sara = minVI(sim_matrix)
 
-table(binder_sara$cl)
-table(VI_sara$cl)
 
 ```

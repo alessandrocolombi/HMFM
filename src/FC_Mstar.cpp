@@ -32,10 +32,12 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         // Update M in the Gibbs Sampler
         gs_data.M = k + gs_data.Mstar;
-        // Initialize S according to new M
-        gs_data.allocate_S(gs_data.M);
+
+
+        // Initialize S according to new M -> non va bene farlo qui
+        //gs_data.allocate_S(gs_data.M);
         // Initialize tau according to new M
-        gs_data.allocate_tau(gs_data.M);
+        //gs_data.allocate_tau(gs_data.M);
 
         // Quando fanno questa allocate, distruggono il contenuto di tau e S. 
         // Sembra vada bene perché poi aggiornano gamma, S, tau che sembrano non aver bisogno del contenuto di gs_data.S o gs_data.mu/sigma

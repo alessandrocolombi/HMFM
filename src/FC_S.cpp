@@ -16,6 +16,9 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     // Update routine
     // Rcpp::Rcout << "S: ";
 
+    //Initialize S according to new M
+    gs_data.allocate_S(gs_data.M); 
+
     for (unsigned j=0; j<d; j++) { //per ogni livello
         //S ALLOCATE
         // Rcpp::Rcout << "[";
