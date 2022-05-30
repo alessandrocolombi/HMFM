@@ -80,8 +80,8 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
                                                             tau_ptr,
                                                             lambda_ptr
                                                             };
-        */       
         // NEW
+        */
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
                                                             S_ptr,
                                                             lambda_ptr,

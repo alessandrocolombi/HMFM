@@ -134,6 +134,7 @@ double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const st
                     const std::vector<std::vector<double>>& data){
     if(ind_i.size() == 1)
         return 0.0;
+    
     double vari=0.0;
     int count=0;
      for (size_t ii = 0; ii <ind_i.size() ; ++ii) {
@@ -143,8 +144,6 @@ double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const st
      }
      //Rcpp::Rcout<<std::endl;
      return vari/(count-1); 
-     //!!!!---->   ATTENZIONE, QUA MANCA UN -1, però, mistero della fede, se metto -1 qua poi il codice si pianta dopo un po' di iterazioni nell'update della partizione!
-     // è perché si possono generare dei nan (li ho visti, ma perché ci sono? perché count è 1?)
 }
 
 // mean e var vanno bene qui e poi si possono chiamare tranquillamente da dentro senza definire il namespace?

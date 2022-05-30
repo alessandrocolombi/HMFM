@@ -27,6 +27,8 @@ suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
 # color palette -----------------------------------------------------------
 mycol = hcl.colors(n=3,palette = "Zissou1")
@@ -48,7 +50,7 @@ real_partition = genD$real_partition
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -111,21 +113,32 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
-
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
 ```
 
@@ -155,7 +168,7 @@ real_partition = genD$real_partition
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -257,7 +270,7 @@ real_partition = genD$real_partition
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -316,22 +329,36 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
+
+
 Caso NON simmetrico.
 ```{r, results='hide'}
 suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
@@ -356,7 +383,7 @@ real_partition = genD$real_partition
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -416,21 +443,33 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
 
 
@@ -467,7 +506,7 @@ real_partition = genD$real_partition
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -535,6 +574,8 @@ for(j in 1:d){
 
 
 ```
+
+
 ```{r}
 # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
 
@@ -544,22 +585,36 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
+
+
 ## d=3
 
 **K = 4**
@@ -597,7 +652,7 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -677,22 +732,36 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
+
+
 Secondo caso, fisso `Mstar = 10`. Mixxa molto meglio.
 
 ```{r, results='hide'}
@@ -700,7 +769,7 @@ Secondo caso, fisso `Mstar = 10`. Mixxa molto meglio.
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 10, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -768,6 +837,8 @@ for(j in 1:d){
 
 
 ```
+
+
 ```{r}
 # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
 
@@ -777,21 +848,33 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
 
 
@@ -804,7 +887,7 @@ Visto che $\Lambda \sim Gamma(a_{\Lambda}, b_{\Lambda})$, metto $a_{\Lambda} = 1
 
 
 niter  <- 1000
-burnin <- 3000
+burnin <- 1000
 thin   <- 1
 
 option<-set_options("nu" = 1, "Mstar0" = 10, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
@@ -872,6 +955,8 @@ for(j in 1:d){
 
 
 ```
+
+
 ```{r}
 # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
 
@@ -881,21 +966,33 @@ part_matrix <- GDFMM$Partition
 # Compute similarity matrix
 sim_matrix <- psm(part_matrix)
 
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
 # Get estimated partition according to binder (or VI) loss functions.
 # VI_dahl <- dlso(matr, loss = 'VI', estimate=NULL)
-binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-estimate_partition = as.vector(binder_dahl)
+# binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
+# estimate_partition = as.vector(binder_dahl)
+# 
+# # Get quality indicies
+# Kest = length(unique(estimate_partition))
+# cat('\n Estimated number of clusters \n')
+# Kest
+# Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
+# cat('\n Binder loss function \n')
+# Binder_loss
+# Tab = table(real_partition,estimate_partition)
+# cat('\n Miss classification table \n')
+# Tab
 
-# Get quality indicies
-Kest = length(unique(estimate_partition))
-cat('\n Estimated number of clusters \n')
-Kest
-Binder_loss = salso::binder(truth = real_partition, estimate = estimate_partition)
-cat('\n Binder loss function \n')
-Binder_loss
-Tab = table(real_partition,estimate_partition)
-cat('\n Miss classification table \n')
-Tab
 ```
 
 

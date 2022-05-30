@@ -6,6 +6,7 @@ void FC_Lambda::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const unsigned int& d = gs_data.d;
     const double& log_sum = gs_data.log_sum;
 
+    //Rcpp::Rcout<<"log_sum:"<<std::endl<<log_sum<<std::endl;
 
     // Random sampler is created
     sample::rgamma Gamma;

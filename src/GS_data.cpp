@@ -57,6 +57,8 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     gamma = std::vector<double>(d, gamma0);
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 0.0);
+    //Initialize log_sum
+    update_log_sum();
     
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine); // NON va molto bene in ottica tener fisso S ad un valore iniziale!
