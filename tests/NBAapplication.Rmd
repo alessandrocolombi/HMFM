@@ -16,17 +16,26 @@ library(ACutils)
 library(tidyverse)
 ```
 
-Read data
+Set directory and read data data
 ```{r}
+setwd('C:/Users/colom/OneDrive/GDFMM/tests') 
 data <- read.csv("C:/Users/colom/OneDrive/GDFMM/tests/nba_salaries_with_position.csv")
 ```
 
 Elementary analysis
 ```{r}
 data = as_tibble(data)
-data = data %>% 
-       mutate(position = as.factor(position)) %>%  
-       mutate(salary = as.double(salary)/10^6) %>%
+
+# Divido per 10^6
+# data = data %>%
+#        mutate(position = as.factor(position)) %>%
+#        mutate(salary = as.double(salary)/10^6) %>%
+#        filter(player %in% unique(player)) #perdo i fratelli
+
+#log scale
+data = data %>%
+       mutate(position = as.factor(position)) %>%
+       mutate(salary = log(as.double(salary))) %>%
        filter(player %in% unique(player)) #perdo i fratelli
 
 # get levels
@@ -49,10 +58,6 @@ data_C$salary  = data_C$salary  + rnorm(n = n_j[5],sd=0.001)
 
 n_max = max(n_j)
 data_matrix = matrix(NA, nrow = d, ncol = n_max) # d x max(n_j) matrix
-cluster = matrix(NA, nrow = d, ncol = n_max)     # d x max(n_j) matrix
-real_partition = c(
-  rep(0,n_j[1]),rep(1,n_j[2]), rep(2,n_j[3]), rep(3,n_j[4]), rep(4,n_j[5])
-)
 
 data_matrix[1,1:n_j[1]] = data_PG$salary
 data_matrix[2,1:n_j[2]] = data_SG$salary
@@ -60,32 +65,39 @@ data_matrix[3,1:n_j[3]] = data_SF$salary
 data_matrix[4,1:n_j[4]] = data_PF$salary
 data_matrix[5,1:n_j[5]] = data_C$salary
 ```
+
 Data visualization
 ```{r}
 d_PG = density(data_PG$salary)
-par(mfrow=c(1,2))
-plot(d_PG$x, d_PG$y, type = 'l', lty = 1, lwd = 2)
-hist(data_PG$salary)
+hist(data_PG$salary, freq = F, breaks = 30, col = ACutils::t_col("darkred", 70), 
+     xlim = range(data_PG$salary), main = "PG")
+points(x = data_PG$salary, y = rep(0, length(data_PG$salary)), pch = 16, col = ACutils::t_col("darkred", 10))
+points(x = d_PG$x, y = d_PG$y, col = "darkred", type = 'l', lty = 1, lwd = 2)
+
 
 d_SG = density(data_SG$salary)
-par(mfrow=c(1,2))
-plot(d_SG$x, d_SG$y, type = 'l', lty = 1, lwd = 2)
-hist(data_SG$salary)
+hist(data_SG$salary, freq = F, breaks = 30, col = ACutils::t_col("darkred", 70), 
+     xlim = range(data_SG$salary), main = "SG")
+points(x = data_SG$salary, y = rep(0, length(data_SG$salary)), pch = 16, col = ACutils::t_col("darkred", 10))
+points(x = d_SG$x, y = d_SG$y, col = "darkred", type = 'l', lty = 1, lwd = 2)
 
 d_SF = density(data_SF$salary)
-par(mfrow=c(1,2))
-plot(d_SF$x, d_SF$y, type = 'l', lty = 1, lwd = 2)
-hist(data_SF$salary)
+hist(data_SF$salary, freq = F, breaks = 30, col = ACutils::t_col("darkred", 70), 
+     xlim = range(data_SF$salary), main = "SF")
+points(x = data_SF$salary, y = rep(0, length(data_SF$salary)), pch = 16, col = ACutils::t_col("darkred", 10))
+points(x = d_SF$x, y = d_SF$y, col = "darkred", type = 'l', lty = 1, lwd = 2)
 
 d_PF = density(data_PF$salary)
-par(mfrow=c(1,2))
-plot(d_PF$x, d_PF$y, type = 'l', lty = 1, lwd = 2)
-hist(data_PF$salary)
+hist(data_PF$salary, freq = F, breaks = 30, col = ACutils::t_col("darkred", 70), 
+     xlim = range(data_PF$salary), main = "PF")
+points(x = data_PF$salary, y = rep(0, length(data_PF$salary)), pch = 16, col = ACutils::t_col("darkred", 10))
+points(x = d_PF$x, y = d_PF$y, col = "darkred", type = 'l', lty = 1, lwd = 2)
 
 d_C = density(data_C$salary)
-par(mfrow=c(1,2))
-plot(d_C$x, d_C$y, type = 'l', lty = 1, lwd = 2)
-hist(data_C$salary)
+hist(data_C$salary, freq = F, breaks = 30, col = ACutils::t_col("darkred", 70), 
+     xlim = range(data_C$salary), main = "C")
+points(x = data_C$salary, y = rep(0, length(data_C$salary)), pch = 16, col = ACutils::t_col("darkred", 10))
+points(x = d_PG$x, y = d_C$y, col = "darkred", type = 'l', lty = 1, lwd = 2)
 
 ```
 
@@ -93,7 +105,7 @@ hist(data_C$salary)
 ## RUN
 ```{r}
 
-niter  <- 3000
+niter  <- 5000
 burnin <- 0
 thin   <- 1
 
@@ -102,31 +114,45 @@ option = set_options(
              "nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=10, "beta_lambda"=1/10,
+             "beta_gamma"=1, "alpha_lambda"=100, "beta_lambda"=1/100,
              "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
              "UpdateTau" = T, "UpdateLambda" = T
         )
 
 GDFMM = GDFMM_sampler(data_matrix, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+Or load data
+```{r}
+load('GDFMM_NBA_test1.Rdat')
+```
 
 
+
+
+```{r}
 #K
-plot(GDFMM$K, type = 'l', main = "K")
-hist(GDFMM$K, main = "K")
+plot(GDFMM$K[3000:5000], type = 'l', main = "K")
+hist(GDFMM$K[3000:5000], main = "K")
 
 #Mstar
-plot(GDFMM$Mstar, type = 'l', main = "Mstar")
+plot(GDFMM$Mstar[3000:5000], type = 'l', main = "Mstar")
 
 # Predictive --------------------------------------------------------------
 
-l_grid = 200
-grid = seq(0,50,length.out = l_grid)
+
+l_grid = 100
+grid = seq(0,20,length.out = l_grid)
 
 # Predictive in all groups
-Pred_all = predictive_all_groups(grid = grid, fit = GDFMM)
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 4000)
+# load 
+load('Pred_all_NBA_test1.Rdat')
+
+
+
 par(mfrow = c(2,3))
 for(j in 1:d){
-  hist(data_matrix[j,], freq = F, breaks = l_grid/10, col = ACutils::t_col("darkred", 70), xlim = range(grid),
+  hist(data_matrix[j,], freq = F, breaks = l_grid/10, col = ACutils::t_col("darkred", 70), xlim = c(10,17), #xlim = range(grid),
              main = paste0("level = ",j))
   matplot(x = grid, y = t(Pred_all[[j]]), type = 'l', col = 'black', lty = 1, lwd = 2, add = T)
   points(x = data_matrix[j,], y = rep(0, length(data_matrix[j,])), pch = 16, col = ACutils::t_col("darkred", 10))
