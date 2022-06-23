@@ -859,6 +859,7 @@ pred_uninorm <- function(idx_group, grid, fit){
 #' @param idx_group [integer] the index of the group of interest.
 #' @param grid [vector] a grid where the normal kernel is evaluated.
 #' @param fit [list] the output of \code{\link{GDFMM_sampler}}
+#' @param burnin [integer] the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.
 #'
 #' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
 #' @export
@@ -1003,3 +1004,54 @@ set_options = function( partition = NULL, Mstar0 = 2, nu = 1,
   return (option)
 }
 
+#' predictive_new_group
+#'
+#' This function computes the predictive distribution for group \code{d+1} that has not been observed.
+#' @inheritParams predictive
+#' @inheritParams set_options
+#'
+#' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
+#' @export
+predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma){
+    n_iter <- length(fit$mu) #number of iterations
+    l_grid <- length(grid)
+                            #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+                            # MIX is a n_iter x l_grid matrix
+
+    # This loop computes the predictive
+    MIX = t(sapply(burnin:n_iter, simplify = "matrix",
+                    function(it){
+                      # Get sampled values
+                      M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
+                      mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
+                      sig2_it <- fit$sigma[[it]]        # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+                      gamma_new_it <- rgamma(n=1,shape=alpha_gamma,rate=beta_gamma) # draw gamma_d+1 from the prior
+                      S_new_it <- rgamma(n=M_it, shape = gamma_new_it, rate = 1) # draw unnormalized weights from the prior
+                      T_new_it <- sum(S_new_it) # needed to normalize the weigths
+
+                      # Important remark. If alpha_gamma and beta_gamma are too small, it is possible that the sampled gamma is 
+                      # so close to zero that T is barely equal to 0. 
+                      if(T_new_it < 1e-8) 
+                        w_it = rep(0,M_it)
+                      else  
+                        w_it = S_new_it/T_new_it  # get normalized weights
+                      # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
+                      # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+                      XX = t(sapply(1:M_it, simplify = "matrix",
+                                    function(m){
+                                      dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) ) # returns a vector of length equal to l_grid
+                                    }
+                                  ))
+                      if(any(is.na(XX))){
+                        stop('Trovato NAN in XX')
+                      }
+                      # Compute predicted density at iteration it
+                      w_it %*% XX
+                    }
+                ))
+
+
+    # Density estimation and credible bounds
+    pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+    return(pred_est)
+}

@@ -10,6 +10,8 @@ predictive_all_groups(grid, fit, burnin = 1)
 \item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
 
 \item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
+
+\item{burnin}{\link{integer} the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.}
 }
 \value{
 \link{list} of length \code{d} where each element is the return object of \code{\link{predictive}}.

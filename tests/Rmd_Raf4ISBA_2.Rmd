@@ -234,6 +234,33 @@ print(plot1)
 #ggsave(filename = "DependentCase.pdf", plot = plot1, device = "pdf")
 ```
 
+Calcolo e plotto predittiva in un nuovo gruppo non osservato.
+```{r}
+# Predictive in new, unobserved, group
+Pred_new = predictive_new_group(grid = grid, fit = GDFMM, burnin = 10000, 
+                                alpha_gamma = option$alpha_gamma, beta_gamma = option$beta_gamma)
+
+tb = rbind( tibble(value = data[1,], true_clus = as.factor(real_partition[1:100])),
+            tibble(value = data[2,], true_clus = as.factor(real_partition[101:200]))  )
+
+tb %>% ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,200), size = 2, show.legend = FALSE) +
+    geom_histogram(data = tb,
+                   aes(x=value, y = ..count../100, fill = true_clus), 
+                   alpha = 0.5, binwidth = 0.5, inherit.aes = F) + 
+    scale_fill_manual("Data",values = mycol_cluster ) +
+    scale_color_manual(values = mycol_cluster ) +
+    geom_path(data = as_tibble(t(Pred_new)), color = '#0019FF', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=" ", x = " ", y = " ") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) 
+
+# Per aggiungere le bande
+# geom_ribbon(data = as_tibble(t(Pred_new)), fill = mycol[1],
+#                 aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+#                 alpha = 0.5, inherit.aes = F)
+
+```
 
 
 ```{r}
@@ -538,3 +565,114 @@ print(plot2)
 
 #ggsave(filename = "IndependentCase.pdf", plot = plot2, device = "pdf")
 ```
+
+
+Predittiva nel nuovo gruppo - Caso indipendenti (quindi estraggo tutto dalla prior).
+
+Serve una nuova funzione, non la metto nel pacchetto perché mi sembra uno spreco
+```{r}
+predictive_new_group_indp <- function(grid, n_iter=1000,
+                                      mu0, sigma0, k0, nu0,
+                                      alpha_gamma, beta_gamma,
+                                      alpha_lambda, beta_lambda){
+    l_grid <- length(grid)
+                            #MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+                            # MIX is a n_iter x l_grid matrix
+
+    # This loop computes the predictive
+    MIX = t(sapply(1:n_iter, simplify = "matrix",
+                    function(it){
+                      # Get sampled values
+                      Lambda_it = rgamma(n=1,alpha_lambda,beta_lambda)
+                      M_it  = rpois(n=1,lambda = Lambda_it) + 1 # sample the number of components (allocated or not)
+                      sig2_it <- 1/rgamma(n=M_it,shape=nu0/2,rate=(nu0/2)*sigma0)  # sample the variances
+                      mu_it   <- rnorm(n=M_it,mean = mu0, sd = sqrt(sig2_it/k0))   # sample the mean
+                      gamma_new_it <- rgamma(n=1,shape=alpha_gamma,rate=beta_gamma) # draw gamma_d+1 
+                      S_new_it <- rgamma(n=M_it, shape = gamma_new_it, rate = 1) # draw unnormalized weights 
+                      T_new_it <- sum(S_new_it) # needed to normalize the weigths
+                      if(T_new_it < 1e-8) 
+                        w_it = rep(0,M_it)
+                      else  
+                        w_it = S_new_it/T_new_it  # get normalized weights
+                      # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
+                      # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+                      XX = t(sapply(1:M_it, simplify = "matrix",
+                                    function(m){
+                                      dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) ) # returns a vector of length equal to l_grid
+                                    }
+                                  ))
+                      # Compute predicted density at iteration it
+                      w_it %*% XX
+                    }
+                ))
+
+
+    # Density estimation and credible bounds
+    pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+    return(pred_est)
+}
+```
+
+```{r}
+# Predictive in new, unobserved, group
+Pred_new_ind = predictive_new_group_indp(grid = grid, n_iter = 5000,
+                                         mu0 = option$mu0, nu0 = option$nu0,
+                                         sigma0 = option$sigma0, k0 = option$k0, 
+                                         alpha_gamma = option$alpha_gamma, beta_gamma = option$beta_gamma,
+                                         alpha_lambda = option$alpha_lambda, beta_lambda = option$beta_lambda
+                                         )
+
+tb = rbind( tibble(value = data[1,], true_clus = as.factor(real_partition[1:100])),
+            tibble(value = data[2,], true_clus = as.factor(real_partition[101:200]))  )
+
+tb %>% ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,200), size = 2, show.legend = FALSE) +
+    geom_histogram(data = tb,
+                   aes(x=value, y = ..count../100, fill = true_clus), 
+                   alpha = 0.5, binwidth = 0.5, inherit.aes = F) + 
+    scale_fill_manual("Data",values = mycol_cluster ) +
+    scale_color_manual(values = mycol_cluster ) +
+    geom_path(data = as_tibble(t(Pred_new_ind)), color = '#0019FF', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=" ", x = " ", y = " ") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) 
+
+# Per aggiungere le bande
+# geom_ribbon(data = as_tibble(t(Pred_new)), fill = mycol[1],
+#                 aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+#                 alpha = 0.5, inherit.aes = F)
+
+```
+
+Final Plot - Metto insieme predittiva nel nuovo gruppo nel caso dipendente e indipendente
+```{r}
+tb = rbind( tibble(value = data[1,], true_clus = as.factor(real_partition[1:100])),
+            tibble(value = data[2,], true_clus = as.factor(real_partition[101:200]))  )
+
+tb %>% ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,200), size = 2, show.legend = FALSE) +
+    geom_histogram(data = tb,
+                   aes(x=value, y = ..count../100, fill = true_clus), 
+                   alpha = 0.5, binwidth = 0.5, inherit.aes = F) + 
+    scale_fill_manual("Data",values = mycol_cluster ) +
+    scale_color_manual(values = mycol_cluster ) +
+    geom_path(data = as_tibble(t(Pred_new)), color = 'darkred', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    geom_path(data = as_tibble(t(Pred_new_ind+0.008)), color = '#0019FF', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=" ", x = " ", y = " ") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) 
+
+# Per aggiungere le bande
+# geom_ribbon(data = as_tibble(t(Pred_new)), fill = mycol[1],
+#                 aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+#                 alpha = 0.5, inherit.aes = F)
+
+# ggsave(filename = "G:/.shortcut-targets-by-id/1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz/BicoccaDrive/ISBA 2022/Pred_new_group.pdf", device = "pdf")
+```
+
+
+
+
+
+

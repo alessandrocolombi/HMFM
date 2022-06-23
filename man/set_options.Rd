@@ -31,7 +31,51 @@ set_options(
 )
 }
 \arguments{
-\item{UpdateLambda}{}
+\item{partition}{\link{vector} of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.}
+
+\item{Mstar0}{\link{integer} the initial value of non-allocated components}
+
+\item{nu}{\link{double} the rate parameter in the prior of un-normalized jumps.}
+
+\item{Lambda0}{\link{double} the initial value for Lambda.}
+
+\item{mu0}{\link{double} the mean parameter in the prior of mu.}
+
+\item{sigma0}{\link{double} the rate parameter in the prior of sigma.}
+
+\item{gamma0}{\link{double} the initial value for the gamma parameters.}
+
+\item{Adapt_MH_hyp1}{\link{double} default is 0.7.}
+
+\item{Adapt_MH_hyp2}{\link{double} default is 0.234.}
+
+\item{Adapt_MH_power_lim}{\link{double} default is 10.}
+
+\item{Adapt_MH_var0}{\link{double} default is 1.}
+
+\item{k0}{\link{double} the parameter in the prior of mu.}
+
+\item{nu0}{\link{double} the shape parameter in the prior of sigma.}
+
+\item{alpha_gamma}{\link{double} the shape parameter in the prior of gamma.}
+
+\item{beta_gamma}{\link{double} the rate parameter in the prior of gamma.}
+
+\item{alpha_lambda}{\link{double} the shape parameter in the prior of lambda.}
+
+\item{beta_lambda}{\link{double} the rate parameter in the prior of lambda.}
+
+\item{UpdateU}{\link{bool} set \code{TRUE} if U must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateM}{\link{bool} set \code{TRUE} if Mstar must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateGamma}{\link{bool} set \code{TRUE} if gamma must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateS}{\link{bool} set \code{TRUE} if S must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateTau}{\link{bool} set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateLambda}{\link{bool} set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.}
 }
 \description{
 set_options
