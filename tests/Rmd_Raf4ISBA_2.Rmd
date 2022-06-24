@@ -673,6 +673,48 @@ tb %>% ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
 
 
 
+Plot delle prior su K e M
+```{r}
+
+d = 2
+n_j = c(100,100)
+Lambda = 5
+gamma_j = rep(0.1,d) 
+
+Kgrid = 1:30
+
+
+# numero di specie nel gruppo 1
+Kprior_lv1 = vector(length = length(Kgrid))
+
+for(i in 1:length(Kgrid)){
+  Kprior_lv1[i] = p_distinct_prior(k=Kgrid[i], n_j = n_j[1], gamma = gamma_j[1], lambda = Lambda)
+}
+round(Kprior_lv1, 3)
+
+plot(Kgrid,Kprior_lv1,type = 'h',lwd = 3, col = "blue")
+lines(Kgrid+0.05,dpois(Kgrid-1,Lambda), type = "h", col = "pink", lwd = 3)
+
+
+# numero di specie totali
+Kprior_tot = vector(length = length(Kgrid))
+for(i in 1:length(Kgrid)){
+  Kprior_tot[i] = p_distinct_prior(k=Kgrid[i], n_j = n_j, gamma = gamma_j, lambda = Lambda)
+}
+round(Kprior_tot, 3)
+
+plot(Kgrid,Kprior_lv1,type = 'h',lwd = 3, col = "blue")
+lines(Kgrid+0.05,dpois(Kgrid-1,Lambda), type = "h", col = "pink", lwd = 3)
+lines(Kgrid-0.05,Kprior_tot, type = 'h', col = "darkred", lwd = 3)
+
+# le specie totali sono M(a)
+# Mna = dpois(Kgrid-1,Lambda)
+# res = data.frame(Ma = Kprior_tot, K_marginale = Kprior_lv1, M = Mna)
+# save(res,file = "3M.Rdat")
+
+
+```
+
 
 
 
