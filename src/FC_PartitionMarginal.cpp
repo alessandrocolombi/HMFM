@@ -1,5 +1,7 @@
 #include "FC_PartitionMarginal.h"
 
+
+/*
 // Constructor 
 FC_PartitionMarginal::FC_PartitionMarginal(std::string na, const unsigned int d, const std::vector<unsigned int> & n_j,
                     bool FixPart) : FullConditional(na,FixPart), Partition_fixed(FixPart){
@@ -10,10 +12,11 @@ FC_PartitionMarginal::FC_PartitionMarginal(std::string na, const unsigned int d,
         C.push_back(row_j);
     }
 }
+*/
 
 // update method
 void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
-    Rcpp::Rcout<<"Questo non è l'update di PARTITION.CPP"<<std::endl;
+    Rcpp::Rcout<<"Questo non e l'update di PARTITION.CPP"<<std::endl;
     /*
     if(Partition_fixed){
         // Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;

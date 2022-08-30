@@ -4,7 +4,7 @@
 #include "FullConditional.h"
 
 class FC_Lambda : public FullConditional{
-private:
+protected:
     /* hyper parameters */
     double a2 = 1;
     double b2 = 1;

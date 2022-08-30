@@ -8,7 +8,7 @@
 class FullConditional;
 
 class Partition : public FullConditional{
-private:
+protected:
     /* Fix Partition option */
     // Ho un problema. avendo aggiunto in FullConditional il membro keep_fixed, ora questa informazione è ripetuta. Però nel codice viene sempre usata Partition_fixed.
     // Per ora tengo entrambe, sarebbe sa sistemare togliendo Partition_fixed

@@ -8,7 +8,7 @@
 
 
 class FC_gamma: public FullConditional {
-private:
+protected:
     /* MEMBERS */
     double hyp1 = 0.234;
     double hyp2 = 0.7;

@@ -10,15 +10,13 @@
 #include <gsl/gsl_linalg.h>
 #include "include_headers.h"
 #include "recurrent_traits.h"
-#include "FullConditional.h"
+
 #include "FC_tau.h"
-#include "FC_U.h"
-#include "FC_S.h"
-#include "FC_Lambda.h"
-#include "FC_Mstar.h"
-#include "FC_gamma.h"
-#include "Partition.h"
+#include "FC_UMarginal.h"
+#include "FC_LambdaMarginal.h"
+#include "FC_gammaMarginal.h"
 #include "FC_PartitionMarginal.h"
+
 #include "GS_data.h"
 #include "out_data.h"
 #include <chrono>

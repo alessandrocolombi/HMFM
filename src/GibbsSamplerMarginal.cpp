@@ -60,18 +60,19 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         // Qui mi serviranno degli oggetti diversi immagino
         auto PartitionMarginal_ptr = std::make_shared<FC_PartitionMarginal>("Partition", gs_data.d, gs_data.n_j, FixPart);
-        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, 10, 1.0, a1, b1, FixedGamma);
+        auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, 1.0, a1, b1, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
-        auto U_ptr = std::make_shared<FC_U>("U", FixedU);
-        auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
+        auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU);
+        auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda);
 
         //Full Conditional vector that we will loop
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
-                                                            lambda_ptr,
-                                                            gamma_ptr,
-                                                            U_ptr,
+                                                            lambdaMarginal_ptr,
+                                                            gammaMarginal_ptr,
+                                                            UMarginal_ptr,
                                                             PartitionMarginal_ptr
                                                             };
+
         std::swap(FullConditionals, fc);
 
         // Initialize return structure for S and tau
@@ -121,7 +122,7 @@ void GibbsSamplerMarginal::GS_Step() {
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){
-            //full_cond->update(gs_data, random_engine);
+            full_cond->update(gs_data, random_engine);
             Rcpp::Rcout<<" --> done! "<<std::endl;
         }
         else if(full_cond->name.compare("Mstar") == 0){ //if they are equal
