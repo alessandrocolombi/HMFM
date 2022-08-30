@@ -1,0 +1,282 @@
+---
+title: "Rmd_Marginal_sampler"
+author: "Alessandro Colombi"
+date: "30/8/2022"
+output: html_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "50%"
+)
+```
+
+
+## Tutto Aleatorio
+
+Dati esperimento:
+
+- **K = 4**.
+- d = 2.
+- $(n_1,\dots,n_{10}) = (100,\dots,100)$.
+- parto da partizione vera.
+
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+
+
+
+# color palette -----------------------------------------------------------
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+# data generation ---------------------------------------------------------
+
+d = 2               # number of groups
+K = 4               # number of global clusters
+mu = c(-20,-10,0, 10)   # vectors of means
+sd = c(1,1,1,1)      # vector of sd
+n_j = rep(100, d)  # set cardinality of the groups
+seed = 20051131
+
+genD = generate_data(d=d, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+
+mycol_cluster = brewer.pal(n=K, name = "Dark2")
+
+```
+
+```{r}
+#hist(data[1,])
+#hist(data[2,])
+#hist(data[3,])
+```
+
+
+```{r}
+# Run  --------------------------------------------------------------------
+
+
+niter  <- 5
+burnin <- 0
+thin   <- 1
+
+
+option = set_options_marginal(
+             "Lambda0" = 3, "mu0" = 0,"sigma0"= 1, "gamma0" = 1,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
+             "beta_gamma"=1, "alpha_lambda"=10, "beta_lambda"=1/10,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition
+        )
+
+
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+
+```
+
+```{r, echo = F}
+# Analisi output ----------------------------------------------------------
+
+#K
+plot(GDFMM$K, type = 'l', main = "K")
+hist(GDFMM$K, main = "K")
+
+#Mstar
+plot(GDFMM$Mstar, type = 'l', main = "Mstar")
+
+
+# Predictive --------------------------------------------------------------
+
+l_grid = 200
+grid = seq(-25,25,length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 2500)
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+# Assurdo ma gli istogrammi non funzionano più, evidentemente raggruppa in modo diverso
+idx_start = 1
+idx_end = n_j[1]
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(data = as_tibble(t(Pred_all[[j]])), color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+    geom_ribbon(data = as_tibble(t(Pred_all[[j]])), fill = mycol[1],
+                aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+                alpha = 0.5, inherit.aes = F)
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+
+
+```
+
+
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
+
+
+
+
+
+```
+
+
+## Esperimento 2
+
+Nuova funzione
+```{r}
+
+generate_data_prob <- function(d, K=3, p = prob, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
+{
+  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
+  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
+  
+  n = sum(n_j) #total number of data points
+  #p = matrix(0, nrow = d, ncol = K) # matrix with components weights
+
+  set.seed(seed)
+  Kgruppo = c() # used to save the number of generated clusters in each level
+  componenti_gruppo = NULL # used to state what components are used to generate data in each level
+
+  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
+  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
+  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
+  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
+  # cluster label must always start from 0!
+  for(j in 1:d){
+    Kgruppo[j] = 3 # number of clusters in each level
+    componenti_gruppo[[j]] = 1:3 # choose the components
+    p[j,1:Kgruppo[j]] = prob[j,] 
+    #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
+    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu,
+                              sds = sd )
+
+    data[j, 1:n_j[j]] = appoggio$y
+    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
+    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
+    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
+  }
+  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
+  # quella che viene modificata dentro il sampler è
+  # partion_within_sampler = arrange_partition(real_partition)
+  return( list(data = data, real_partition = real_partition) )
+}
+```
+
+
+Dati esperimento:
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+
+
+
+# color palette -----------------------------------------------------------
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+# data generation ---------------------------------------------------------
+
+d = 2               # number of groups
+K = 3               # number of global clusters
+mu = c(-3,0,1)   # vectors of means
+sd = c(sqrt(0.1), sqrt(0.5), sqrt(1.5) )     # vector of sd
+prob <- matrix(c(0.2,0.8,0,0,0.1,0.9),nrow = d, ncol = K, byrow = T)
+  
+n_j = rep(100, d)  # set cardinality of the groups
+seed = 20051131
+
+genD = generate_data_prob(d=d,p=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+
+mycol_cluster = brewer.pal(n=K, name = "Accent")
+
+
+
+l_grid = 200
+grid = seq(-25,25,length.out = l_grid)
+
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+# Assurdo ma gli istogrammi non funzionano più, evidentemente raggruppa in modo diverso
+idx_start = 1
+idx_end = n_j[1]
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+
+```

@@ -9,13 +9,13 @@ struct GS_data{
     /* DATA */
 
     // single values
-    unsigned int d;
-    unsigned int iterations;// number of groups
+    unsigned int d; // number of levels
+    unsigned int iterations;
     unsigned int K; // number of allocated component ==> number of clusters
     unsigned int Mstar; // number of NON-allocated component
     unsigned int M; // total number of component
     double lambda; // M|lambda ~ Poi(lambda)
-    double nu; // S_jm ~ gamma(gamma_j, nu)
+    double nu; // S_jm ~ gamma(gamma_j, nu), da togliere
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     
     // vectors
@@ -54,6 +54,7 @@ struct GS_data{
 
     GS_data(){};
     ~GS_data(){};
+
     /* METHODS */
     // Initialize partition (Ctilde, N, N_k) when it is FIXED
     void initialize_Partition(const std::vector<unsigned int>& partition_vec);

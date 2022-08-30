@@ -11,6 +11,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     lambda = Lambda0;
     Mstar = Mstar0;
     nu = _nu;
+
     // Read Data and extract d, n_j
     for (unsigned int j = 0; j < dat.rows(); ++j) {
         std::vector<double> v;
@@ -61,7 +62,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     update_log_sum();
     
     // Random Initialization of S and tau form the prior
-    initialize_S(M, gs_engine); // NON va molto bene in ottica tener fisso S ad un valore iniziale!
+    initialize_S(M, gs_engine); // inutile nel caso marginale ma non fa danni. NON va molto bene in ottica tener fisso S ad un valore iniziale!
     // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
     
     initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
@@ -130,6 +131,7 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
 }
 
 // Initialize partition (Ctilde, N, N_k) when part_vect is empty
+// This function is no longer use, isn't it?
 void GS_data::initialize_Partition(){
 
     Rcpp::Rcout<<"initialize_Partition with EMPTY partition_vec"<<std::endl;

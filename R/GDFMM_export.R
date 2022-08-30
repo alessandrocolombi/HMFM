@@ -357,11 +357,7 @@ arrange_partition = function(partition){
 #' @param seed seed for GSL random engine (0 ==> random seed)
 #' @param P0.prior string with the prior to be used as P0
 #' @param FixPartition TRUE if we want to fix the partition
-#' @param option list with initial values, hyperparameters and other options.
-#'               Value always needed are : "Mstar0", "Lambda0", "mu0", "nu0", "sigma0",
-#'               "k0", "Adapt_MH_hyp1", "Adapt_MH_hyp2", "Adapt_MH_power_lim", "Adapt_MH_var0",
-#'               "alpha_gamma", "beta_gamma", "alpha_lambda", "beta_lambda".
-#'               If FixPartition = TRUE, also value for "partition" is needed
+#' @param option the output of \code{\link{set_options}} function
 #' @return results of Gibbs Sampler
 #' @export
 GDFMM_sampler <- function(data, niter, burnin, thin, seed,
@@ -962,6 +958,7 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
 
 #' set_options
 #'
+#' Use this function to set up the options for the conditional Gibbs sampler.
 #' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
 #' @param Mstar0 [integer] the initial value of non-allocated components
 #' @param Lambda0 [double] the initial value for Lambda.
@@ -1054,4 +1051,100 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
     # Density estimation and credible bounds
     pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
     return(pred_est)
+}
+
+
+
+#' set_options_marginal
+#'
+#' Use this function to set up the options for the conditional Gibbs sampler.
+#' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
+#' @param Lambda0 [double] the initial value for Lambda.
+#' @param gamma0 [double] the initial value for the gamma parameters.
+#' @param mu0 [double] the mean parameter in the prior of mu.
+#' @param k0 [double] the parameter in the prior of mu.
+#' @param sigma0 [double] the rate parameter in the prior of sigma.
+#' @param nu0 [double] the shape parameter in the prior of sigma.
+#' @param Adapt_MH_hyp1 [double] default is 0.7.
+#' @param Adapt_MH_hyp2 [double] default is 0.234.
+#' @param alpha_gamma [double] the shape parameter in the prior of gamma.
+#' @param beta_gamma [double] the rate parameter in the prior of gamma.
+#' @param alpha_lambda [double] the shape parameter in the prior of lambda.
+#' @param beta_lambda [double] the rate parameter in the prior of lambda.
+#' @param UpdateU [bool] set \code{TRUE} if U must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateGamma [bool] set \code{TRUE} if gamma must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateTau [bool] set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
+#'
+#' @export
+set_options_marginal = function( partition = NULL, 
+                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, 
+                        k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
+                        UpdateU = T, UpdateGamma = T, UpdateTau = T, UpdateLambda = T
+                      )
+{
+  option<-list("Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, 
+               "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
+               "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
+               "UpdateU" = UpdateU, "UpdateGamma" = UpdateGamma,
+               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
+              )
+  return (option)
+}
+
+#' GDFMM Marginal Gibbs Sampler: 
+#' 
+#' function to run the GDFMM marginal Gibbs Sampler. There is the possibility to fix
+#' the partition, passing TRUE to FixPartition and specifying the
+#' partion in the option. Default prior for P0 is an inverse gamma
+#'
+#' @param data input data
+#' @param niter number of iterations
+#' @param burnin burnin period
+#' @param thin thinning value
+#' @param seed seed for GSL random engine (0 is for random seed)
+#' @param P0.prior string with the prior to be used as P0
+#' @param FixPartition TRUE if we want to fix the partition
+#' @param option the output of \code{\link{set_options_marginal}} function
+#' @return results of Gibbs Sampler
+#' @export
+GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
+                                    P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) 
+{
+
+  n = ncol(data)*nrow(data) - sum(is.na(data)) #get number of data points
+
+  #Check option to be in the correct form
+  option_temp = set_options_marginal(partition = NULL)
+  if(is.null(option)) # no option, set default
+    option = option_temp
+
+  if(length(option) != length(option_temp))
+    stop("option parameter is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
+  if(!all(names(option) == names(option_temp) ))
+    stop("option parameter is malformed. The names are not the expected ones. Use set_options() function to set them correctely.")
+
+  #Check partiton
+  if(is.null(option$partition)){ # set empty partition
+    if(FixPartition)
+        stop("If FixPartition is selected, a partition must be provided in option$partition")
+    option$partition = rep(0,n)    
+  }else{
+    cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
+    option$partition = arrange_partition(option$partition)
+
+    # check that partiton and data are coherent
+    if(n != length(option$partition))
+      stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
+  }
+
+  #if( any(is.na(data)) )
+    #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
+
+  
+
+
+  return( GDFMM:::GDFMM_marginal_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }

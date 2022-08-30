@@ -10,6 +10,7 @@
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
+#include "GibbsSamplerMarginal.h"
 //#include "ComponentPrior_factory.h"
 
 //' GDFMM sampler
@@ -86,6 +87,84 @@ Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, un
     
 }
 
+//' GDFMM sampler
+// [[Rcpp::export]]
+Rcpp::List GDFMM_marginal_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
+			 						 unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
+									 bool FixPart, Rcpp::List option)
+{
+
+
+    // Create object GibbsSamplerMarginal and sample
+	GibbsSamplerMarginal Gibbs(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
+    Gibbs.sample();
+
+	// Take output data from the sample
+	out_data& out = Gibbs.out; 
+	std::vector<unsigned int> n_j = Gibbs.get_nj();
+
+	/* da implementare
+	std::vector< GDFMM_Traits::MatRow > S = out.S; //copia inutile
+    //std::vector<GDFMM_Traits::MatRow> w_jk = out.w_jk; //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
+	std::vector<double> lambda = out.lambda; //copia inutile
+	Rcpp::NumericMatrix gamma(dat.rows(), n_iter, out.gamma.begin());
+	Rcpp::NumericMatrix U(dat.rows(), n_iter, out.U.begin());
+	*/
+
+	if(FixPart){
+	/*	
+		return Rcpp::List::create( Rcpp::Named("K") = out.K,
+									Rcpp::Named("Mstar") = out.Mstar,
+									Rcpp::Named("mu") = out.mu,
+                                  	Rcpp::Named("sigma") = out.sigma,
+									Rcpp::Named("S") =  out.S,  //Rcpp::Named("w_jk") =  w_jk, //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = lambda,
+									Rcpp::Named("U") = U,
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
+									);
+	*/			
+		return Rcpp::List::create( Rcpp::Named("K") = 3 );					
+	}
+	else{
+		/*
+		std::vector<unsigned int> K = out.K;
+		std::vector<unsigned int> Mstar = out.Mstar;
+		std::vector<std::vector< std::vector<unsigned int>>> C = out.Ctilde;
+
+			//we need a better structure for C--> we save it as a vector instead of a matrix
+		std::vector<unsigned int> fprowvec; //final partition rowvec
+		
+		// store total number of data (i.e. cardinality{y_ji})
+		unsigned int n_data = std::accumulate(n_j.begin(), n_j.end(), 0);
+		Rcpp::NumericMatrix fpmatr(n_iter, n_data );  //final partition matrix
+
+		for (unsigned it = 0; it < n_iter; it++){
+			fprowvec.clear();
+			
+			for(unsigned j=0; j<dat.rows(); j++){
+				fprowvec.insert(fprowvec.end(), C[it][j].begin(), C[it][j].end());
+			}
+			
+			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() ); //fpmatr[it,:] in R notation
+		}
+
+		return Rcpp::List::create( Rcpp::Named("K") = K,
+									Rcpp::Named("Mstar") = Mstar,
+									Rcpp::Named("Partition") = fpmatr,
+									Rcpp::Named("mu") = out.mu,
+                                  	Rcpp::Named("sigma") = out.sigma,
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = lambda,
+									Rcpp::Named("U") = U,
+									Rcpp::Named("S") =  S, //aggiunto
+									Rcpp::Named("log_sum") = out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
+									);
+		*/		
+		return Rcpp::List::create( Rcpp::Named("K") = 3 );						
+	}
+    
+}
 
 
 //' Test

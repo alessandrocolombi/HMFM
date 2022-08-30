@@ -30,6 +30,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// GDFMM_marginal_sampler_c
+Rcpp::List GDFMM_marginal_sampler_c(Eigen::MatrixXd const& dat, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, bool FixPart, Rcpp::List option);
+RcppExport SEXP _GDFMM_GDFMM_marginal_sampler_c(SEXP datSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP FixPartSEXP, SEXP optionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd const& >::type dat(datSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_iter(n_iterSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type P0_prior_name(P0_prior_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type FixPart(FixPartSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type option(optionSEXP);
+    rcpp_result_gen = Rcpp::wrap(GDFMM_marginal_sampler_c(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Test_Rcpp
 void Test_Rcpp();
 RcppExport SEXP _GDFMM_Test_Rcpp() {
@@ -599,6 +617,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_c, 8},
+    {"_GDFMM_GDFMM_marginal_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_marginal_sampler_c, 8},
     {"_GDFMM_Test_Rcpp", (DL_FUNC) &_GDFMM_Test_Rcpp, 0},
     {"_GDFMM_falling_factorial", (DL_FUNC) &_GDFMM_falling_factorial, 2},
     {"_GDFMM_calcola_stirling", (DL_FUNC) &_GDFMM_calcola_stirling, 3},

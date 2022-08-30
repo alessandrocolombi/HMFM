@@ -6,6 +6,11 @@ GDFMM_sampler_c <- function(dat, n_iter, burn_in, thin, seed, P0_prior_name, Fix
     .Call(`_GDFMM_GDFMM_sampler_c`, dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option)
 }
 
+#' GDFMM sampler
+GDFMM_marginal_sampler_c <- function(dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option) {
+    .Call(`_GDFMM_GDFMM_marginal_sampler_c`, dat, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option)
+}
+
 #' Test
 #' @export
 Test_Rcpp <- function() {

@@ -5,26 +5,25 @@
 
 void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Retrive all data needed from gs_data
-    const unsigned int& M = gs_data.M;
+    const unsigned int& M = gs_data.M; // number of components
     const unsigned int& d = gs_data.d; // number of groups
     const unsigned int& K = gs_data.K; //number of clusters
-    std::vector<unsigned int>& n_j= gs_data.n_j; // number of observations per group
-    std::vector< std::vector<unsigned int>> Ctilde=gs_data.Ctilde; // matrix of partition
-    std::vector<unsigned int>& N_k = gs_data.N_k;
-    std::vector<std::vector<double>>& data=gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
-    // RICONTROLLARE E CAPIRE DOVE METTERE CONST
-    std::string prior = gs_data.prior; // identifier of the prior adopted for the model togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
+    const std::vector<unsigned int>& n_j = gs_data.n_j; // number of observations per group
+    const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of partition
+    const std::vector<unsigned int>& N_k = gs_data.N_k;
+    const std::vector<std::vector<double>>& data = gs_data.data; //matrix of data we don't copy it since data can be big but we use a pointer
+    const std::string& prior = gs_data.prior; // identifier of the prior adopted for the model - togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     // Initialize ind_i, ind_j
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
 
     
-    //Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
-    //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
-    //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-    //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
-    //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
-    //Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
+    Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
+    Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+    Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+    Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+    Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
+    Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
 
 
     //Initialize tau according to new M
@@ -38,6 +37,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //NOT allocated tau
 
         for (unsigned int m = K; m < M; ++m){
+             Rcpp::Rcout<<"In marginal sampler case, the code should never reach this part"<<std::endl;
              double sigma2_na = 1 / Gamma(gs_engine, nu_0/2, 2/(nu_0 * sigma_0)); // Non allocated Components' variance
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;
@@ -146,4 +146,3 @@ double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const st
      return vari/(count-1); 
 }
 
-// mean e var vanno bene qui e poi si possono chiamare tranquillamente da dentro senza definire il namespace?
