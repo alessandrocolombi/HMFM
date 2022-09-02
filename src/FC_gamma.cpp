@@ -1,8 +1,13 @@
-//
-// Created by ilari on 15/12/2021.
-//
-
 #include "FC_gamma.h"
+
+
+FC_gamma::FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, int a, int b, bool _keepfixed) : 
+                    FullConditional(na,_keepfixed), hyp1(h1), hyp2(h2), power(pow), alpha(a), beta(b)
+            {
+                adapt_var_pop_gamma.resize(d);
+                std::fill(adapt_var_pop_gamma.begin(), adapt_var_pop_gamma.end(), adapt_var0);
+            };
+
 void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     // Samplers
 
@@ -37,7 +42,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         //cpp::Rcout<<"var"<<adapt_var_pop_gamma<<std::endl;
         // Update of Gamma via Adapting Metropolis Hastings
         // *computation of quantities is in logarithm for numerical reasons*
-        ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma));
+        ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma[j])); //ln_new = rnorm(gs_engine, lmedia, std::sqrt(adapt_var_pop_gamma));
         gamma_new = std::exp(ln_new);
         ln_acp = log_full_gamma(gamma_new, Lambda, K, Mstar, N.row(j)) - lmedia; //da rivedere il tipo
         ln_acp = ln_acp - (log_full_gamma(gamma_old, Lambda, K, Mstar, N.row(j)) - ln_new);
@@ -52,8 +57,9 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
 
         //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
         //Rcpp::Rcout << "gamma_" << j << gs_data.gamma[j] << update_status << std::endl;
-        ww_g = pow(iter + 1,- hyp2);
+        ww_g = pow(iter + 1, -hyp2);
 
+        /*
         adapt_var_pop_gamma = adapt_var_pop_gamma *
                                      std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));
 
@@ -62,6 +68,15 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         }
         if(adapt_var_pop_gamma > pow(10,power)){
             adapt_var_pop_gamma = pow(10,power);
+        }
+        */
+        adapt_var_pop_gamma[j] *= std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) - hyp1));
+
+        if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
+            adapt_var_pop_gamma[j] = 1/pow(10, power);
+        }
+        if(adapt_var_pop_gamma[j] > pow(10,power)){
+            adapt_var_pop_gamma[j] = pow(10,power);
         }
 
     }
@@ -88,6 +103,8 @@ double FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) {
     return sum;
 }
 
+
+// This is the log of a gamma density with parameters (a,b) evaluated in gamma
 double FC_gamma::l_dgamma(double gamma, double a, double b){
     return a*std::log(b) + (a-1)*std::log(gamma) - b*gamma - std::lgamma(a);
 }

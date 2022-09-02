@@ -62,9 +62,9 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 3000
-burnin <- 0
-thin   <- 1
+niter  <- 300
+burnin <- 100
+thin   <- 2
 
 
 option = set_options(
@@ -99,7 +99,7 @@ l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
 
 # Predictive in all groups
-Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 2500)
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
 
 # In questo plot sotto colori i pallini secondo il vero cluster.
 # Assurdo ma gli istogrammi non funzionano più, evidentemente raggruppa in modo diverso

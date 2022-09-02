@@ -9,7 +9,7 @@
 struct out_data{
   /* DATA */
   // PARTITION
-  std::vector<unsigned int> K; // number of allocated component ==> number of clusters
+  std::vector<unsigned int> K; // number of allocated component ==> number of clusters, length is equal to n_iter
   std::vector<unsigned int> Mstar; // number of NON-allocated component
   std::vector<std::vector< std::vector<unsigned int>>> Ctilde;
 

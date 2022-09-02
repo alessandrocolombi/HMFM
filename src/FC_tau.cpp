@@ -18,12 +18,12 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector<unsigned int> ind_j;// j index of C elements
 
     
-    Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
-    Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
-    Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-    Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
-    Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
-    Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
+    //Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
+    //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+    //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+    //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+    //Rcpp::Rcout<<"gs_data.mu.size():"<<std::endl<<gs_data.mu.size()<<std::endl;
+    //Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
 
 
     //Initialize tau according to new M
@@ -37,7 +37,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //NOT allocated tau
 
         for (unsigned int m = K; m < M; ++m){
-             Rcpp::Rcout<<"In marginal sampler case, the code should never reach this part"<<std::endl;
+             //Rcpp::Rcout<<"In marginal sampler case, the code should never reach this part"<<std::endl;
              double sigma2_na = 1 / Gamma(gs_engine, nu_0/2, 2/(nu_0 * sigma_0)); // Non allocated Components' variance
              double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma2_na / k_0)); // Non allocated Components' mean
              gs_data.mu[m] = mu_na;

@@ -63,7 +63,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
         auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);
-        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, adapt_var0, a1, b1, FixedGamma);
+        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, gs_data.d, adapt_var0, a1, b1, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
         auto U_ptr = std::make_shared<FC_U>("U", FixedU);
         auto S_ptr = std::make_shared<FC_S>("S", FixedS);

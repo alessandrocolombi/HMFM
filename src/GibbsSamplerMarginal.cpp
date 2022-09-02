@@ -56,14 +56,15 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec, nu);
 
-        //Initialize Full Conditional Objects
+        // Iinitialize sums in clusters
+        gs_data.initialize_sums_in_clusters();
 
-        // Qui mi serviranno degli oggetti diversi immagino
-        auto PartitionMarginal_ptr = std::make_shared<FC_PartitionMarginal>("Partition", gs_data.d, gs_data.n_j, FixPart);
-        auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, 1.0, a1, b1, FixedGamma);
+        //Initialize Full Conditional Objects
+        auto PartitionMarginal_ptr = std::make_shared<FC_PartitionMarginal>("Partition", gs_data.d, gs_data.n_j, FixPart, nu0, sigma0, mu0, k0);
+        auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, gs_data.d, 1.0, a1, b1, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
-        auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU);
-        auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda);
+        auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU, h1, h2, 10, gs_data.d, 1.0);
+        auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0);
 
         //Full Conditional vector that we will loop
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
@@ -75,10 +76,17 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         std::swap(FullConditionals, fc);
 
-        // Initialize return structure for S and tau
-        //out.S.reserve(burn_in + n_iter*thin);
-        out.mu.reserve(burn_in + n_iter*thin);
-        out.sigma.reserve(burn_in + n_iter*thin);
+        // Initialize return structures 
+        out.K.resize(n_iter);
+        out.mu.resize(n_iter);
+        out.sigma.resize(n_iter);
+        out.lambda.resize(n_iter);
+        out.U = Rcpp::NumericMatrix(gs_data.d,n_iter);
+        out.gamma = Rcpp::NumericMatrix(gs_data.d,n_iter);
+        out.Partition = Rcpp::NumericMatrix(-1, n_iter, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0) ); // here; i am also computing the total number of data by summing the elements of n_j
+        out.it_saved = 0;
+
+        //Partition is initialized with all elements equal to -1 so that it is easier to spot errors
     }
     else{
         throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
@@ -92,10 +100,11 @@ void GibbsSamplerMarginal::sample() {
 
         // If we are in the right iteration store needed values
         // If burn_in is set to zero, the first values to be saved are the initial values.
-        if(it>=burn_in && (it-burn_in)%thin == 0){
+        if(it >= burn_in && (it-burn_in)%thin == 0 && it < n_iter){
             //Rcpp::Rcout<<"it = "<<it<<std::endl;
             
-            //this->store_params_values();
+            this->store_params_values();
+            out.it_saved++;
         }
 
         // Sample from all full conditional
@@ -154,34 +163,28 @@ void GibbsSamplerMarginal::GS_Step() {
 }
 
 
-// Da rivedere dopo aver implementato per davvero tutte le cose
 void GibbsSamplerMarginal::store_params_values() {
 
-    Rcpp::Rcout<<"running store_params_values()"<<std::endl;
-    /*
-    out.K.push_back(gs_data.K); //modified, questo serve
-    out.Mstar.push_back(gs_data.Mstar); //modified, questo penso non serva a niente, ma Mstar esiste ed è sempre 0 no?
-    if(!Partition_fixed){
-        //out.K.push_back(gs_data.K);
-        //out.Mstar.push_back(gs_data.Mstar);
-        out.Ctilde.push_back(gs_data.Ctilde);
-    }
+    Rcpp::Rcout<<"running marginal store_params_values()"<<std::endl;
+    const unsigned int& it_saved = out.it_saved;
 
-    // Common output values retrived
+    out.K[it_saved] = gs_data.K; //number of clusters
     // Save tau
-    out.mu.push_back( Rcpp::NumericVector (gs_data.mu.begin(),gs_data.mu.end()) );  //create temporary vector with current values within push_back call. It is as creating a temporary vector and push it back, but more efficient
-    out.sigma.push_back(  Rcpp::NumericVector (gs_data.sigma.begin(),gs_data.sigma.end())  ); //create temporary vector with current values within push_back call. It is as creating a temporary vector and push it back, but more efficient
+    out.mu[it_saved] = Rcpp::NumericVector ( gs_data.mu.begin(),gs_data.mu.end() ); 
+    out.sigma[it_saved] =   Rcpp::NumericVector (gs_data.sigma.begin(),gs_data.sigma.end()); 
     // Save lambda - U - gamma
     out.lambda.push_back(gs_data.lambda);
-    out.U.insert(out.U.end(), gs_data.U.begin(), gs_data.U.end() );
-    out.gamma.insert(out.gamma.end(), gs_data.gamma.begin(), gs_data.gamma.end());
+    out.U.column(it_saved) = Rcpp::NumericVector ( gs_data.U.begin(),gs_data.U.end() );
+    out.gamma.column(it_saved) = Rcpp::NumericVector ( gs_data.gamma.begin(),gs_data.gamma.end() );
+    // Save Partition
+    std::vector<unsigned int> get_all_labels; //vector of length equal to the total number of data with all the cluster assigments at the current iteration
+    for(std::size_t j = 0; j < gs_data.d; j++)
+        get_all_labels.insert(get_all_labels.end(), gs_data.Ctilde[j].begin(), gs_data.Ctilde[j].end());
 
-    //Update S - non serve, eliminare
-    //out.S.push_back(gs_data.S);
+    out.Partition(it_saved, Rcpp::_ ) = Rcpp::NumericMatrix(    1, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0), 
+                                                                get_all_labels.begin() 
+                                                            ); //in R notation, this is equal to Partition[it,:] = get_all_labels 
 
-    //Save log sum to perform debugging/posterior checks
-    out.log_prod_psiU.push_back(gs_data.log_sum);
-    */
 }
 
 

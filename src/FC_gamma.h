@@ -13,7 +13,7 @@ protected:
     double hyp1 = 0.234;
     double hyp2 = 0.7;
     unsigned int power = 10;
-    double adapt_var_pop_gamma=1;//valore iniziale che viene aggiornato
+    std::vector<double> adapt_var_pop_gamma; //vector for variances to be adapted in MH steps
     int alpha = 1;
     int beta = 1;
     /* METHODS */
@@ -23,9 +23,8 @@ protected:
 
 public:
 
-    FC_gamma(std::string na, bool _keepfixed) : FullConditional(na,_keepfixed){};//keep_fixed(_keepfixed){name=na;};
-    FC_gamma(std::string na, double h1, double h2, double pow, double adapt_var0, int a, int b, bool _keepfixed) : FullConditional(na,_keepfixed), hyp1(h1),
-            hyp2(h2), power(pow), adapt_var_pop_gamma(adapt_var0), alpha(a), beta(b){};
+    //FC_gamma(std::string na, bool _keepfixed) : FullConditional(na,_keepfixed){};
+    FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, int a, int b, bool _keepfixed);
     ~FC_gamma() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
 

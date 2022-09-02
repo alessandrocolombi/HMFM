@@ -24,6 +24,8 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     }
     d = dat.rows();
     // Rcpp::Rcout << "Data read, d is : " << d << std::endl;
+    
+    log_prob_marginal_data.resize(d); // set external dimension of log_prob_marginal_data
 
     // Initialization of n_j
     n_j = std::vector<unsigned int>(d, 0);
@@ -38,6 +40,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
                 n_j[j] = i+1;
             }
         }
+        log_prob_marginal_data[j].resize(n_j[j]); // set inner dimension of log_prob_marginal_data
     }
     // Rcpp::Rcout << "n_j Initialized : " << n_j[0] << " " << n_j[d-1]<< std::endl;
     
@@ -67,6 +70,10 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     
     initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
     // Rcpp::Rcout << "tau Initialized "<< std::endl;
+
+    //set dimensions of vectors to compute mean and variance in clusters. Their are not filled because their are not used in conditinal sampler
+    sum_cluster_elements.resize(K);
+    squared_sum_cluster_elements.resize(K);
 }
 
 
@@ -225,4 +232,45 @@ void GS_data::update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
             N_k[m] = N_k[m]+N(j,m);
         }
     }
+}
+
+void GS_data::initialize_sums_in_clusters()
+{
+    // For each cluster, compute the same of its elements and the squared sum of its elements
+    for(unsigned int j = 0; j < d; j++){
+        for(unsigned int i = 0; i < n_j[j]; i++){
+            sum_cluster_elements[ Ctilde[j][i] ] += data[j][i];
+            squared_sum_cluster_elements[ Ctilde[j][i] ] += data[j][i]*data[j][i];
+        }
+    }
+}
+
+double GS_data::compute_var_in_cluster(const unsigned int& m) const
+{
+    if(m >= sum_cluster_elements.size())
+        throw std::runtime_error("Error in compute_var_in_cluster, requested variance of a cluster that does not exist");
+    if(N_k[m] == 1)
+        return 0.0;
+    else
+        return( ( squared_sum_cluster_elements[m] - N_k[m]*sum_cluster_elements[m]*sum_cluster_elements[m] )/(N_k[m] - 1) );
+}
+
+void GS_data::compute_log_prob_marginal_data(double nu_0, double sigma_0, double mu_0, double k_0)
+{
+    const double n0{nu_0};
+    const double mu0{mu_0};
+    const double gamma0{std::sqrt(sigma_0*(k_0 + 1.0)/(k_0))};
+
+    for(unsigned int j=0; j<d; j++){
+        for(unsigned int i=0; i<n_j[j]; i++){
+            log_prob_marginal_data[j][i] =  std::lgamma( (n0+1)/2 ) - 
+                                            std::lgamma( n0/2 ) - 
+                                            0.5*std::log(M_PI*gamma0*n0) - 
+                                            0.5*(n0 + 1)*std::log(1 + (1/n0)*(data[j][i]-mu0)*(data[j][i]-mu0)/(gamma0*gamma0) );
+
+        }
+    }
+
+
+    
 }

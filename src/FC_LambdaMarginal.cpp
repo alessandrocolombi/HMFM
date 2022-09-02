@@ -1,29 +1,82 @@
 #include "FC_LambdaMarginal.h"
 
+FC_LambdaMarginal::FC_LambdaMarginal(   std::string _na, double _a, double _b, bool _keepfixed, 
+                                        double _h1, double _h2, double _pow, double _adapt_var0   ) : 
+                                        FC_Lambda(_na,_a,_b,_keepfixed), hyp1(_h1), hyp2(_h2), power(_pow), adapt_var_pop_gamma(_adapt_var0){};
+
 void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     Rcpp::Rcout<<"Questo non e l'update di FC_Lambda.CPP"<<std::endl;
+
+    // Samplers
+    sample::rnorm rnorm;
+    sample::runif runif;
+
+    // Data from GS_data
+    double& Lambda = gs_data.lambda; 
+    const std::vector<double>& U = gs_data.U; //U latent variables
+    const std::vector<double>& gamma = gs_data.gamma; //gamma variables
+    const double& K = gs_data.K; // number of clusters
+    const double& iter = gs_data.iterations; //iteration number
+
+    // Auxiliary variables
+    double log_Lambda_new; //log of proposed new value for Lambda. Lambda_new = exp(log_Lambda_new)
+    double Lambda_new;     //proposed new value for U_j
+    double ln_acp;         //log of acceptance probability
+    double ln_u;           //log of uniform random variable used to decide if accept the move or not
+    
+    // Variables for Adaptive MH
+    double ww_g{ pow(iter + 1, -hyp2) };
+    
+    // Rcpp::Rcout<<"iter="<<iter<<std::endl;
+    
+    // Update of Lambda via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+        
+    //1) Sample proposed value in log scale
+    log_Lambda_new = rnorm(gs_engine, std::log(Lambda), std::sqrt(adapt_var_pop_gamma));
+    Lambda_new = std::exp(log_Lambda_new);
+        
+    //2) Compute acceptance probability in log scale
+    //double log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K) const;
+    ln_acp = log_FCLambda_marginal(Lambda, U, gamma, K ) - 
+             log_FCLambda_marginal(Lambda, U, gamma, K ) +
+             log_Lambda_new  - std::log(Lambda);
+
+    //3) Acceptance rejection step
+    ln_u = std::log(runif(gs_engine));
+        
+    if (ln_u  < ln_acp)
+        gs_data.lambda = Lambda_new;
+
+    //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
+    //Rcpp::Rcout << "Lambda" << gs_data.lambda << update_status << std::endl;
+
+    adapt_var_pop_gamma *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
+                                             )  
+                                    );
+
+    if (adapt_var_pop_gamma < 1/pow(10, power)){
+        adapt_var_pop_gamma = 1/pow(10, power);
+    }
+    if(adapt_var_pop_gamma > pow(10,power)){
+        adapt_var_pop_gamma = pow(10,power);
+    }
+
+}
+
+double FC_LambdaMarginal::log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K) const 
+{
     /*
-    // From gs_data all needed variable are retrived
-    const unsigned int& k = gs_data.K;
-    const unsigned int& d = gs_data.d;
-    const double& log_sum = gs_data.log_sum;
-
-    //Rcpp::Rcout<<"log_sum:"<<std::endl<<log_sum<<std::endl;
-
-    // Random sampler is created
-    sample::rgamma Gamma;
-
-    // UPDATE ROUTINE
-    double a2_star = static_cast<double>( d*(k-1) ) + a2;
-
-    // Computation of the weight for the "first" gamma distr.
-    double p0 = (a2_star)/((a2_star-k)+k*(b2+1)*exp(log_sum));
-    // Select, via extraction from a uniform, which distribution sample from
-    bool select_p0 = binary_decision(p0, gs_engine);
-
-    if(select_p0)
-        gs_data.lambda = Gamma(gs_engine, a2_star + 1, 1 /(b2 + 1 - exp(-log_sum)) );
-    else
-        gs_data.lambda = Gamma(gs_engine, a2_star, 1 /(b2 + 1 - exp(-log_sum)) );
+    const double sumPsi { std::inner_product(U.cbegin(), U.cend(), gamma.cbegin(), 0.0, std::plus<>(),
+                                            [](const double& U_j, const double& gamma_j){return (1/std::pow(1.0+U_j,gamma_j));}
+                                            ) 
+                        }; //sum_{j=1}^d(Psi_j(U_j)) = sum_{j=1}^d( 1/(1+U_j)^gamma_j ) 
     */
+    double sumPsi{0.0};                    
+    double sum_log_K_plus_LambdaPsi{0.0};                    
+    for(std::size_t j = 0; j < U.size(); j++){
+        const double Psi_j{ 1/std::pow(1.0+U[j],gamma[j]) };
+        sumPsi += Psi_j;
+        sum_log_K_plus_LambdaPsi += std::log(K + x*Psi_j);
+    }
+    return(  (a2 + U.size()*(K-1)-1)*std::log(x) - x*(b2 + U.size() - sumPsi) + sum_log_K_plus_LambdaPsi  );
 }

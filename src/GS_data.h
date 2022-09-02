@@ -26,9 +26,11 @@ struct GS_data{
     std::vector<double> U; // auxiliary variable
     std::vector<double> gamma; // vector of d gamma, one for each group
     std::vector<double> mu; // vector of the mean for each component
-    std::vector<double> sigma; // vector of the variance for each component
-                               // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
-    
+    std::vector<double> sigma; // vector of the variance for each component // N.B. sample::rnorm takes the s.d. as input ==> use sqrt(sigma[m])
+    std::vector<double> sum_cluster_elements; // vector of length K, each element contains the sum of the data within that cluster
+    std::vector<double> squared_sum_cluster_elements; // vector of length K, each element contains the squared sum of the data within that cluster
+    std::vector<std::vector<double>> log_prob_marginal_data; //same structure of data, it contains the marginal probabilities of each data in log-scale.
+
     // strings
     std::string prior; //Name of the prior for tau
     
@@ -70,6 +72,13 @@ struct GS_data{
                             const std::vector<unsigned int> &clust_out);
     void update_log_sum();
     void allocate_tau(unsigned int M);
+
+    // methods regarding the vectors to compute mean and variance in clusters
+    void initialize_sums_in_clusters();
+    double compute_var_in_cluster(const unsigned int& m) const;
+
+    // compute log of marginal probabilities of each data, i.e log(m(x))
+    void compute_log_prob_marginal_data(double nu_0, double sigma_0, double mu_0, double k_0);
 };
 
 #endif

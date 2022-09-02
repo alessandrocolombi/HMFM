@@ -18,7 +18,7 @@
 #include "FC_PartitionMarginal.h"
 
 #include "GS_data.h"
-#include "out_data.h"
+#include "out_dataMarginal.h"
 #include <chrono>
 
 class GibbsSamplerMarginal {
@@ -33,7 +33,7 @@ public:
                           unsigned int seed, std::string P0_prior_name, bool FixPart, Rcpp::List option);
                 
     // Data structure for the output
-    out_data out;
+    out_dataMarginal out;
     
     // Get n_j, for output C in a better way
     std::vector<unsigned int> get_nj() const {return gs_data.n_j;}

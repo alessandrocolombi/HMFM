@@ -236,6 +236,24 @@ namespace sample{ //use the sample:: namespace to avoid clashes with R or other 
 		}
 	};
 
+	//Callable object to draw a sample from non-central student-t distribution(n0, mu0, gamma0). The usual t-distribution(n0) can be recovered with mu0=0 and gamma0=1
+	struct rnct{
+
+		//Gets the engine
+		//non-central student-t distribution(n0, mu0, gamma0)
+		double operator()(GSL_RNG const & engine, double const & n0, double const & mu0, const double& gamma0)const{
+			if (gamma0 <= 0.0)
+				throw std::runtime_error("Error, gamma0 must be strictly positive. ");
+			return (gamma0 * gsl_ran_tdist(engine(), n0) + mu0);
+		}
+
+		//Engine defaulted
+		//non-central student-t distribution(n0, mu0, gamma0)
+		double operator()(double const & n0, double const & mu0, const double& gamma0)const{
+			return (gamma0 * gsl_ran_tdist(GSL_RNG ()(), n0) + mu0);
+		}
+	};
+
 	//Callable object to draw a sample from Dirichlet(alpha[0],...,alpha[K-1]).
 	//Both input and output Type are template parameters. Return type may be different from Input Type
 	// --> NB: Keep record of tested types! It is very challenging to check the type in the code. static_assert does help but undesired behaviours are difficult to be predicted <--

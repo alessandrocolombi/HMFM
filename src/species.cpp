@@ -157,7 +157,7 @@ double log_raising_factorial(const unsigned int& n, const double& a){
 	if(n==0)
 		return 0.0;
 	if(a<0)
-		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale"); // mi si blocca se a è 0 ma questo caso è da gestire nel caso del cacolo dei numeri centrali!
+		throw std::runtime_error("Error in my_log_raising_factorial, can not compute the raising factorial of a negative number in log scale"); 
 	else if(a==0.0){
 		return -std::numeric_limits<double>::infinity();
 	}
