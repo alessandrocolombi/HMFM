@@ -67,7 +67,7 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0);
 
         //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
+        std::vector< std::shared_ptr<FullConditional> > fc{ tau_ptr,
                                                             lambdaMarginal_ptr,
                                                             gammaMarginal_ptr,
                                                             UMarginal_ptr,
@@ -75,7 +75,6 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
                                                             };
 
         std::swap(FullConditionals, fc);
-
         // Initialize return structures 
         out.K.resize(n_iter);
         out.mu.resize(n_iter);
@@ -83,9 +82,8 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         out.lambda.resize(n_iter);
         out.U = Rcpp::NumericMatrix(gs_data.d,n_iter);
         out.gamma = Rcpp::NumericMatrix(gs_data.d,n_iter);
-        out.Partition = Rcpp::NumericMatrix(-1, n_iter, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0) ); // here; i am also computing the total number of data by summing the elements of n_j
+        out.Partition = Rcpp::NumericMatrix(n_iter, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0) ); // here; i am also computing the total number of data by summing the elements of n_j
         out.it_saved = 0;
-
         //Partition is initialized with all elements equal to -1 so that it is easier to spot errors
     }
     else{

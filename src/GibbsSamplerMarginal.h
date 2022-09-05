@@ -36,7 +36,7 @@ public:
     out_dataMarginal out;
     
     // Get n_j, for output C in a better way
-    std::vector<unsigned int> get_nj() const {return gs_data.n_j;}
+    std::vector<unsigned int> get_nj() const {return gs_data.n_j;} // inutile??
     
 private:
     std::vector<std::shared_ptr<FullConditional> > FullConditionals; // vector of shared pointer to FC class

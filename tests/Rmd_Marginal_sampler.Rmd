@@ -44,7 +44,7 @@ d = 2               # number of groups
 K = 4               # number of global clusters
 mu = c(-20,-10,0, 10)   # vectors of means
 sd = c(1,1,1,1)      # vector of sd
-n_j = rep(100, d)  # set cardinality of the groups
+n_j = rep(5, d)  # set cardinality of the groups
 seed = 20051131
 
 genD = generate_data(d=d, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
@@ -68,7 +68,7 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 5
+niter  <- 2
 burnin <- 0
 thin   <- 1
 

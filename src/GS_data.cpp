@@ -63,14 +63,11 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     U = std::vector<double>(d, 0.0);
     //Initialize log_sum
     update_log_sum();
-    
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine); // inutile nel caso marginale ma non fa danni. NON va molto bene in ottica tener fisso S ad un valore iniziale!
     // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
-    
     initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
     // Rcpp::Rcout << "tau Initialized "<< std::endl;
-
     //set dimensions of vectors to compute mean and variance in clusters. Their are not filled because their are not used in conditinal sampler
     sum_cluster_elements.resize(K);
     squared_sum_cluster_elements.resize(K);
@@ -106,7 +103,7 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     K =  *max_it + 1;
     M = K + Mstar;
     Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
-    Rcpp::Rcout<<"Watch out modification: Mstar is not set to zero but to Mstar0"<<std::endl;
+    //Rcpp::Rcout<<"Watch out modification: Mstar is not set to zero but to Mstar0"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
     // Allocate Ctilde, N, N_k 
@@ -120,7 +117,6 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
         for(unsigned int k = 0; k < K; ++k)
             N(j,k) = 0;
     N_k = std::vector<unsigned int>(K, 0);
-
     // Initialize Ctilde, N, N_k with info from partition_vec
     unsigned int j = 0;
     unsigned int i = 0;
