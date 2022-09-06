@@ -4,7 +4,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const unsigned int& d = gs_data.d;
     const unsigned int& K = gs_data.K;
     const unsigned int& Mstar = gs_data.Mstar;
-    const double& nu = gs_data.nu;
+    //const double& nu = gs_data.nu;
     const std::vector<double>& U = gs_data.U;
     const std::vector<double>& gamma = gs_data.gamma;
     const GDFMM_Traits::MatUnsCol& N = gs_data.N;
@@ -24,7 +24,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // Rcpp::Rcout << "[";
         for (unsigned k=0; k < K; k++) {//per ogni comp allocata
 
-            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + nu) ); //This is S' and U is U'
+            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
             /*
             NO ERRORE! LE U SALVATE SONO LE U', quindi questa estrazione è proprio sbagliata. 
             in pratica, cosi facendo si sta facendo uno scaling aggiuntivo
@@ -37,7 +37,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
 
-                S(j, K + mstar) = Gamma(gs_engine, gamma[j], 1 /(U[j] + nu) ); //This is S' and U is U'
+                S(j, K + mstar) = Gamma(gs_engine, gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
                 /*
                 Vecchio ordine
                 S(j, K + mstar) = Gamma(gs_engine, gamma[j],  1 /(U[j] + 1) );

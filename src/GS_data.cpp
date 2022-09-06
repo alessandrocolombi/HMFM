@@ -4,13 +4,13 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec, double _nu) :
+                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
                 prior(P0_prior_name) {
 
     iterations = 0;
     lambda = Lambda0;
     Mstar = Mstar0;
-    nu = _nu;
+    //nu = _nu;
 
     // Read Data and extract d, n_j
     for (unsigned int j = 0; j < dat.rows(); ++j) {
@@ -60,7 +60,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     // Initialization of gamma and U vector
     gamma = std::vector<double>(d, gamma0);
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
-    U = std::vector<double>(d, 0.0);
+    U = std::vector<double>(d, 1.0);
     //Initialize log_sum
     update_log_sum();
     // Random Initialization of S and tau form the prior
@@ -84,7 +84,7 @@ void GS_data::update_log_sum(){
        //log_sum += log(U[j]+1.0)*gamma[j]; // this is the sum of log( psi_S(U) )
        //psi_S += log(U[j]+1.0)*gamma[j]; // this is the sum of log( psi_S(U) ) //just for testing
        
-       log_sum += log(U[j]*1.0/nu + 1.0)*gamma[j]; // this is the sum of log( psi_S(U'/nu) )
+       log_sum += log(U[j] + 1.0)*gamma[j]; // this is the sum of log( psi_S(U'/nu) )
        
        //log_sum += gamma[j]* ( log(nu) - log(U[j] + nu) ) ; // this is the sum of log( psi_S'(U') )
        //psi_Sprime += -gamma[j]* ( log(nu) - log(U[j] + nu) ) ; // this is the sum of log( psi_S'(U') ) //just for testing
@@ -103,7 +103,6 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     K =  *max_it + 1;
     M = K + Mstar;
     Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
-    //Rcpp::Rcout<<"Watch out modification: Mstar is not set to zero but to Mstar0"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
     // Allocate Ctilde, N, N_k 
@@ -248,7 +247,11 @@ double GS_data::compute_var_in_cluster(const unsigned int& m) const
     if(N_k[m] == 1)
         return 0.0;
     else
-        return( ( squared_sum_cluster_elements[m] - N_k[m]*sum_cluster_elements[m]*sum_cluster_elements[m] )/(N_k[m] - 1) );
+        return  (   (squared_sum_cluster_elements[m] - 
+                        ( sum_cluster_elements[m]*sum_cluster_elements[m] )/N_k[m]  
+                    ) / 
+                    (N_k[m] - 1) 
+                );
 }
 
 void GS_data::compute_log_prob_marginal_data(double nu_0, double sigma_0, double mu_0, double k_0)

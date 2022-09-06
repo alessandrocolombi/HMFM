@@ -58,9 +58,19 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 ```
 
 ```{r}
-#hist(data[1,])
-#hist(data[2,])
-#hist(data[3,])
+counter = 1
+data_per_cluster = vector("list", length = K)
+for(j in 1:d){
+  for(i in 1:n_j[j]){
+    c_ji = real_partition[counter]
+    data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+    counter = counter + 1
+  }
+  
+}
+data_per_cluster 
+mean_data_per_cluster = lapply(data_per_cluster, mean)
+var_data_per_cluster  = lapply(data_per_cluster, var)
 ```
 
 
@@ -78,7 +88,7 @@ option = set_options_marginal(
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
              "beta_gamma"=1, "alpha_lambda"=10, "beta_lambda"=1/10,
-             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "UpdateU" = F, "UpdateGamma" = F, "UpdateTau" = F, "UpdateLambda" = F, 
              "partition" = real_partition
         )
 

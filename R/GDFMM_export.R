@@ -963,7 +963,6 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
 #' @param Mstar0 [integer] the initial value of non-allocated components
 #' @param Lambda0 [double] the initial value for Lambda.
 #' @param gamma0 [double] the initial value for the gamma parameters.
-#' @param nu [double] the rate parameter in the prior of un-normalized jumps.
 #' @param mu0 [double] the mean parameter in the prior of mu.
 #' @param k0 [double] the parameter in the prior of mu.
 #' @param sigma0 [double] the rate parameter in the prior of sigma.
@@ -984,14 +983,14 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
 #' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
 #'
 #' @export
-set_options = function( partition = NULL, Mstar0 = 2, nu = 1,
+set_options = function( partition = NULL, Mstar0 = 2, 
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
                       )
 {
-  option<-list("nu" = nu, "Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+  option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,

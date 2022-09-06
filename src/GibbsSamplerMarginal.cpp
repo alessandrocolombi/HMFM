@@ -31,7 +31,7 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         // To avoid rewriting a lot of code, I can set Mstar = 0. If so, M = K
         double Mstar0{0.0};
-        double nu{1.0}; // nu must be eliminated
+        //double nu{1.0}; // nu must be eliminated
 
         // Qua tutte copie inutili!!    
         // Read all hyper-parameters passed with option
@@ -54,10 +54,11 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
-                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec, nu);
+                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
 
         // Iinitialize sums in clusters
         gs_data.initialize_sums_in_clusters();
+        gs_data.compute_log_prob_marginal_data(nu0, sigma0, mu0,  k0);
 
         //Initialize Full Conditional Objects
         auto PartitionMarginal_ptr = std::make_shared<FC_PartitionMarginal>("Partition", gs_data.d, gs_data.n_j, FixPart, nu0, sigma0, mu0, k0);
@@ -84,7 +85,6 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         out.gamma = Rcpp::NumericMatrix(gs_data.d,n_iter);
         out.Partition = Rcpp::NumericMatrix(n_iter, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0) ); // here; i am also computing the total number of data by summing the elements of n_j
         out.it_saved = 0;
-        //Partition is initialized with all elements equal to -1 so that it is easier to spot errors
     }
     else{
         throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
@@ -120,28 +120,26 @@ void GibbsSamplerMarginal::GS_Step() {
     //Rcpp::Rcout<<"Mstar = "<<gs_data.Mstar<<"; K = "<<gs_data.K<<std::endl;
     for(auto full_cond: FullConditionals){
          
-         Rcpp::Rcout<<"-------------------------------------------"<<std::endl;
-         Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
-         Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
-         Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-         Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
+         //Rcpp::Rcout<<"-------------------------------------------"<<std::endl;
+         //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+         //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+         //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+         //Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
 
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){
             full_cond->update(gs_data, random_engine);
-            Rcpp::Rcout<<" --> done! "<<std::endl;
+            //Rcpp::Rcout<<" --> done! "<<std::endl;
         }
         else if(full_cond->name.compare("Mstar") == 0){ //if they are equal
-            Rcpp::Rcout<<"Non dovrei mai arrivare qui. Non faccio niente ma se c'è questo messaggio è strano"<<std::endl;
-            //Rcpp::Rcout<<"Aggiorno M senza aggiornare Mstar"<<std::endl;
-            //gs_data.M = gs_data.K + gs_data.Mstar;
+            throw std::runtime_error("Error, Marginal sampler must not update Mstar. ");
         }
 
-        Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
-        Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
-        Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
-        Rcpp::Rcout<<"********************************************"<<std::endl;
+        //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
+        //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
+        //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
+        //Rcpp::Rcout<<"********************************************"<<std::endl;
 
         // ending timer to measure updating time
         // auto t_end = std::chrono::high_resolution_clock::now();
@@ -163,7 +161,6 @@ void GibbsSamplerMarginal::GS_Step() {
 
 void GibbsSamplerMarginal::store_params_values() {
 
-    Rcpp::Rcout<<"running marginal store_params_values()"<<std::endl;
     const unsigned int& it_saved = out.it_saved;
 
     out.K[it_saved] = gs_data.K; //number of clusters
@@ -171,7 +168,7 @@ void GibbsSamplerMarginal::store_params_values() {
     out.mu[it_saved] = Rcpp::NumericVector ( gs_data.mu.begin(),gs_data.mu.end() ); 
     out.sigma[it_saved] =   Rcpp::NumericVector (gs_data.sigma.begin(),gs_data.sigma.end()); 
     // Save lambda - U - gamma
-    out.lambda.push_back(gs_data.lambda);
+    out.lambda[it_saved] = gs_data.lambda;
     out.U.column(it_saved) = Rcpp::NumericVector ( gs_data.U.begin(),gs_data.U.end() );
     out.gamma.column(it_saved) = Rcpp::NumericVector ( gs_data.gamma.begin(),gs_data.gamma.end() );
     // Save Partition
@@ -187,67 +184,3 @@ void GibbsSamplerMarginal::store_params_values() {
 
 
 
-/* Questo sicuro non serve
-void GibbsSamplerMarginal::store_w_jk(){
-    
-    unsigned int current_it = (gs_data.iterations - burn_in)/thin;
-    unsigned int d = gs_data.S.rows();
-    unsigned int K = gs_data.S.cols();
-    
-    if(out.w_jk.empty()){
-        GDFMM_Traits::MatRow w_j(K, n_iter);
-        for(unsigned int j = 0; j < d; j++){
-            out.w_jk.push_back(w_j);
-        }
-    }
-
-    Eigen::VectorXd T = gs_data.S.rowwise().sum();
-
-    for(unsigned int j = 0; j < d; j++){
-        for(unsigned int k = 0; k < K; k++){
-            out.w_jk[j](k, current_it - 1) = gs_data.S(j,k)/T(j);
-        }
-    }
-}
-*/
-
-/* Old version - ragazzi
-void GibbsSamplerMarginal::store_tau(){
-    unsigned int current_it = (gs_data.iterations - burn_in)/thin;
-    unsigned int current_K = gs_data.K;
-    unsigned int size_tau = out.mu.size();
-
-    // Check that current_K doesn't exceed size_tau
-    if(out.mu.empty()){
-        for(unsigned int k = 0; k < current_K; k++){
-            out.mu.push_back(std::vector<double>{gs_data.mu[k]});  
-            out.sigma.push_back(std::vector<double>{gs_data.sigma[k]});
-        }
-        return;
-    }
-    
-    if(current_K > size_tau){
-        // resize output tau accordingly and initialize values for past iterations
-        out.mu.resize(current_K);
-        out.sigma.resize(current_K);
-        for(unsigned int i = size_tau; i < current_K; i++){
-            out.mu[i] = std::vector<double>(current_it-1, std::nan("") );
-            out.sigma[i] = std::vector<double>(current_it-1, std::nan("") );
-        }
-    }
-
-    // Update tau with current value
-    for(unsigned int k = 0; k < current_K; k++){
-        out.mu[k].push_back(gs_data.mu[k]);
-        out.sigma[k].push_back(gs_data.sigma[k]);
-    }
-
-    // Fill other tau, if there exist
-    if(current_K < size_tau){
-        for(unsigned int i = current_K; i < size_tau; i++){
-            out.mu[i].push_back(std::nan("") );
-            out.sigma[i].push_back(std::nan("") );
-        }
-    }
-}
-*/

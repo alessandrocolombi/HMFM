@@ -15,7 +15,7 @@ struct GS_data{
     unsigned int Mstar; // number of NON-allocated component
     unsigned int M; // total number of component
     double lambda; // M|lambda ~ Poi(lambda)
-    double nu; // S_jm ~ gamma(gamma_j, nu), da togliere
+    //double nu; // S_jm ~ gamma(gamma_j, nu), da togliere
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
     
     // vectors
@@ -45,14 +45,14 @@ struct GS_data{
     // Constructor with default prior (Normal-InvGamma)
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
             const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
-            double nu0, double sigma0, double _gamma0, std::vector<unsigned int> _part_vec, double _nu) : 
+            double nu0, double sigma0, double _gamma0, std::vector<unsigned int> _part_vec) : 
                         GS_data(dat, n_iter, burnin, thin, gs_engine, _Mstar0, _Lambda0, _mu0, nu0,
-                                sigma0, _gamma0, "Normal-InvGamma", _part_vec, _nu){}
+                                sigma0, _gamma0, "Normal-InvGamma", _part_vec){}
     
     // Constructor with user defined prior
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
-                double nu0, double sigma0, double _gamma0, std::string P0_prior_name, std::vector<unsigned int> _part_vec, double _nu);
+                double nu0, double sigma0, double _gamma0, std::string P0_prior_name, std::vector<unsigned int> _part_vec);
 
     GS_data(){};
     ~GS_data(){};

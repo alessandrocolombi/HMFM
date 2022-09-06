@@ -6,7 +6,6 @@ FC_PartitionMarginal::FC_PartitionMarginal( std::string _na, const unsigned int 
 
 // update method
 void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
-    Rcpp::Rcout<<"Questo non e l'update di PARTITION.CPP"<<std::endl;
     
     if(Partition_fixed){
          Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
@@ -16,6 +15,16 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         // From gs_data all needed variable are retrived
         const std::vector<std::vector<double>>& data = gs_data.data; //data
         const std::vector<std::vector<double>>& log_prob_marginal_data = gs_data.log_prob_marginal_data; //log marginal data
+
+        //Rcpp::Rcout<<"Stampo log_prob_marginal_data: ";        
+        //for(auto __v : log_prob_marginal_data){
+            //for(auto ___v : __v){
+                //Rcpp::Rcout<<___v<<", ";
+            //}
+            //Rcpp::Rcout<<std::endl;
+        //}
+        //Rcpp::Rcout<<std::endl;
+
         unsigned int& K = gs_data.K; // number of cluster
         const unsigned int& Lambda = gs_data.lambda; 
         const unsigned int& d = gs_data.d; // number of levels
@@ -27,7 +36,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         const std::vector<double>& gamma = gs_data.gamma; 
         std::vector<double>& sum_cluster_elements = gs_data.sum_cluster_elements;
         std::vector<double>& squared_sum_cluster_elements = gs_data.squared_sum_cluster_elements;
-        
+
         // Quantities for computing marginal probabilities
         const double& dof_prior{nu_0};
         const double& location_prior{mu_0};
@@ -48,7 +57,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
             return (std::inner_product(U.cbegin(), U.cend(), gamma.cbegin(), 0.0, std::plus<>(),[&Lambda, &K](const double& U_j, const double& gamma_j)
                                                                                              {  
                                                                                                 const double Psi_j{ 1/std::pow(1.0+U_j,gamma_j) }; // compute Psi_j
-                                                                                                return (  gamma_j*std::log(U_j+1.0) + 
+                                                                                                return (  -gamma_j*std::log(U_j+1.0) + 
                                                                                                           std::log((double)K+1.0+Lambda*Psi_j) - 
                                                                                                           std::log((double)K+Lambda*Psi_j)
                                                                                                        );
@@ -59,17 +68,17 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         double log_const_new_cluster{compute_log_const_new_cluster(K)};
 
 
-
-
         // Chinese Restaurant Franchise process allocation
         for(unsigned int j=0; j<d; j++){
             for(unsigned int i=0; i<n_j[j]; i++){
 
+                        //Rcpp::Rcout<<"data["<<j<<"]["<<i<<"]:"<<std::endl<<data[j][i]<<std::endl;
                 // Remark: we are dealing with a CRF process, hence a table may be empty as long as at least one table serving the same
                 // dish is occupied in one of the other levels/restaurants. Hence, N(j,m) may be 0 as long as N_k[m] > 0.
                 // N_k[m] == 0 means that the global cluster m is now empty.
 
                 unsigned int C_ji = Ctilde[j][i];  // what is the table assignment for obs ji? get its cluster membership
+                        //Rcpp::Rcout<<"C_"<<j<<i<<":"<<std::endl<<C_ji<<std::endl;
 
                 // remove obs ji from its cluster. In this step, both the local and the global counts must be updated as well as the sums in that cluster
                 N_k[C_ji]--; // decrease the global counts
@@ -90,17 +99,16 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                     squared_sum_cluster_elements.resize(K-1);                               // eliminate the last cluster, now empty
                     sum_cluster_elements.resize(K-1);                                       // eliminate the last cluster, now empty
 
-                    // change all labels according to new labeling
-                    std::for_each( Ctilde.begin(), Ctilde.end(), [&C_ji,&K](std::vector<unsigned int>& Ctilde_lev_j)
-                                                                 {std::for_each(Ctilde_lev_j.begin(), Ctilde_lev_j.end(), [&C_ji,&K](unsigned int& Ctilde_ji)
-                                                                                                                          {if(C_ji == Ctilde_ji)
-                                                                                                                            return (K-1);
-                                                                                                                           else
-                                                                                                                            return Ctilde_ji;}
-                                                                                );
-                                                                    return  Ctilde_lev_j;
-                                                                 } 
-                                 );
+                    // change all labels according to new labeling. Data (there is only one and it is in position ji) with label C_ji is ruled out by setting its label equal to K-1
+                    // while current data with label K-1 get label C_ji
+                    
+                    for(unsigned int jj=0; jj<d; jj++){
+                        for(unsigned int ii=0; ii<n_j[jj]; ii++){
+                            if(Ctilde[jj][ii] == K-1)
+                                Ctilde[jj][ii] = C_ji; // switch label for data currently in cluster K-1
+                        }
+                    }
+                    Ctilde[j][i] = K-1;
 
                     K--; // decrese the current number of clusters 
                     log_const_new_cluster = compute_log_const_new_cluster(K); // update constant
@@ -120,18 +128,25 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                                                                 K/k_0_post * N_k[C_ji] * 
                                                                     (location_prior + sum_cluster_elements[l]/N_k[C_ji] ) * (location_prior + sum_cluster_elements[l]/N_k[C_ji] )
                                                             );
-                    scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
 
+                    scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
                     log_probs_vec[l] =  std::log( (double)N(j,l) + gamma[j] ) + 
                                         log_dnct(data[j][i], dof_post, location_post, scale_post);
+
+                                        
+
                 }
+                
                 // we are done looping over the already occupied clusters. Next, calculate the log probability of a new table.
                 log_probs_vec[K] =  log_const_new_cluster + 
                                     std::log(gamma[j]) + d*std::log(Lambda) +
                                     log_prob_marginal_data[j][i];
 
+
+                        //Rcpp::Rcout<<"log_probs_vec:"<<std::endl<<log_probs_vec<<std::endl;
                 // stable calculation of non-normalized weights in non-log scale
                 log_probs_max = log_probs_vec.maxCoeff(); // get max value
+
                 for(std::size_t m = 0; m < log_probs_vec.size(); m++){
                     log_probs_vec(m) = std::exp(log_probs_vec(m) - log_probs_max);
                      //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
@@ -139,13 +154,11 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                         throw std::runtime_error("Error in Partition.cpp, get a nan in probs_vec ");
                 }
 
-
                 // Draw a sample of which cluster customer ji should belong to 
                 new_Cji = sample_index(gs_engine, log_probs_vec); //values in log_probs_vec are no longer in log-scale here
-
+                        //Rcpp::Rcout<<"------> new_C"<<j<<i<<":"<<std::endl<<new_Cji<<std::endl;
                 // set a new cluster, if necessary
                 if( new_Cji == K){
-                    
                     N_k.resize(K+1);                         // allocate space in global counts for the new cluster
                     N_k[K] = 0;                              // values are assigned later
                     N.conservativeResize(d,K+1);             // allocate space in local counts for the new cluster
@@ -160,8 +173,8 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 Ctilde[j][i] = new_Cji; // set new label
                 N_k[new_Cji]++;         // update global counts
                 N(j,new_Cji)++;         // update local counts
-                sum_cluster_elements[C_ji] += data[j][i];  //add data_ji to the sum of elements in its cluster
-                squared_sum_cluster_elements[C_ji] += data[j][i]*data[j][i]; //add data_ji to the sum of squared elements in its cluster
+                sum_cluster_elements[new_Cji] += data[j][i];  //add data_ji to the sum of elements in its cluster
+                squared_sum_cluster_elements[new_Cji] += data[j][i]*data[j][i]; //add data_ji to the sum of squared elements in its cluster
             }
 
         }
@@ -188,5 +201,47 @@ double FC_PartitionMarginal::dnct(const double& x, double const & n0, double con
 
 double FC_PartitionMarginal::log_dnct(const double& x, double const & n0, double const & mu0, const double& gamma0) const
 {   
+    if(n0 <= 0)
+        throw std::runtime_error("Error in log_dnct, the degree of freedom must be strictly positive  ");
+    if(gamma0 <= 0)
+        throw std::runtime_error("Error in log_dnct, the scale must be strictly positive  ");
     return(   std::lgamma( (n0+1)/2 ) - std::lgamma( n0/2 ) - 0.5*std::log(M_PI*gamma0*n0) - 0.5*(n0 + 1)*std::log(1 + (1/n0)*(x-mu0)*(x-mu0)/(gamma0*gamma0)  )  );
 }
+
+
+
+// Stampa utile per dubugging
+/*
+
+Rcpp::Rcout<<"Stampo N_k: ";        
+for(auto __v : N_k)
+    Rcpp::Rcout<<__v<<", ";
+Rcpp::Rcout<<std::endl;
+
+Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+
+Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
+for(auto __v : sum_cluster_elements)
+    Rcpp::Rcout<<__v<<", ";
+Rcpp::Rcout<<std::endl;
+
+Rcpp::Rcout<<"Stampo squared_sum_cluster_elements: ";        
+for(auto __v : squared_sum_cluster_elements)
+    Rcpp::Rcout<<__v<<", ";
+Rcpp::Rcout<<std::endl;
+
+Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+for(auto __v : Ctilde){
+    for(auto ___v : __v){
+        Rcpp::Rcout<<___v<<", ";
+    }
+    Rcpp::Rcout<<std::endl;
+}
+Rcpp::Rcout<<std::endl;
+
+Rcpp::Rcout<<"K = "<<K<<std::endl;
+
+Rcpp::Rcout<<"log_const_new_cluster:"<<std::endl<<log_const_new_cluster<<std::endl;
+}
+
+*/

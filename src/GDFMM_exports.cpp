@@ -17,6 +17,7 @@
 Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
 			 					unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
 								bool FixPart, Rcpp::List option){
+	
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
 	// Do not use deafult values here
