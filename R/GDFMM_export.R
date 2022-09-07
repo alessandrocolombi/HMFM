@@ -909,8 +909,9 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
 
 #' generate_data
 #'
-#' This function generate data to be used in the \code{\link{GDFMM_sampler}}.
+#' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 #' A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
+#' This is indeed the old version, the newest function is \code{\link{generate_data_prob}}.
 #' @param d [integer] the number of levels in the data.
 #' @param K [integer] the total number of clusters.
 #' @param mu [vector] of length \code{K} defining the means of the clusters.
@@ -920,7 +921,7 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
 #' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
 #' and a vector named \code{real_partition} with the cluster membership of each data point.
 #' @export
-generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
+generate_data <- function(d, K = 3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
 {
   if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
   if(length(n_j) != d ) stop("The length of n_j must be equal to d")
@@ -955,6 +956,51 @@ generate_data <- function(d, K=3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200,
   return( list(data = data, real_partition = real_partition) )
 }
 
+#' generate_data
+#'
+#' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
+#' It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
+#' weights defined in \code{prob}, which may vary in different levels
+#' @inheritParams generate_data
+#' @param prob [matrix] of dimension \code{d x K} where each row contains the weights for the mixture model in each level. Some may be zero.
+#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
+#' and a vector named \code{real_partition} with the cluster membership of each data point.
+#' @export
+generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
+{
+  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
+  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
+  
+  n = sum(n_j) #total number of data points
+  #p = matrix(0, nrow = d, ncol = K) # matrix with components weights
+
+  set.seed(seed)
+  Kgruppo = c() # used to save the number of generated clusters in each level
+  componenti_gruppo = NULL # used to state what components are used to generate data in each level
+
+  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
+  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
+  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
+  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
+  # cluster label must always start from 0!
+  for(j in 1:d){
+    Kgruppo[j] = 3 # number of clusters in each level
+    componenti_gruppo[[j]] = 1:3 # choose the components
+    p[j,1:Kgruppo[j]] = prob[j,] 
+    #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
+    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu,
+                              sds = sd )
+
+    data[j, 1:n_j[j]] = appoggio$y
+    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
+    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
+    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
+  }
+  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
+  # quella che viene modificata dentro il sampler è
+  # partion_within_sampler = arrange_partition(real_partition)
+  return( list(data = data, real_partition = real_partition) )
+}
 
 #' set_options
 #'

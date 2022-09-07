@@ -7,7 +7,6 @@
 set_options(
   partition = NULL,
   Mstar0 = 2,
-  nu = 1,
   Lambda0 = 3,
   mu0 = 0,
   sigma0 = 1,
@@ -34,8 +33,6 @@ set_options(
 \item{partition}{\link{vector} of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.}
 
 \item{Mstar0}{\link{integer} the initial value of non-allocated components}
-
-\item{nu}{\link{double} the rate parameter in the prior of un-normalized jumps.}
 
 \item{Lambda0}{\link{double} the initial value for Lambda.}
 

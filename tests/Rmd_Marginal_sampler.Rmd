@@ -44,7 +44,7 @@ d = 2               # number of groups
 K = 4               # number of global clusters
 mu = c(-20,-10,0, 10)   # vectors of means
 sd = c(1,1,1,1)      # vector of sd
-n_j = rep(5, d)  # set cardinality of the groups
+n_j = rep(50, d)  # set cardinality of the groups
 seed = 20051131
 
 genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
@@ -71,10 +71,10 @@ for(j in 1:d){
   }
   
 }
-data_per_cluster 
+#data_per_cluster 
 mean_data_per_cluster = lapply(data_per_cluster, mean)
 var_data_per_cluster  = lapply(data_per_cluster, var)
-log_marginal_prior
+#log_marginal_prior
 ```
 
 
@@ -82,7 +82,7 @@ log_marginal_prior
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 2
+niter  <- 2000
 burnin <- 0
 thin   <- 1
 
@@ -91,8 +91,8 @@ option = set_options_marginal(
              "Lambda0" = 3, "mu0" = 1,"sigma0"= 1, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=10, "beta_lambda"=1/10,
-             "UpdateU" = F, "UpdateGamma" = F, "UpdateTau" = F, "UpdateLambda" = F, 
+             "beta_gamma"=1, "alpha_lambda"=3, "beta_lambda"=3,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = real_partition
         )
 
@@ -117,21 +117,39 @@ par(mfrow = c(1,d))
 for(j in 1:d){
   plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
 }
-```
 
-```{r, echo = F}
-# Analisi output ----------------------------------------------------------
-
-#K
+# K
+par(mfrow = c(1,2))
 plot(GDFMM$K, type = 'l', main = "K")
 hist(GDFMM$K, main = "K")
 
-#Mstar
-plot(GDFMM$Mstar, type = 'l', main = "Mstar")
+```
+
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
 
 
-# Predictive --------------------------------------------------------------
+heatmap(sim_matrix)
 
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+```
+
+```{r, echo = F}
+
+stop("Questa è ancora la predittiva del condizionale")
+# Predictive -------------------------------------------------------------
 l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
 
@@ -173,76 +191,10 @@ for(j in 1:d){
 ```
 
 
-```{r}
-# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
 
-# Get labels for each iterations for each data point 
-part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
-
-# Compute similarity matrix
-sim_matrix <- psm(part_matrix)
-
-
-heatmap(sim_matrix)
-
-
-binder_sara = minbinder(sim_matrix)
-VI_sara = minVI(sim_matrix)
-
-table(binder_sara$cl)
-table(VI_sara$cl)
-table(real_partition)
-
-
-
-
-
-
-```
 
 
 ## Esperimento 2
-
-Nuova funzione
-```{r}
-
-generate_data_prob <- function(d, K=3, p = prob, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
-{
-  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
-  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
-  
-  n = sum(n_j) #total number of data points
-  #p = matrix(0, nrow = d, ncol = K) # matrix with components weights
-
-  set.seed(seed)
-  Kgruppo = c() # used to save the number of generated clusters in each level
-  componenti_gruppo = NULL # used to state what components are used to generate data in each level
-
-  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
-  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
-  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
-  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
-  # cluster label must always start from 0!
-  for(j in 1:d){
-    Kgruppo[j] = 3 # number of clusters in each level
-    componenti_gruppo[[j]] = 1:3 # choose the components
-    p[j,1:Kgruppo[j]] = prob[j,] 
-    #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
-    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu,
-                              sds = sd )
-
-    data[j, 1:n_j[j]] = appoggio$y
-    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
-    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
-    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
-  }
-  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
-  # quella che viene modificata dentro il sampler è
-  # partion_within_sampler = arrange_partition(real_partition)
-  return( list(data = data, real_partition = real_partition) )
-}
-```
-
 
 Dati esperimento:
 ```{r}
@@ -310,4 +262,117 @@ for(j in 1:d){
   idx_end = idx_end + n_j[j]
 }
 
+```
+
+```{r}
+# Run  --------------------------------------------------------------------
+
+
+niter  <- 2000
+burnin <- 0
+thin   <- 1
+
+
+option = set_options_marginal(
+             "Lambda0" = 3, "mu0" = 1,"sigma0"= 1, "gamma0" = 1,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "k0"= 1/10, "nu0"=10, "alpha_gamma"=10,
+             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition
+        )
+
+
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+
+```
+
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(mfrow = c(1,2))
+plot(GDFMM$K, type = 'l', main = "K")
+hist(GDFMM$K, main = "K")
+
+```
+
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION -------------------
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+```
+
+```{r}
+# Analisi per gruppo
+part_matrix_lv1 = part_matrix[,1:100]
+# Compute similarity matrix
+sim_matrix_lv1 <- psm(part_matrix_lv1)
+
+
+heatmap(sim_matrix_lv1)
+
+
+binder_sara_lv1 = minbinder(sim_matrix_lv1)
+VI_sara_lv1 = minVI(sim_matrix_lv1)
+
+table(binder_sara_lv1$cl)
+table(VI_sara_lv1$cl)
+table(real_partition[1:100])
+
+cred_ball_lv1 = credibleball(VI_sara_lv1$cl, sim_matrix_lv1, alpha = 0.05 )
+cred_ball_lv1$dist.uppervert
+
+
+#lv2:
+part_matrix_lv2 = part_matrix[,101:200]
+# Compute similarity matrix
+sim_matrix_lv2 <- psm(part_matrix_lv2)
+
+
+heatmap(sim_matrix_lv2)
+
+
+binder_sara_lv2 = minbinder(sim_matrix_lv2)
+VI_sara_lv2 = minVI(sim_matrix_lv2)
+
+table(binder_sara_lv2$cl)
+table(VI_sara_lv2$cl)
+table(real_partition[101:200])
+
+cred_ball_lv2 = credibleball(VI_sara_lv2$cl, sim_matrix_lv2, alpha = 0.05 )
+cred_ball_lv2$dist.uppervert
+
+idx_bin = which(binder_sara_lv2$cl==3)
+real_partition[101:200][idx_bin]
 ```

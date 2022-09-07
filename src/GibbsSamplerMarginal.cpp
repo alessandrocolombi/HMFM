@@ -33,7 +33,6 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         double Mstar0{0.0};
         //double nu{1.0}; // nu must be eliminated
 
-        // Qua tutte copie inutili!!    
         // Read all hyper-parameters passed with option
         double Lambda0 = Rcpp::as<double>(option["Lambda0"]);
         double mu0 = Rcpp::as<double>(option["mu0"]);
