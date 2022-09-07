@@ -7,13 +7,11 @@ FC_UMarginal::FC_UMarginal( std::string _na, bool _keepfixed,
                             double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0):
                             FC_U(_na,_keepfixed),hyp1(_h1),hyp2(_h2),power(_pow)
                             {
-                                adapt_var_pop_gamma.resize(_d);
-                                std::fill(adapt_var_pop_gamma.begin(), adapt_var_pop_gamma.end(), _adapt_var0);
+                                adapt_var_proposal_U.resize(_d);
+                                std::fill(adapt_var_proposal_U.begin(), adapt_var_proposal_U.end(), _adapt_var0);
                             };
 
 void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
-    Rcpp::Rcout<<"Questo non e l'update di PARTITION.CPP"<<std::endl;
-
     // Samplers
     sample::rnorm rnorm;
     sample::runif runif;
@@ -40,12 +38,12 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
     
     for (unsigned int j = 0; j < d; j++){
         //Rcpp::Rcout<<"U:"<<U[j]<<std::endl;
-        //cpp::Rcout<<"Adaptive variamce var["<<j<<"] = "<<adapt_var_pop_gamma[j]<<std::endl;
+        //cpp::Rcout<<"Adaptive variance var["<<j<<"] = "<<adapt_var_proposal_U[j]<<std::endl;
 
         // Update of U_j via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
         
         //1) Sample proposed value in log scale
-        log_U_new = rnorm(gs_engine, std::log(U[j]), std::sqrt(adapt_var_pop_gamma[j]));
+        log_U_new = rnorm(gs_engine, std::log(U[j]), std::sqrt(adapt_var_proposal_U[j]));
         U_new = std::exp(log_U_new);
         
         //2) Compute acceptance probability in log scale
@@ -62,20 +60,20 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
         //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
         //Rcpp::Rcout << "U_" << j << gs_data.U[j] << update_status << std::endl;
 
-        adapt_var_pop_gamma[j] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
+        adapt_var_proposal_U[j] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
                                                     )  
                                             );
 
-        if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
-            adapt_var_pop_gamma[j] = 1/pow(10, power);
+        if (adapt_var_proposal_U[j] < 1/pow(10, power)){
+            adapt_var_proposal_U[j] = 1/pow(10, power);
         }
-        if(adapt_var_pop_gamma[j] > pow(10,power)){
-            adapt_var_pop_gamma[j] = pow(10,power);
+        if(adapt_var_proposal_U[j] > pow(10,power)){
+            adapt_var_proposal_U[j] = pow(10,power);
         }
 
     }
     
-    gs_data.update_log_sum();
+    //gs_data.update_log_sum();
     // Rcpp::Rcout<< "New log_sum : " << gs_data.log_sum <<std::endl;
 }
 
@@ -84,5 +82,5 @@ double FC_UMarginal::log_FCU_marginal(const double& x, const double& Lambda, con
     const double oneplusU{1+x};
     const double oneplusU_at_gamma{std::pow(oneplusU,gamma_j)};
 
-    return(  (n_j - 1)*std::log(x) + Lambda/oneplusU_at_gamma + std::log( (K*oneplusU_at_gamma + Lambda)/oneplusU_at_gamma ) - oneplusU*(n_j + K*gamma_j)  );
+    return(  (n_j - 1)*std::log(x) + Lambda/oneplusU_at_gamma + std::log( K + Lambda/oneplusU_at_gamma ) - oneplusU*(n_j + K*gamma_j)  );
 }

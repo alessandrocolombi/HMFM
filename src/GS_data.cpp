@@ -262,10 +262,10 @@ void GS_data::compute_log_prob_marginal_data(double nu_0, double sigma_0, double
 
     for(unsigned int j=0; j<d; j++){
         for(unsigned int i=0; i<n_j[j]; i++){
-            log_prob_marginal_data[j][i] =  std::lgamma( (n0+1)/2 ) - 
-                                            std::lgamma( n0/2 ) - 
+            log_prob_marginal_data[j][i] =  std::lgamma( (n0+1.0)/2.0 ) - 
+                                            std::lgamma( n0/2.0 ) - 
                                             0.5*std::log(M_PI*gamma0*n0) - 
-                                            0.5*(n0 + 1)*std::log(1 + (1/n0)*(data[j][i]-mu0)*(data[j][i]-mu0)/(gamma0*gamma0) );
+                                            0.5*(n0 + 1.0)*std::log(1.0 + (1.0/n0)*(data[j][i]-mu0)*(data[j][i]-mu0)/(gamma0*gamma0) );
 
         }
     }

@@ -11,7 +11,7 @@ private:
     double hyp1 = 0.234;
     double hyp2 = 0.7;
     unsigned int power = 10;
-    std::vector<double> adapt_var_pop_gamma; //vector for variances to be adapted in MH steps
+    std::vector<double> adapt_var_proposal_U; //vector for variances to be adapted in MH steps
     // evaluate log_f(U_j = x | rest )
     double log_FCU_marginal(const double& x, const double& Lambda, const unsigned int& K, const double& gamma, const unsigned int& n_j) const;
 public:

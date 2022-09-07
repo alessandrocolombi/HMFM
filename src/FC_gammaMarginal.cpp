@@ -1,7 +1,5 @@
 #include "FC_gammaMarginal.h"
 void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
-
-    Rcpp::Rcout<<"Questo non e l'update di FC_gamma.CPP"<<std::endl;
     // Samplers
     sample::rnorm rnorm;
     sample::runif runif;
@@ -28,7 +26,7 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
     
     for (unsigned int j = 0; j < d; j++){
         //Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
-        Rcpp::Rcout<<"Adaptive variamce var["<<j<<"] = "<<adapt_var_pop_gamma[j]<<std::endl;
+        //Rcpp::Rcout<<"Adaptive variamce var["<<j<<"] = "<<adapt_var_pop_gamma[j]<<std::endl;
 
         // Update of Gamma via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
         
@@ -99,5 +97,11 @@ double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lam
         sumPochammer += log_raising_factorial(n_jk[i], x);
 
 
-    return( -x*oneplusU + std::log( K + Lambda/std::pow(oneplusU,x) ) - ( n_jk.sum()+K*x )*log(oneplusU) + sumPochammer +(alpha-1)*std::log(x) - beta*x    );
+    return( - x*oneplusU + 
+            std::log( (double)K + Lambda/std::pow(oneplusU,x) ) - 
+            ( n_jk.sum() + (double)K*x )*std::log(oneplusU) + 
+            sumPochammer +
+            (alpha - 1.0)*std::log(x) - 
+            beta*x    
+        );
 }

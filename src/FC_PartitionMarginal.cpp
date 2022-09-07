@@ -16,7 +16,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         const std::vector<std::vector<double>>& data = gs_data.data; //data
         const std::vector<std::vector<double>>& log_prob_marginal_data = gs_data.log_prob_marginal_data; //log marginal data
 
-        //Rcpp::Rcout<<"Stampo log_prob_marginal_data: ";        
+        //Rcpp::Rcout<<"Stampo log_prob_marginal_data: "<<std::endl;        
         //for(auto __v : log_prob_marginal_data){
             //for(auto ___v : __v){
                 //Rcpp::Rcout<<___v<<", ";
@@ -67,18 +67,52 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         };
         double log_const_new_cluster{compute_log_const_new_cluster(K)};
 
-
+        Rcpp::Rcout<<"###################################"<<std::endl;
         // Chinese Restaurant Franchise process allocation
         for(unsigned int j=0; j<d; j++){
             for(unsigned int i=0; i<n_j[j]; i++){
 
-                        //Rcpp::Rcout<<"data["<<j<<"]["<<i<<"]:"<<std::endl<<data[j][i]<<std::endl;
+                        Rcpp::Rcout<<"data["<<j<<"]["<<i<<"]:"<<std::endl<<data[j][i]<<std::endl;
                 // Remark: we are dealing with a CRF process, hence a table may be empty as long as at least one table serving the same
                 // dish is occupied in one of the other levels/restaurants. Hence, N(j,m) may be 0 as long as N_k[m] > 0.
                 // N_k[m] == 0 means that the global cluster m is now empty.
 
+                Rcpp::Rcout<<"-----------------------------------"<<std::endl;
+                Rcpp::Rcout<<"Pre-update"<<std::endl;
+                Rcpp::Rcout<<"Stampo N_k: ";        
+                for(auto __v : N_k)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+
+                Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
+                for(auto __v : sum_cluster_elements)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"Stampo squared_sum_cluster_elements: ";        
+                for(auto __v : squared_sum_cluster_elements)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+                for(auto __v : Ctilde){
+                    for(auto ___v : __v){
+                        Rcpp::Rcout<<___v<<", ";
+                    }
+                    Rcpp::Rcout<<std::endl;
+                }
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"K = "<<K<<std::endl;
+
+                Rcpp::Rcout<<"log_const_new_cluster:"<<std::endl<<log_const_new_cluster<<std::endl;
+                
+
+
                 unsigned int C_ji = Ctilde[j][i];  // what is the table assignment for obs ji? get its cluster membership
-                        //Rcpp::Rcout<<"C_"<<j<<i<<":"<<std::endl<<C_ji<<std::endl;
+                        Rcpp::Rcout<<"C_"<<j<<i<<":"<<std::endl<<C_ji<<std::endl;
 
                 // remove obs ji from its cluster. In this step, both the local and the global counts must be updated as well as the sums in that cluster
                 N_k[C_ji]--; // decrease the global counts
@@ -112,6 +146,39 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
 
                     K--; // decrese the current number of clusters 
                     log_const_new_cluster = compute_log_const_new_cluster(K); // update constant
+
+                    Rcpp::Rcout<<"***********************************"<<std::endl;
+                    Rcpp::Rcout<<"Caso difficile - elimina il cluster"<<std::endl;
+                    Rcpp::Rcout<<"Stampo N_k: ";        
+                    for(auto __v : N_k)
+                        Rcpp::Rcout<<__v<<", ";
+                    Rcpp::Rcout<<std::endl;
+
+                    Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+
+                    Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
+                    for(auto __v : sum_cluster_elements)
+                        Rcpp::Rcout<<__v<<", ";
+                    Rcpp::Rcout<<std::endl;
+
+                    Rcpp::Rcout<<"Stampo squared_sum_cluster_elements: ";        
+                    for(auto __v : squared_sum_cluster_elements)
+                        Rcpp::Rcout<<__v<<", ";
+                    Rcpp::Rcout<<std::endl;
+
+                    Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+                    for(auto __v : Ctilde){
+                        for(auto ___v : __v){
+                            Rcpp::Rcout<<___v<<", ";
+                        }
+                        Rcpp::Rcout<<std::endl;
+                    }
+                    Rcpp::Rcout<<std::endl;
+
+                    Rcpp::Rcout<<"K = "<<K<<std::endl;
+
+                    Rcpp::Rcout<<"log_const_new_cluster:"<<std::endl<<log_const_new_cluster<<std::endl;
+                    
                 }
 
 
@@ -120,16 +187,21 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 // loop over current clusters 
                 for(std::size_t l = 0; l < K; l++){
                     //computed updated parameters
-                    dof_post = dof_prior + N_k[C_ji];
-                    double k_0_post = k_0 + N_k[C_ji];
+                    dof_post = dof_prior + N_k[l];
+                    double k_0_post = k_0 + N_k[l];
                     location_post = (k_0*location_prior + sum_cluster_elements[l])/k_0_post;
-                    double sigma_0_post =   (1/dof_post) * (    (double)(N_k[C_ji]-1) * gs_data.compute_var_in_cluster(l) +
+                    double sigma_0_post =   (1/dof_post) * (    (double)(N_k[l]-1) * gs_data.compute_var_in_cluster(l) +
                                                                 dof_prior*sigma_0 +
-                                                                K/k_0_post * N_k[C_ji] * 
-                                                                    (location_prior + sum_cluster_elements[l]/N_k[C_ji] ) * (location_prior + sum_cluster_elements[l]/N_k[C_ji] )
+                                                                (double)K/k_0_post * (double)N_k[l] * 
+                                                                    (location_prior + sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior + sum_cluster_elements[l]/(double)N_k[l] )
                                                             );
 
                     scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
+                    Rcpp::Rcout<<"N_k["<<l<<"] = "<<N_k[l]<<std::endl;
+                    Rcpp::Rcout<<"gs_data.compute_var_in_cluster("<<l<<") = "<<gs_data.compute_var_in_cluster(l)<<std::endl;
+                    Rcpp::Rcout<<"sigma_0_post = "<<sigma_0_post<<std::endl;
+                    Rcpp::Rcout<<"k_0_post = "<<k_0_post<<std::endl;
+                    Rcpp::Rcout<<"scale_post = "<<scale_post<<std::endl;
                     log_probs_vec[l] =  std::log( (double)N(j,l) + gamma[j] ) + 
                                         log_dnct(data[j][i], dof_post, location_post, scale_post);
 
@@ -175,6 +247,39 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 N(j,new_Cji)++;         // update local counts
                 sum_cluster_elements[new_Cji] += data[j][i];  //add data_ji to the sum of elements in its cluster
                 squared_sum_cluster_elements[new_Cji] += data[j][i]*data[j][i]; //add data_ji to the sum of squared elements in its cluster
+
+                Rcpp::Rcout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"<<std::endl;
+                Rcpp::Rcout<<"Post-update"<<std::endl;
+                Rcpp::Rcout<<"Stampo N_k: ";        
+                for(auto __v : N_k)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+
+                Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
+                for(auto __v : sum_cluster_elements)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"Stampo squared_sum_cluster_elements: ";        
+                for(auto __v : squared_sum_cluster_elements)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+                for(auto __v : Ctilde){
+                    for(auto ___v : __v){
+                        Rcpp::Rcout<<___v<<", ";
+                    }
+                    Rcpp::Rcout<<std::endl;
+                }
+                Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"K = "<<K<<std::endl;
+
+                Rcpp::Rcout<<"log_const_new_cluster:"<<std::endl<<log_const_new_cluster<<std::endl;
+                Rcpp::Rcout<<"+++++++++++++++++++++++++++++++++++"<<std::endl;
             }
 
         }

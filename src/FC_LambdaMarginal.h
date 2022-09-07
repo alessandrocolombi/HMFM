@@ -8,7 +8,7 @@ private:
     double hyp1 = 0.234;
     double hyp2 = 0.7;
     unsigned int power = 10;
-    double adapt_var_pop_gamma; //variance to be adapted in MH steps
+    double adapt_var_proposal_Lambda; //variance to be adapted in MH steps
     double log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K) const;
 public:
     FC_LambdaMarginal(std::string _na, double _a, double _b, bool _keepfixed, double _h1, double _h2, double _pow, double _adapt_var0);
