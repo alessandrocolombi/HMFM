@@ -86,12 +86,13 @@ niter  <- 2000
 burnin <- 0
 thin   <- 1
 
-#k0 = 1/10
+
 option = set_options_marginal(
-             "Lambda0" = 3, "mu0" = 1,"sigma0"= 1, "gamma0" = 1,
+              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
-             "k0"= 1/10, "nu0"=10, "alpha_gamma"=1,
-             "beta_gamma"=1, "alpha_lambda"=3, "beta_lambda"=3,
+             "gamma0" = 1,"Lambda0" = 3, 
+             "alpha_gamma"=5, "beta_gamma"=0.5, 
+             "alpha_lambda"=1, "beta_lambda"=5,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = real_partition
         )
@@ -274,10 +275,11 @@ thin   <- 1
 
 
 option = set_options_marginal(
-             "Lambda0" = 3, "mu0" = 1,"sigma0"= 1, "gamma0" = 1,
+              "mu0" = 1,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
-             "k0"= 1/10, "nu0"=10, "alpha_gamma"=10,
-             "beta_gamma"=1, "alpha_lambda"=1, "beta_lambda"=1,
+             "gamma0" = 1,"Lambda0" = 3, 
+             "alpha_gamma"=20, "beta_gamma"=0.1, 
+             "alpha_lambda" = 5, "beta_lambda" = 5,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = real_partition
         )
