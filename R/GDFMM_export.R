@@ -652,7 +652,7 @@ p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max
 
 #' Expected_prior
 #'
-#' This function computes the expected value of the a priori probability of distinct or shared species.
+#' This function computes the expected value and the variance of the a priori probability of distinct or shared species.
 #' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
 #' @param gamma real valued, it must be of the same size of \code{n_j}
 #' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species.
@@ -711,7 +711,7 @@ Expected_prior = function(n_j, gamma, type, prior = "Poisson", ..., Max_iter = 1
 
 #' Expected_posterior
 #'
-#' This function computes the expected value of the a posteriori probability of distinct or shared species.
+#' This function computes the expected value and the variance of the a posteriori probability of distinct or shared species.
 #' @param k integer, the number of distinct species that have been observed in the sample of sizes given by \code{n_j}.
 #' @param m_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
 #' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.

@@ -78,7 +78,7 @@ var_data_per_cluster  = lapply(data_per_cluster, var)
 ```
 
 ```{r}
-Expected_prior(n_j = n_j, gamma = c(5,5), type = "distinct", lambda = 10)
+Expected_prior(n_j = n_j, gamma = c(5,5), type = "distinct", lambda = 0.10)
 ```
 
 ```{r}

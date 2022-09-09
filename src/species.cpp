@@ -1778,7 +1778,7 @@ double p_shared_posterior_c(const unsigned int& t, const unsigned int& k, const 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
+Rcpp::List Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
 					    const Rcpp::List& prior_param, unsigned int M_max, double tol  )
 {
 	// Component prior preliminary operations
@@ -1791,7 +1791,9 @@ double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVecto
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	double cumulative_prob{0.0};
-	double res{0.0};
+	double first_moment{0.0};
+	double second_moment{0.0};
+	double variance{0.0};
 	const double stop_criteria{1.0-tol};
 	// distinct case
 	if(type == "distinct"){
@@ -1801,10 +1803,10 @@ double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVecto
 		while(k<=Kmax & cumulative_prob < stop_criteria){
 			const double prob = std::exp(compute_log_Vprior(k, n_i, gamma, qM, M_max) + compute_Kprior_unnormalized_recursive(k, n_i, gamma));
 			cumulative_prob += prob;
-			res += k*prob;
+			first_moment += k*prob;
+			second_moment += k*k*prob;
 			k++;
 		}
-		return res;
 	}
 	else if(type == "shared"){ // shared case
 		const unsigned int Smax = *std::min_element(n_i.cbegin(),n_i.cend()) ;
@@ -1813,19 +1815,23 @@ double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVecto
 		while(s<=Smax & cumulative_prob < stop_criteria){
 			const double prob = p_shared_prior_c(s, n_j, gamma_j, prior, prior_param, M_max  ); // not the most efficient call
 			cumulative_prob += prob;
-			res += s*prob;
+			first_moment += s*prob;
+			second_moment += s*s*prob;
 			s++;
 		}
-		return res;
 	}
 	else{
 		throw std::runtime_error("Error in Expected_prior_c. type can only be equal to distinct or shared ");
 		return -1.0;
 	}
+	variance = second_moment - (first_moment*first_moment);
+	if(variance < 0)
+		throw std::runtime_error("Error in Expected_prior_c, the variance can not be negative ");
+	return Rcpp::List::create( Rcpp::Named("Mean") = first_moment, Rcpp::Named("Variance") = variance);
 }
 
 
-double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
+Rcpp::List Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
 						    const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol)
 {
 	// Component prior preliminary operations
@@ -1839,7 +1845,9 @@ double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	double cumulative_prob{0.0};
-	double res{0.0};
+	double first_moment{0.0};
+	double second_moment{0.0};
+	double variance{0.0};
 	const double stop_criteria{1.0-tol};
 
 	// distinct case
@@ -1853,10 +1861,10 @@ double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_
 			//Rcpp::Rcout<<"r:"<<std::endl<<r<<std::endl;
 			//Rcpp::Rcout<<"prob:"<<std::endl<<prob<<std::endl;
 			//Rcpp::Rcout<<"cumulative_prob:"<<std::endl<<cumulative_prob<<std::endl;
-			res += r*prob;
+			first_moment += r*prob;
+			second_moment += r*r*prob;
 			r++;
 		}
-		return res;
 	}
 	else if(type == "shared"){ // shared case
 		const unsigned int sigma_max = *std::min_element(m_i.cbegin(),m_i.cend()) ;
@@ -1869,15 +1877,19 @@ double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_
 			Rcpp::Rcout<<"sigma:"<<std::endl<<sigma<<std::endl;
 			Rcpp::Rcout<<"prob:"<<std::endl<<prob<<std::endl;
 			Rcpp::Rcout<<"cumulative_prob:"<<std::endl<<cumulative_prob<<std::endl;
-			res += sigma*prob;
+			first_moment += sigma*prob;
+			second_moment += sigma*sigma*prob;
 			sigma++;
 		}
-		return res;
 	}
 	else{
 		throw std::runtime_error("Error in Expected_posterior_c. type can only be equal to distinct or shared ");
 		return -1.0;
 	}
+	variance = second_moment - (first_moment*first_moment);
+	if(variance < 0)
+		throw std::runtime_error("Error in Expected_prior_c, the variance can not be negative ");
+	return Rcpp::List::create( Rcpp::Named("Mean") = first_moment, Rcpp::Named("Variance") = variance);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------

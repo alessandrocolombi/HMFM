@@ -313,13 +313,13 @@ double p_shared_posterior_c(const unsigned int& t, const unsigned int& k, const 
 
 //' 
 // [[Rcpp::export]] 
-double Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
+Rcpp::List Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& type, const Rcpp::String& prior, 
 					    const Rcpp::List& prior_param, unsigned int M_max, double tol  );
 
 
 //' 
 // [[Rcpp::export]] 
-double Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
+Rcpp::List Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
 						    const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol);
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
