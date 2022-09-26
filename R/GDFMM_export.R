@@ -1190,6 +1190,46 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 
   
 
-
   return( GDFMM:::GDFMM_marginal_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
+}
+
+
+#' empirical_bayes_normalinvgamma 
+#' 
+#' function to set normal-inversegamma parameters. If \code{data} is not \code{NULL}, an empirical bayes procedure 
+#' is automatically applied by setting \code{barmu = mean(data)}, \code{barsig2 = var(as.vector(data))/3}
+#' \code{varmu} and \code{varsig2} are not set using \code{data}
+#' @param data [matrix] input data. 
+#' @param barmu [scalar] desired value of the marginal mean of the normally distribuited parameter. Used only if \code{data} is \code{NULL}.
+#' @param varmu [scalar] desired value of the marginal variance of the normally distribuited parameter 
+#' @param barsig2 [scalar] desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.
+#' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter 
+#' @export
+empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5  )
+{
+  if(!is.null(data)){
+    barmu   = mean(data, na.rm = T)
+    barsig2 = var(as.vector(data), na.rm = T) / 3
+  }
+  # Initialize return value
+  res = list("mu0" = 0, "sigma0"= 1.0, "k0" = 1.0, "nu0" = 10 )
+
+  # Compute useful quantities
+  sum_barsig2_varsig2 = barsig2*barsig2 + varsig2
+  sum_barsig2_2varsig2 = barsig2*barsig2 + 2*varsig2
+
+  # Compute nu0
+  res$nu0 = 2*( barsig2*barsig2/varsig2 + 2 )
+
+  # Compute sigma0^2
+  res$sigma0 = (sum_barsig2_varsig2/sum_barsig2_2varsig2) * barsig2
+
+  # Compute mu0
+  res$mu0 = barmu
+
+  # Compute k0
+  res$k0 = barsig2/varmu
+
+  return(res)
+
 }

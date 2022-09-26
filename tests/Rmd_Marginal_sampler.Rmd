@@ -89,9 +89,11 @@ niter  <- 2000
 burnin <- 0
 thin   <- 1
 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+
 
 option = set_options_marginal(
-              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+             "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "gamma0" = 1,"Lambda0" = 3, 
              "alpha_gamma"=5, "beta_gamma"=0.5, 
@@ -99,7 +101,7 @@ option = set_options_marginal(
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = real_partition
         )
-
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
 
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
 GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)

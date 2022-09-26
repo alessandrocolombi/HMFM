@@ -26,5 +26,5 @@ Expected_prior(
 \item{...}{the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.}
 }
 \description{
-This function computes the expected value of the a priori probability of distinct or shared species.
+This function computes the expected value and the variance of the a priori probability of distinct or shared species.
 }

@@ -88,6 +88,8 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
     else{
         throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
     }
+
+    Rcpp::Rcout<<"DEVO CAMBIARE LA STRUTTURA DEI INPUT DEI DATI COME HA FATTO VEDERE BARTOLUCCI"<<std::endl;
 }
 
 void GibbsSamplerMarginal::sample() {
