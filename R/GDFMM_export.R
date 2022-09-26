@@ -1190,6 +1190,7 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 
   
 
+
   return( GDFMM:::GDFMM_marginal_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
 
@@ -1232,4 +1233,30 @@ empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, b
 
   return(res)
 
+}
+
+#' data_mat2list 
+#' 
+#' function to transform the data matrix in long form in a list of vectors form.
+#' @param data [matrix] input data in long form 
+#' @export
+data_mat2list <- function( data )
+{
+  library(tidyverse)
+  data = as_tibble(data) %>% mutate(level = as.factor(V1), index = as.integer(V2), value = as.double(V3)) %>%
+         select(level,index,value)
+    
+  d = length(unique(data$level)) #get number of levels
+  data_list = vector("list",length = d) #initialize list for data
+  n_j = vector("numeric",length = d)
+  for(j in 1:d){ #for each level
+    data_nj = data %>% filter(level == j) # filter data in level j
+    n_j[j] = nrow(data_nj) # compute number of data in each level
+    data_list[[j]] = data_nj$value # fill the list of vectors
+  }
+  res = list("data" = data_list, 
+             "d" = d,
+             "n_j" = n_j)
+  
+  return(res)
 }

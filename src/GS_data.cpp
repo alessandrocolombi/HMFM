@@ -11,7 +11,7 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     lambda = Lambda0;
     Mstar = Mstar0;
     //nu = _nu;
-
+ 
     // Read Data and extract d, n_j
     for (unsigned int j = 0; j < dat.rows(); ++j) {
         std::vector<double> v;
