@@ -379,7 +379,7 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
   if(is.null(option$partition)){ # set empty partition
     if(FixPartition)
         stop("If FixPartition is selected, a partition must be provided in option$partition")
-    option$partition = rep(0,n)    
+    option$partition = rep(0,n)
   }else{
     cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
     option$partition = arrange_partition(option$partition)
@@ -392,7 +392,7 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
   #if( any(is.na(data)) )
     #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
-  
+
 
 
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
@@ -970,7 +970,7 @@ generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1
 {
   if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
   if(length(n_j) != d ) stop("The length of n_j must be equal to d")
-  
+
   n = sum(n_j) #total number of data points
   #p = matrix(0, nrow = d, ncol = K) # matrix with components weights
 
@@ -986,7 +986,7 @@ generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1
   for(j in 1:d){
     Kgruppo[j] = 3 # number of clusters in each level
     componenti_gruppo[[j]] = 1:3 # choose the components
-    p[j,1:Kgruppo[j]] = prob[j,] 
+    p[j,1:Kgruppo[j]] = prob[j,]
     #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
     appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu,
                               sds = sd )
@@ -1029,7 +1029,7 @@ generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1
 #' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
 #'
 #' @export
-set_options = function( partition = NULL, Mstar0 = 2, 
+set_options = function( partition = NULL, Mstar0 = 2,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
@@ -1071,11 +1071,11 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
                       S_new_it <- rgamma(n=M_it, shape = gamma_new_it, rate = 1) # draw unnormalized weights from the prior
                       T_new_it <- sum(S_new_it) # needed to normalize the weigths
 
-                      # Important remark. If alpha_gamma and beta_gamma are too small, it is possible that the sampled gamma is 
-                      # so close to zero that T is barely equal to 0. 
-                      if(T_new_it < 1e-8) 
+                      # Important remark. If alpha_gamma and beta_gamma are too small, it is possible that the sampled gamma is
+                      # so close to zero that T is barely equal to 0.
+                      if(T_new_it < 1e-8)
                         w_it = rep(0,M_it)
-                      else  
+                      else
                         w_it = S_new_it/T_new_it  # get normalized weights
                       # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
                       # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
@@ -1122,15 +1122,15 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
 #'
 #' @export
-set_options_marginal = function( partition = NULL, 
+set_options_marginal = function( partition = NULL,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
-                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, 
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         UpdateU = T, UpdateGamma = T, UpdateTau = T, UpdateLambda = T
                       )
 {
   option<-list("Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
-               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, 
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
                "UpdateU" = UpdateU, "UpdateGamma" = UpdateGamma,
@@ -1139,8 +1139,8 @@ set_options_marginal = function( partition = NULL,
   return (option)
 }
 
-#' GDFMM Marginal Gibbs Sampler: 
-#' 
+#' GDFMM Marginal Gibbs Sampler:
+#'
 #' function to run the GDFMM marginal Gibbs Sampler. There is the possibility to fix
 #' the partition, passing TRUE to FixPartition and specifying the
 #' partion in the option. Default prior for P0 is an inverse gamma
@@ -1156,7 +1156,7 @@ set_options_marginal = function( partition = NULL,
 #' @return results of Gibbs Sampler
 #' @export
 GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
-                                    P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) 
+                                    P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL)
 {
 
   n = ncol(data)*nrow(data) - sum(is.na(data)) #get number of data points
@@ -1175,7 +1175,7 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
   if(is.null(option$partition)){ # set empty partition
     if(FixPartition)
         stop("If FixPartition is selected, a partition must be provided in option$partition")
-    option$partition = rep(0,n)    
+    option$partition = rep(0,n)
   }else{
     cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
     option$partition = arrange_partition(option$partition)
@@ -1188,23 +1188,23 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
   #if( any(is.na(data)) )
     #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
-  
+
 
 
   return( GDFMM:::GDFMM_marginal_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
 }
 
 
-#' empirical_bayes_normalinvgamma 
-#' 
-#' function to set normal-inversegamma parameters. If \code{data} is not \code{NULL}, an empirical bayes procedure 
+#' empirical_bayes_normalinvgamma
+#'
+#' function to set normal-inversegamma parameters. If \code{data} is not \code{NULL}, an empirical bayes procedure
 #' is automatically applied by setting \code{barmu = mean(data)}, \code{barsig2 = var(as.vector(data))/3}
 #' \code{varmu} and \code{varsig2} are not set using \code{data}
-#' @param data [matrix] input data. 
+#' @param data [matrix] input data.
 #' @param barmu [scalar] desired value of the marginal mean of the normally distribuited parameter. Used only if \code{data} is \code{NULL}.
-#' @param varmu [scalar] desired value of the marginal variance of the normally distribuited parameter 
+#' @param varmu [scalar] desired value of the marginal variance of the normally distribuited parameter
 #' @param barsig2 [scalar] desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.
-#' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter 
+#' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter
 #' @export
 empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5  )
 {
@@ -1235,17 +1235,17 @@ empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, b
 
 }
 
-#' data_mat2list 
-#' 
+#' data_mat2list
+#'
 #' function to transform the data matrix in long form in a list of vectors form.
-#' @param data [matrix] input data in long form 
+#' @param data [matrix] input data in long form
 #' @export
 data_mat2list <- function( data )
 {
   library(tidyverse)
   data = as_tibble(data) %>% mutate(level = as.factor(V1), index = as.integer(V2), value = as.double(V3)) %>%
          select(level,index,value)
-    
+
   d = length(unique(data$level)) #get number of levels
   data_list = vector("list",length = d) #initialize list for data
   n_j = vector("numeric",length = d)
@@ -1254,9 +1254,9 @@ data_mat2list <- function( data )
     n_j[j] = nrow(data_nj) # compute number of data in each level
     data_list[[j]] = data_nj$value # fill the list of vectors
   }
-  res = list("data" = data_list, 
+  res = list("data" = data_list,
              "d" = d,
              "n_j" = n_j)
-  
+
   return(res)
 }

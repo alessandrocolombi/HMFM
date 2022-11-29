@@ -91,7 +91,7 @@ thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
 
-
+View(empirical_bayes_normalinvgamma)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
