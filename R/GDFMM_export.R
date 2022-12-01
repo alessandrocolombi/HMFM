@@ -1260,3 +1260,47 @@ data_mat2list <- function( data )
 
   return(res)
 }
+
+
+
+
+#' compute the predictive distribution in a specific group when using a marginal sampler
+#'
+#' @export
+predictive_marginal <- function(idx_group, grid, fit){
+
+  n_iter <- length(fit$K) #number of iterations
+  l_grid <- length(grid)  #length of the grid
+  MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+
+  # This loop computes the predictive distribution over a grid
+  for(it in 1:n_iter){
+
+    # Get sampled values
+    M_it <- fit$K[it]                 # get the number of clusters (allocated or not)
+    #Partition_it <- fit$Partition[it,!!!!SELEZIONARE LE COLONNE GIUSTE!!!!] # get partition for current group
+    U_it = fit$U[idx_group,it]    # get U_j^{it}, where j is idx_group
+    gamma_it = fit$gamma[idx_group,it]    # get gamma_j^{it}, where j is idx_group
+    lambda_it = fit[it]                  # get lambda at iteration it
+    mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
+    sig2_it <- fit$sigma[[it]]        # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+
+  #   # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
+  #   # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+  #   XX = t(sapply(1:M_it, simplify = "matrix",
+  #                 function(m){
+  #                   dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
+  #                 }
+  #   ))
+  #   # XX <- matrix(ncol=l_grid,nrow=M_it)
+  #   # for(m in 1:M_it){ XX[m,] <- dnorm(grid,mean=mu_it[m],sd=sqrt(sig2_it[m]))}
+  #
+  #   # Compute predicted density at iteration it
+  #   MIX[it,] <- (S_it/T_it) %*% XX
+  # }
+  #
+  # # Density estimation and credible bounds
+  # pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+  # return(pred_est)
+}
+
