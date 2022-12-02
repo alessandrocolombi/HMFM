@@ -93,6 +93,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         std::swap(FullConditionals, fc);
 
         // Initialize return structure for S and tau
+        // burn_in + n_iter*thin should be just n_iter, that is the number of values I want as output
         out.S.reserve(burn_in + n_iter*thin);
         out.mu.reserve(burn_in + n_iter*thin);
         out.sigma.reserve(burn_in + n_iter*thin);

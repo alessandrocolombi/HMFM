@@ -7,6 +7,7 @@
 #include <RcppEigen.h>
 
 struct out_dataMarginal{
+
   // COUNTER
   unsigned int it_saved{0};
   // PARTITION
@@ -25,6 +26,15 @@ struct out_dataMarginal{
   std::vector<double> lambda; // M|lambda ~ Poi(lambda)
   Rcpp::NumericMatrix U;      // Rcpp matrix of size d x n_iter
   Rcpp::NumericMatrix gamma;  // Rcpp matrix of size d x n_iter
+
+  // WEIGHTS FOR DENSITY ESTIMATION
+  // q is a vector of matrices. The external vector has length n_iter. Then, q[it] is a matrix of size d x K+1, where 
+  // K = K[it] is the number of clusters during iteration it. Within each row, elements are the unnormalized cluster 
+  // probabilities in log scale for each level j, hence 
+  // log( q_1(n_11,...,n_1K,U_1) ), ... , log( q_K(n_11,...,n_1K,U_1) ), log( q_{K+1}(n_11,...,n_1K,U_1) )
+  // log( q_1(n_j1,...,n_jK,U_j) ), ... , log( q_K(n_j1,...,n_jK,U_j) ), log( q_{K+1}(n_j1,...,n_jK,U_j) )
+  // log( q_1(n_d1,...,n_dK,U_d) ), ... , log( q_K(n_d1,...,n_dK,U_d) ), log( q_{K+1}(n_d1,...,n_dK,U_d) )
+  std::vector< GDFMM_Traits::MatRow > log_q;
 };
 
 #endif

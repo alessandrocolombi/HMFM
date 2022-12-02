@@ -1262,12 +1262,60 @@ data_mat2list <- function( data )
 }
 
 
+#' Non Central Student t - Density
+#'
+#' @param n0 the degree of fredoom.
+#' @param mu0 the location parameter.
+#' @param gamma0 the scale parameter.
+#' @return scalar representing the evaluation of the density at x
+#' @export
+dnct = function( x, n0, mu0, gamma0 )
+{
+  if(gamma0 <= 0)
+    stop("The scale parameter has to be strictly positive.")
+  return( 1/sqrt(gamma0) * dt(x = (x-mu0)/gamma0, df = n0 ) )
+}
+
+
+#' log_stable_sum
+#'
+#' This functions computes log(sum_i(a_i)) using a stable formula for log values. Let us denote a* to the the maximum value of vector a which is attained when i = i*.
+#' \eqn{log(sum_i(a_i)) = log(a*) + log[ 1 + sum_{i not i*}(exp{log(a_i) - log(a*)}) ]}
+#' See that only the logarithm of the elements of a are needed. Hence, it is likely that one has already computed them in log scale. If so, set is_log = T
+#' @param a [vector] vector whose values must be summed. 
+#' @param is_log [bool] states if elements of a are already in log scale or not. If not, elements of a must be strictly positive. 
+#' @export
+log_stable_sum = function(a, is_log = T)
+{
+  
+  # Check vector length
+  if(length(a) == 0)
+    return (0.0)
+
+  # Compute log of each element. They must be positve
+  if(!is_log) {
+    if(any(a<0))
+      stop("Elements of a must be positive.")
+    a = log(a)
+  }
+      
+  # Find the maximum 
+  a_star = max(a)
+
+  # Handle degenerate case
+  if(a_star == -Inf)
+    return (-Inf)
+
+  # Compute log stable sum formula
+  return(  a_star + log(sum( exp(a - a_star) ))   )    
+}
 
 
 #' compute the predictive distribution in a specific group when using a marginal sampler
 #'
 #' @export
-predictive_marginal <- function(idx_group, grid, fit){
+predictive_marginal <- function(idx_group, grid, fit, option)
+{
 
   n_iter <- length(fit$K) #number of iterations
   l_grid <- length(grid)  #length of the grid
@@ -1276,31 +1324,42 @@ predictive_marginal <- function(idx_group, grid, fit){
   # This loop computes the predictive distribution over a grid
   for(it in 1:n_iter){
 
-    # Get sampled values
-    M_it <- fit$K[it]                 # get the number of clusters (allocated or not)
-    #Partition_it <- fit$Partition[it,!!!!SELEZIONARE LE COLONNE GIUSTE!!!!] # get partition for current group
-    U_it = fit$U[idx_group,it]    # get U_j^{it}, where j is idx_group
-    gamma_it = fit$gamma[idx_group,it]    # get gamma_j^{it}, where j is idx_group
-    lambda_it = fit[it]                  # get lambda at iteration it
-    mu_it   <- fit$mu[[it]]           # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
-    sig2_it <- fit$sigma[[it]]        # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+     # Get sampled values
+     M_it <- fit$K[it]                        # get the number of clusters (allocated or not)
+     mu_it   <- fit$mu[[it]]                  # get the mean, (mu_{1}^{(it)}, ..., mu_{M}^{(it)})
+     sig2_it <- fit$sigma[[it]]               # get the variances, (sigma^2_{1}^{(it)}, ..., sigma^2_{M}^{(it)})
+     log_q_it <- fit$log_q[[it]][idx_group,]  # get the weights of required group
 
-  #   # XX is a l_grid x M_it matrix, it contains the Normal kernels evauated over the grid
-  #   # XX[i,m] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
-  #   XX = t(sapply(1:M_it, simplify = "matrix",
-  #                 function(m){
-  #                   dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
-  #                 }
-  #   ))
-  #   # XX <- matrix(ncol=l_grid,nrow=M_it)
-  #   # for(m in 1:M_it){ XX[m,] <- dnorm(grid,mean=mu_it[m],sd=sqrt(sig2_it[m]))}
-  #
-  #   # Compute predicted density at iteration it
-  #   MIX[it,] <- (S_it/T_it) %*% XX
-  # }
-  #
-  # # Density estimation and credible bounds
-  # pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
-  # return(pred_est)
+    if(length(log_q_it)!=(M_it+1))
+      stop("Error in predictive_marginal, length of log_q_it must be M_it + 1") 
+    # Kernel_grid is a  M_it x l_grid matrix, it contains the Normal kernels evauated over the grid
+    # Kernel_grid[m,i] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
+    Kernel_grid = t(sapply(1:M_it, simplify = "matrix",
+                     function(m){
+                         dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
+                     }  
+                   ))
+
+    # Prior_grid is a vector of length l_grid, it contains the marginal prior evauated over the grid
+    # Prior_grid[i] = nct(grid[i] | dof = nu0, loc = mu0, scale = sqrt(k0/(k0+1)*sigma0) ), where nct is the non-central student-t distribution
+    scale = sqrt( (option$k0)/(option$k0 + 1) * option$sigma0 )
+    Prior_grid = GDFMM:::dnct(x = grid, n0 = option$nu0, mu0 = option$mu0, gamma0 = scale)
+    
+    # Compute normalized weigths
+    log_stable_sum = log_stable_sum(log_q_it)
+    q = exp( log_q_it - log_stable_sum )
+    # Compute predicted density at iteration it
+    MIX[it,] <- q[M_it+1] * Prior_grid +  q[1:M_it] %*% Kernel_grid
+  }
+    # Density estimation and credible bounds
+  pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
+  return(pred_est)
+  
 }
+
+
+
+
+
+
 

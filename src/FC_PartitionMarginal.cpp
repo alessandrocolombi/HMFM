@@ -286,7 +286,9 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
 
         }
 
+        // In marginal sampler the non allocated components are not sampled. For sake of code generality, set M = K
         gs_data.M = K;
+
         if(K==0)
             throw std::runtime_error("K is 0, this should be impossible");
         //Check for User Interruption

@@ -67,14 +67,15 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0);
 
         //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc{ tau_ptr,
-                                                            lambdaMarginal_ptr,
+        std::vector< std::shared_ptr<FullConditional> > fc{ lambdaMarginal_ptr,
                                                             gammaMarginal_ptr,
                                                             UMarginal_ptr,
-                                                            PartitionMarginal_ptr
+                                                            PartitionMarginal_ptr,
+                                                            tau_ptr // tau must be update after the partition, otherwise saved values may be misleading
                                                             };
 
         std::swap(FullConditionals, fc);
+
         // Initialize return structures 
         out.K.resize(n_iter);
         out.mu.resize(n_iter);
@@ -83,6 +84,7 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         out.U = Rcpp::NumericMatrix(gs_data.d,n_iter);
         out.gamma = Rcpp::NumericMatrix(gs_data.d,n_iter);
         out.Partition = Rcpp::NumericMatrix(n_iter, std::accumulate(gs_data.n_j.cbegin(), gs_data.n_j.cend(), 0) ); // here; i am also computing the total number of data by summing the elements of n_j
+        out.log_q.reserve(n_iter);
         out.it_saved = 0;
     }
     else{
@@ -99,7 +101,7 @@ void GibbsSamplerMarginal::sample() {
 
         // If we are in the right iteration store needed values
         // If burn_in is set to zero, the first values to be saved are the initial values.
-        if(it >= burn_in && (it-burn_in)%thin == 0 && it < n_iter){
+        if(it >= burn_in && (it-burn_in)%thin == 0){
             //Rcpp::Rcout<<"it = "<<it<<std::endl;
             
             this->store_params_values();
@@ -164,14 +166,19 @@ void GibbsSamplerMarginal::store_params_values() {
 
     const unsigned int& it_saved = out.it_saved;
 
+    if(gs_data.K==0)
+        throw std::runtime_error("K is 0, this should be impossible");
     out.K[it_saved] = gs_data.K; //number of clusters
+
     // Save tau
     out.mu[it_saved] = Rcpp::NumericVector ( gs_data.mu.begin(),gs_data.mu.end() ); 
     out.sigma[it_saved] =   Rcpp::NumericVector (gs_data.sigma.begin(),gs_data.sigma.end()); 
+    
     // Save lambda - U - gamma
     out.lambda[it_saved] = gs_data.lambda;
     out.U.column(it_saved) = Rcpp::NumericVector ( gs_data.U.begin(),gs_data.U.end() );
     out.gamma.column(it_saved) = Rcpp::NumericVector ( gs_data.gamma.begin(),gs_data.gamma.end() );
+    
     // Save Partition
     std::vector<unsigned int> get_all_labels; //vector of length equal to the total number of data with all the cluster assigments at the current iteration
     for(std::size_t j = 0; j < gs_data.d; j++)
@@ -181,6 +188,43 @@ void GibbsSamplerMarginal::store_params_values() {
                                                                 get_all_labels.begin() 
                                                             ); //in R notation, this is equal to Partition[it,:] = get_all_labels 
 
+    // Save log_q
+    const unsigned int& K = gs_data.K; // number of cluster
+    const unsigned int& Lambda = gs_data.lambda; 
+    GDFMM_Traits::MatRow Weights_it(GDFMM_Traits::MatRow::Constant(gs_data.d,gs_data.K+1,0.0)); //define d x K+1 empty matrix
+
+    // Compute product term that is common to all levels j
+    double log_const_new_cluster = std::inner_product(  gs_data.U.cbegin(), gs_data.U.cend(), gs_data.gamma.cbegin(), 
+                                                        0.0, std::plus<>(),
+                                                        [&Lambda, &K](const double& U_h, const double& gamma_h)
+                                                        {  
+                                                            const double Psi_h{ 1/std::pow(1.0+U_h,gamma_h) }; // compute Psi_h
+                                                            return (  -gamma_h * std::log(U_h+1.0) + 
+                                                                        std::log( (double)K + 1.0 + Lambda * Psi_h ) - 
+                                                                        std::log( (double)K + Lambda * Psi_h)
+                                                                    );
+                                                        }
+                                                    );
+
+    // Start loop over all levels and all clusters + 1
+    for(unsigned int j=0; j<gs_data.d; j++){ //for each level
+        for(unsigned int l=0; l<(gs_data.K+1); l++){ // for each cluster + 1
+            
+            if(l<gs_data.K) // set q_l for allocated clusters   
+                Weights_it(j,l) = std::log( gs_data.N(j,l) + gs_data.gamma[j] );
+            
+            else if(l==gs_data.K){ // set q_{K+1} for new cluster
+                Weights_it(j,l) =   log_const_new_cluster + 
+                                    gs_data.d * std::log(gs_data.lambda) + 
+                                    std::log(gs_data.gamma[j]) - 
+                                    gs_data.gamma[j] * (gs_data.U[j] + 1.0);
+                
+            }
+            else
+                throw std::runtime_error("Error in GibbsSamplerMarginal::store_params_values, l can not be greater than gs_data.K ");
+        }
+    }
+    out.log_q.push_back(Weights_it);
 }
 
 

@@ -20,7 +20,7 @@
 // These functions computes log(sum_i(a_i)) using a stable formula for log values. Let us denote a* to the the maximum value of vector a which is attained when i = i*.
 // ---> log(sum_i(a_i)) = log(a*) + log[ 1 + sum_{i not i*}(exp{log(a_i) - log(a*)}) ]
 // See that only the logarithm of the elements of a are needed. Hence, it is likely that one has already computed them in log scale. If so, set is_log = T
-// In this versione of the function, the maximum and its position are passed as parameters. No check is performed to be sure that such information were true or not.
+// In this version of the function, the maximum and its position are passed as parameters. No check is performed to be sure that such information were true or not.
 // It is assumed that the value in val_max is on the same scale of the values of a, i.e it is in log scale if is_log is set to true.
 double log_stable_sum(const std::vector<double>& a, const bool is_log, const double& val_max, const unsigned int& idx_max);
 

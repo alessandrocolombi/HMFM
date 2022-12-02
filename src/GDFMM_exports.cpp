@@ -106,7 +106,8 @@ Rcpp::List GDFMM_marginal_sampler_c( Eigen::MatrixXd const & dat, unsigned int n
 								Rcpp::Named("gamma") = Gibbs.out.gamma,
 								Rcpp::Named("lambda") = Gibbs.out.lambda,
 								Rcpp::Named("U") = Gibbs.out.U,
-								Rcpp::Named("Partition") = Gibbs.out.Partition
+								Rcpp::Named("Partition") = Gibbs.out.Partition,
+								Rcpp::Named("log_q") = Gibbs.out.log_q
 							);
     
 }
