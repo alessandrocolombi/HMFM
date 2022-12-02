@@ -1,0 +1,337 @@
+---
+title: "Rmd_Problem_with_Marginal_sampler"
+author: "Alessandro Colombi"
+date: "30/8/2022"
+output: html_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "50%"
+)
+```
+
+
+# Testing Marginal sampler and comparing with estimated density
+
+
+## Primo caso, un solo livello
+Dati esperimento:
+
+* **K = 4**
+* d = 1
+* $n_1 = 200$.
+* parto da partizione vera.
+* **Tengo la partizione fissata**
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+
+
+
+# color palette -----------------------------------------------------------
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+# data generation ---------------------------------------------------------
+
+d = 1                   # number of groups
+K = 4                   # number of global clusters
+mu = c(-20,-10,0, 10)   # vectors of means
+sd = c(1,1,1,1)         # vector of sd
+n_j = rep(200, d)        # set cardinality of the groups
+seed = 20051131
+
+genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+mycol_cluster = brewer.pal(n=K, name = "Dark2")
+
+```
+
+```{r}
+counter = 1
+data_per_cluster = vector("list", length = K)
+log_marginal_prior = vector("list", length = d)
+for(j in 1:d){
+  log_marginal_prior[[j]] = vector( length = n_j[j])
+  for(i in 1:n_j[j]){
+    c_ji = real_partition[counter]
+    data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+    log_marginal_prior[[j]][i] = log(ACutils::dnct(data[j,i], n0 = 10, mu0 = 1, gamma0 = sqrt(2)) )
+    counter = counter + 1
+  }
+  
+}
+#data_per_cluster 
+mean_data_per_cluster = lapply(data_per_cluster, mean)
+var_data_per_cluster  = lapply(data_per_cluster, var)
+#log_marginal_prior
+```
+
+### Iperparametri con empirical Bayes
+
+In questo primo esperimento, setto i parametri relativi a P0 con la funzione di empirical Bayes che abbiamo fatto.
+Plotto i dati e la marginale del modello, che è 
+
+$student-t(dof = \nu_0, loc = \mu_0, scale = \sqrt{\frac{k_0}{k_0+1}\sigma^2_0})$
+```{r}
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 1, varsig2 = 1)
+mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
+
+l_grid = 200
+grid = seq(-25,15,length.out = l_grid)
+scale = sqrt( k0/(k0 + 1) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(  data = tibble(grid = grid, value = Prior_grid),
+                color = 'black', aes(x=grid,y=value), size = 1.2,
+                inherit.aes = F)  +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+```
+Sembra essere proprio la situazione che voglio, la prior abbraccia tutti e 4 i cluster
+
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <- 1000
+burnin <- 1000
+thin   <- 1
+
+P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+
+option = set_options_marginal(
+             "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "gamma0" = 1,"Lambda0" = 3, 
+             "alpha_gamma"=5, "beta_gamma"=0.5, 
+             "alpha_lambda"=1, "beta_lambda"=5,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition
+        )
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+
+```
+
+
+
+
+Analisi parte parametrica con partizione fissa
+```{r}
+mu_est = rep(0,K)
+s2_est = rep(1,K)
+
+for(it in 1:niter){
+  mu_est = mu_est + GDFMM$mu[[it]]
+  s2_est = s2_est + GDFMM$sigma[[it]]
+}
+mu_est = mu_est/niter
+s2_est = s2_est/niter
+
+mu_est
+s2_est
+```
+Le stime fanno schifo, se le medie ancora ancora possono ricordare quelle vere, le varianze sono gigantesche
+
+```{r}
+l_grid = 200
+grid = seq(-25,25,length.out = l_grid)
+
+# Predictive in all groups
+#Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
+
+# Predictive in one group
+Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, option = option)
+
+j = 1
+idx_start = 1
+idx_end = n_j[1]
+tibble(value = data[j,],
+       true_clus = as.factor(real_partition[idx_start:idx_end])
+       ) %>%
+  ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+  geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+  geom_histogram(data = tibble(value = data[j,]),
+                 aes(x=value, y = ..density..), 
+                 color = 'black', alpha = 0.3,
+                 binwidth = 0.5, inherit.aes = F) +
+  scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+  scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] )  +
+  geom_path( data = as_tibble( t(Pred_one_group) ),
+             color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+             inherit.aes = F)  +
+  labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+  geom_ribbon(data = as_tibble( t(Pred_one_group) ), fill = mycol[1],
+              aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+              alpha = 0.5, inherit.aes = F)
+
+```
+La predittiva non c'entra niente con i dati. 
+
+
+### Iperparametri a caso
+
+Faccio come prima ma gli iperparametri gli scelgo "a caso", con dei valori selezionati senza guardare i dati
+```{r}
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+
+mu0 = 0;k0= 1/10;nu0=10;sigma0=1
+
+l_grid = 200
+grid = seq(-25,15,length.out = l_grid)
+scale = sqrt( k0/(k0 + 1) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(  data = tibble(grid = grid, value = Prior_grid),
+                color = 'black', aes(x=grid,y=value), size = 1.2,
+                inherit.aes = F)  +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+```
+Non sembra essere per niente una buona P0, è tutta schiacciata su un cluster 
+
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <- 1000
+burnin <- 1000
+thin   <- 1
+
+P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+
+option = set_options_marginal(
+             "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "gamma0" = 1,"Lambda0" = 3, 
+             "alpha_gamma"=5, "beta_gamma"=0.5, 
+             "alpha_lambda"=1, "beta_lambda"=5,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition
+        )
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+
+```
+
+
+
+
+Analisi parte parametrica con partizione fissa
+```{r}
+mu_est = rep(0,K)
+s2_est = rep(1,K)
+
+for(it in 1:niter){
+  mu_est = mu_est + GDFMM$mu[[it]]
+  s2_est = s2_est + GDFMM$sigma[[it]]
+}
+mu_est = mu_est/niter
+s2_est = s2_est/niter
+
+mu_est
+s2_est
+```
+Le stime sono quasi perfette
+```{r}
+l_grid = 200
+grid = seq(-25,25,length.out = l_grid)
+
+# Predictive in all groups
+#Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
+
+# Predictive in one group
+Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, option = option)
+
+j = 1
+idx_start = 1
+idx_end = n_j[1]
+tibble(value = data[j,],
+       true_clus = as.factor(real_partition[idx_start:idx_end])
+       ) %>%
+  ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+  geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+  geom_histogram(data = tibble(value = data[j,]),
+                 aes(x=value, y = ..density..), 
+                 color = 'black', alpha = 0.3,
+                 binwidth = 0.5, inherit.aes = F) +
+  scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+  scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] )  +
+  geom_path( data = as_tibble( t(Pred_one_group) ),
+             color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+             inherit.aes = F)  +
+  labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+  geom_ribbon(data = as_tibble( t(Pred_one_group) ), fill = mycol[1],
+              aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+              alpha = 0.5, inherit.aes = F)
+
+```
+La predittiva è proprio dove dovrebbe essere 

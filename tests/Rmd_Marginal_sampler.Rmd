@@ -488,10 +488,26 @@ mean_data_per_cluster = lapply(data_per_cluster, mean)
 var_data_per_cluster  = lapply(data_per_cluster, var)
 #log_marginal_prior
 ```
+
+
 ```{r}
 # In questo plot sotto colori i pallini secondo il vero cluster.
 idx_start = 1
 idx_end = n_j[1]
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 1, varsig2 = 1)
+#mu0 = 0;k0= 1/10;nu0=10;sigma0=1
+mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
+
+l_grid = 200
+grid = seq(-25,15,length.out = l_grid)
+scale = sqrt( k0/(k0 + 1) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
 for(j in 1:d){
 
   print(
@@ -506,6 +522,9 @@ for(j in 1:d){
                    binwidth = 0.5, inherit.aes = F) +
     scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
     scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(  data = tibble(grid = grid, value = Prior_grid),
+                color = 'black', aes(x=grid,y=value), size = 1.2,
+                inherit.aes = F)  +
     labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
     theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
   )
@@ -518,8 +537,8 @@ for(j in 1:d){
 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <- 1000
-burnin <- 1000
+niter  <- 2000
+burnin <- 2000
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
@@ -534,11 +553,12 @@ option = set_options_marginal(
              "partition" = real_partition
         )
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
-
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
 GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
 
 ```
+
 
 
 ```{r, echo = F}
@@ -564,6 +584,8 @@ plot(GDFMM$K, type = 'l', main = "K")
 hist(GDFMM$K, main = "K")
 
 ```
+
+
 ```{r}
 # Get labels for each iterations for each data point 
 part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
@@ -589,6 +611,21 @@ ACutils::ACheatmap(sim_matrix,use_x11_device = F,horizontal = F, main = "similar
   col.lower = "white")
 ```
 
+```{r}
+# Analisi parte parametrica con partizione fissa
+mu_est = rep(0,K)
+s2_est = rep(1,K)
+
+for(it in 1:niter){
+  mu_est = mu_est + GDFMM$mu[[it]]
+  s2_est = s2_est + GDFMM$sigma[[it]]
+}
+mu_est = mu_est/niter
+s2_est = s2_est/niter
+
+mu_est
+s2_est
+```
 
 ```{r}
 l_grid = 200
@@ -600,6 +637,9 @@ grid = seq(-25,25,length.out = l_grid)
 # Predictive in one group
 Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, option = option)
 
+j = 1
+idx_start = 1
+idx_end = n_j[1]
 tibble(value = data[j,],
        true_clus = as.factor(real_partition[idx_start:idx_end])
        ) %>%
@@ -619,17 +659,6 @@ tibble(value = data[j,],
   geom_ribbon(data = as_tibble( t(Pred_one_group) ), fill = mycol[1],
               aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
               alpha = 0.5, inherit.aes = F)
-
-
-
-
-
-
-
-
-
-
-
 
 ```
 
