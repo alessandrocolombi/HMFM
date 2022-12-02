@@ -1311,18 +1311,24 @@ log_stable_sum = function(a, is_log = T)
 }
 
 
-#' compute the predictive distribution in a specific group when using a marginal sampler
+#' predictive_marginal
 #'
+#' This function computes the predictive distribution for group \code{idx_group} generated from the \code{\link{GDFMM_marginal_sampler}}.
+#' @inheritParams predictive
+#' @param option [list] the output of \code{\link{set_options_marginal}} function used to fit \code{\link{GDFMM_marginal_sampler}}.
+#'
+#' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
 #' @export
-predictive_marginal <- function(idx_group, grid, fit, option)
+predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
 {
 
   n_iter <- length(fit$K) #number of iterations
+  n_save <- n_iter - burnin #number of saved iterations to take into account. The first burnin must be discarded
   l_grid <- length(grid)  #length of the grid
-  MIX    <- matrix(0, nrow=n_iter, ncol=l_grid)
+  MIX    <- matrix(0, nrow=n_save, ncol=l_grid)
 
   # This loop computes the predictive distribution over a grid
-  for(it in 1:n_iter){
+  for(it in (burnin + 1):n_iter){
 
      # Get sampled values
      M_it <- fit$K[it]                        # get the number of clusters (allocated or not)
@@ -1349,7 +1355,7 @@ predictive_marginal <- function(idx_group, grid, fit, option)
     log_stable_sum = log_stable_sum(log_q_it)
     q = exp( log_q_it - log_stable_sum )
     # Compute predicted density at iteration it
-    MIX[it,] <- q[M_it+1] * Prior_grid +  q[1:M_it] %*% Kernel_grid
+    MIX[it-burnin,] <- q[M_it+1] * Prior_grid +  q[1:M_it] %*% Kernel_grid
   }
     # Density estimation and credible bounds
   pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))

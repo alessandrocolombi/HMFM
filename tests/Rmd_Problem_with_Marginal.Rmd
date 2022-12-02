@@ -260,7 +260,7 @@ Non sembra essere per niente una buona P0, è tutta schiacciata su un cluster
 ```{r}
 # Run  --------------------------------------------------------------------
 niter  <- 1000
-burnin <- 1000
+burnin <- 0
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
@@ -308,7 +308,8 @@ grid = seq(-25,25,length.out = l_grid)
 #Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
 
 # Predictive in one group
-Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, option = option)
+Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, 
+                                     option = option, burnin = niter/2)
 
 j = 1
 idx_start = 1

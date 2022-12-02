@@ -2,10 +2,24 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{predictive_marginal}
 \alias{predictive_marginal}
-\title{compute the predictive distribution in a specific group when using a marginal sampler}
+\title{predictive_marginal}
 \usage{
-predictive_marginal(idx_group, grid, fit, option)
+predictive_marginal(idx_group, grid, fit, option, burnin = 0)
+}
+\arguments{
+\item{idx_group}{\link{integer} the index of the group of interest.}
+
+\item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
+
+\item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
+
+\item{option}{\link{list} the output of \code{\link{set_options_marginal}} function used to fit \code{\link{GDFMM_marginal_sampler}}.}
+
+\item{burnin}{\link{integer} the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.}
+}
+\value{
+\link{matrix} of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
 }
 \description{
-compute the predictive distribution in a specific group when using a marginal sampler
+This function computes the predictive distribution for group \code{idx_group} generated from the \code{\link{GDFMM_marginal_sampler}}.
 }
