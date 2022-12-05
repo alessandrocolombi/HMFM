@@ -1205,12 +1205,13 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 #' @param varmu [scalar] desired value of the marginal variance of the normally distribuited parameter
 #' @param barsig2 [scalar] desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.
 #' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter
+#' @param correction [scalar] if \code{data} are provided, the expected value of \code{sigma} is set equal to \code{var(data)/correction}. 
 #' @export
-empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5  )
+empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5, correction = 3  )
 {
   if(!is.null(data)){
     barmu   = mean(data, na.rm = T)
-    barsig2 = var(as.vector(data), na.rm = T) / 3
+    barsig2 = var(as.vector(data), na.rm = T) / correction
   }
   # Initialize return value
   res = list("mu0" = 0, "sigma0"= 1.0, "k0" = 1.0, "nu0" = 10 )

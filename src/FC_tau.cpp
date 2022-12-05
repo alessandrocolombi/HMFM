@@ -17,7 +17,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
 
-    
+
     //Rcpp::Rcout<<"Dentro FC_tau::Update"<<std::endl;
     //Rcpp::Rcout<<"gs_data.Mstar:"<<std::endl<<gs_data.Mstar<<std::endl;
     //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
@@ -27,7 +27,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 
     //Initialize tau according to new M
-    gs_data.allocate_tau(gs_data.M); 
+    gs_data.allocate_tau(gs_data.M);
 
     if (prior == "Normal-InvGamma") {
 
@@ -44,7 +44,7 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
              gs_data.sigma[m] = sigma2_na;
              //Rcpp::Rcout << "Non Allocate: mu[" << m << "] = " << mu_na << std::endl;
              //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
-        } 
+        }
 
         //Allocated tau
         for (unsigned int m = 0; m < K; ++m){
@@ -61,30 +61,30 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             }
             //Esempio:
             /*
-                
+
                 Ctilde[0][0]: 0
                 Ctilde[0][1]: 0
                 Ctilde[1][0]: 0
                 Ctilde[1][1]: 1
 
                 Per m = 0 ho,
-                Stampo ind_i: 0, 1, 0, 
-                Stampo ind_j: 0, 0, 1, 
+                Stampo ind_i: 0, 1, 0,
+                Stampo ind_j: 0, 0, 1,
 
                 Per m = 1 ho,
-                Stampo ind_i: 1, 
-                Stampo ind_j: 1, 
+                Stampo ind_i: 1,
+                Stampo ind_j: 1,
 
                 Immagina Ctilde come una matrice, ind_i e ind_j mi dicono le coordinate che dovrò leggere componente per componente. Infatti nell'esempio,
                 data[0,0] - data[0,1] - data[1,0] stanno nel primo cluster e data[1,1] sta nel secondo
             */
 
-            //Rcpp::Rcout<<"Stampo ind_i: ";        
+            //Rcpp::Rcout<<"Stampo ind_i: ";
             //for(auto __v : ind_i)
                 //Rcpp::Rcout<<__v<<", ";
             //Rcpp::Rcout<<std::endl;
 //
-            //Rcpp::Rcout<<"Stampo ind_j: ";        
+            //Rcpp::Rcout<<"Stampo ind_j: ";
             //for(auto __v : ind_j)
                 //Rcpp::Rcout<<__v<<", ";
             //Rcpp::Rcout<<std::endl;
@@ -99,15 +99,36 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
             //Rcpp::Rcout<<"s2_clust:"<<std::endl<<s2_clust<<std::endl;
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
-            double mu0_post = (k_0 * mu_0 + N_k[m] * y_bar_clust) / k0_post;
+            double mu0_post = (k_0 * mu_0 + (double)N_k[m] * y_bar_clust) / k0_post;
             //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
-            double sigma02_post =     1.0/(nu0_post) * ( nu_0*sigma_0 + 
+            double sigma02_post =     1.0/(nu0_post) * ( nu_0*sigma_0 +
                                                         ( (double)N_k[m] - 1.0 ) * s2_clust +
                                                         ( k_0 * (double)N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (k0_post)
                                                        );
             //Rcpp::Rcout<<"sigma02_post:"<<std::endl<<sigma02_post<<std::endl;
             //Campionamento
+
             double sigma2_a = 1.0 / Gamma(gs_engine, nu0_post / 2.0, 2.0 / (nu0_post*sigma02_post) );
+                    //sigma2_a = 1.0; // ONLY FOR DEBUGGING
+                    //Rcpp::Rcout<<"Update component"<<std::endl;
+                    //Rcpp::Rcout<<"Variance related coefficients"<<std::endl;
+                    //Rcpp::Rcout<<"s2_clust = "<<std::endl<<s2_clust<<std::endl;
+                    //Rcpp::Rcout<<"nu0_post = "<<nu0_post<<std::endl;
+                    //Rcpp::Rcout<<"Prior term = "<<nu_0*sigma_0<<std::endl;
+                    //Rcpp::Rcout<<"Variance term = "<<(double)N_k[m] - 1.0  * s2_clust<<std::endl;
+                    //Rcpp::Rcout<<"squared difference term = "<<( k_0 * (double)N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (k0_post)<<std::endl;
+                    //Rcpp::Rcout<<"Expected value = "<< 
+                                                        //nu_0*sigma_0/(nu0_post) <<" + "<<  ( (double)N_k[m] - 1.0 ) * s2_clust /nu0_post<< " + " << 
+                                                        //( k_0 * (double)N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (nu0_post*k0_post)<< " = " <<
+                                                        //nu0_post*sigma02_post/nu0_post<<std::endl;
+                    //Rcpp::Rcout<<"Mean related coefficients"<<std::endl;
+                    //Rcpp::Rcout<<"n_k = "<<N_k[m]<<std::endl;
+                    //Rcpp::Rcout<<"k_0 = "<<k_0<<std::endl;
+                    //Rcpp::Rcout<<"peso 1: n_k/(n_k+k0) = "<< (double)N_k[m] / k0_post <<std::endl;
+                    //Rcpp::Rcout<<"peso 2: k0/(n_k+k0) = "<< k_0 / k0_post <<std::endl;
+                    //Rcpp::Rcout<<"y_bar_clust:"<<std::endl<<y_bar_clust<<std::endl;
+                    //Rcpp::Rcout<<"mu_0:"<<std::endl<<mu_0<<std::endl;
+                    //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
             double mu_a = rnorm(gs_engine, mu0_post, sqrt(sigma2_a / k0_post));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
@@ -134,7 +155,7 @@ double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const st
                     const std::vector<std::vector<double>>& data){
     if(ind_i.size() == 1)
         return 0.0;
-    
+
     double vari=0.0;
     int count=0;
      for (size_t ii = 0; ii <ind_i.size() ; ++ii) {
@@ -143,6 +164,6 @@ double FC_tau::var(double mean, const std::vector<unsigned int>& ind_i, const st
          //Rcpp::Rcout<<data.at(ind_j[ii]).at(ind_i[ii])<<",";
      }
      //Rcpp::Rcout<<std::endl;
-     return vari/(count-1); 
+     return vari/(count-1);
 }
 

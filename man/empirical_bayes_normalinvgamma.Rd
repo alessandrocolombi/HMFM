@@ -9,7 +9,8 @@ empirical_bayes_normalinvgamma(
   barmu = 0,
   varmu = 1,
   barsig2 = 10,
-  varsig2 = 5
+  varsig2 = 5,
+  correction = 3
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ empirical_bayes_normalinvgamma(
 \item{barsig2}{\link{scalar} desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.}
 
 \item{varsig2}{\link{scalar} desired value of the variance of the inverse-gamma distribuited parameter}
+
+\item{correction}{\link{scalar} if \code{data} are provided, the expected value of \code{sigma} is set equal to \code{var(data)/correction}.}
 }
 \description{
 function to set normal-inversegamma parameters. If \code{data} is not \code{NULL}, an empirical bayes procedure
