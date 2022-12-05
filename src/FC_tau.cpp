@@ -90,25 +90,25 @@ void FC_tau::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<std::endl;
 
             //Rcpp::Rcout<<"N_k["<<m<<"]: "<<std::endl<<N_k[m]<<std::endl;
-            double nu_n_clust = nu_0 + N_k[m];
-            //Rcpp::Rcout<<"nu_n_clust:"<<std::endl<<nu_n_clust<<std::endl;
-            double lpk = k_0 + N_k[m];
-            //Rcpp::Rcout<<"lpk:"<<std::endl<<lpk<<std::endl;
+            double nu0_post = nu_0 + N_k[m];
+            //Rcpp::Rcout<<"nu0_post:"<<std::endl<<nu0_post<<std::endl;
+            double k0_post = k_0 + N_k[m];
+            //Rcpp::Rcout<<"k0_post:"<<std::endl<<k0_post<<std::endl;
             double y_bar_clust= mean(ind_i,ind_j,data);
             //Rcpp::Rcout<<"y_bar_clust:"<<std::endl<<y_bar_clust<<std::endl;
             double s2_clust= var(y_bar_clust, ind_i, ind_j, data);
             //Rcpp::Rcout<<"s2_clust:"<<std::endl<<s2_clust<<std::endl;
             //if (is.na(s2_clust[k])){s2_clust[k] <- 0}
-            double mu_n_clust = (k_0 * mu_0 + N_k[m] * y_bar_clust) / lpk;
-            //Rcpp::Rcout<<"mu_n_clust:"<<std::endl<<mu_n_clust<<std::endl;
-            double sigma2_n_clust = (  nu_0 * sigma_0 + 
-                                      (N_k[m] - 1) * s2_clust + 
-                                      ( k_0 * N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (lpk) 
-                                    );
-            //Rcpp::Rcout<<"sigma2_n_clust:"<<std::endl<<sigma2_n_clust<<std::endl;
+            double mu0_post = (k_0 * mu_0 + N_k[m] * y_bar_clust) / k0_post;
+            //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
+            double sigma02_post =     1.0/(nu0_post) * ( nu_0*sigma_0 + 
+                                                        ( (double)N_k[m] - 1.0 ) * s2_clust +
+                                                        ( k_0 * (double)N_k[m] * (y_bar_clust - mu_0) * (y_bar_clust - mu_0) ) / (k0_post)
+                                                       );
+            //Rcpp::Rcout<<"sigma02_post:"<<std::endl<<sigma02_post<<std::endl;
             //Campionamento
-            double sigma2_a = 1 / Gamma(gs_engine, nu_n_clust/ 2, 2 / sigma2_n_clust );
-            double mu_a = rnorm(gs_engine, mu_n_clust, sqrt(sigma2_a / lpk));
+            double sigma2_a = 1.0 / Gamma(gs_engine, nu0_post / 2.0, 2.0 / (nu0_post*sigma02_post) );
+            double mu_a = rnorm(gs_engine, mu0_post, sqrt(sigma2_a / k0_post));
             gs_data.mu[m] = mu_a;
             gs_data.sigma[m] = sigma2_a;
             //Rcpp::Rcout << "Allocate: mu[" << m << "] = " << mu_a << std::endl;

@@ -194,7 +194,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                     double sigma_0_post =   (1/dof_post) * (    (double)(N_k[l]-1) * gs_data.compute_var_in_cluster(l) +
                                                                 dof_prior*sigma_0 +
                                                                 (double)K/k_0_post * (double)N_k[l] * 
-                                                                    (location_prior + sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior + sum_cluster_elements[l]/(double)N_k[l] )
+                                                                    (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] )
                                                             );
 
                     scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
