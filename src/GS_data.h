@@ -45,14 +45,18 @@ struct GS_data{
     // Constructor with default prior (Normal-InvGamma)
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
             const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
-            double nu0, double sigma0, double _gamma0, std::vector<unsigned int> _part_vec) : 
+            double nu0, double sigma0, double _gamma0, 
+            std::vector<double> _init_mean_clus, std::vector<double> _init_var_clus, 
+            std::vector<unsigned int> _part_vec) : 
                         GS_data(dat, n_iter, burnin, thin, gs_engine, _Mstar0, _Lambda0, _mu0, nu0,
-                                sigma0, _gamma0, "Normal-InvGamma", _part_vec){}
+                                sigma0, _gamma0, _init_mean_clus, _init_var_clus, "Normal-InvGamma", _part_vec){}
     
     // Constructor with user defined prior
     GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int _Mstar0, double _Lambda0, double _mu0,
-                double nu0, double sigma0, double _gamma0, std::string P0_prior_name, std::vector<unsigned int> _part_vec);
+                double nu0, double sigma0, double _gamma0, 
+                std::vector<double> _init_mean_clus, std::vector<double> _init_var_clus, 
+                std::string P0_prior_name, std::vector<unsigned int> _part_vec);
 
     GS_data(){};
     ~GS_data(){};
@@ -64,7 +68,8 @@ struct GS_data{
     void initialize_Partition();
     void initialize_S(unsigned int M,  const sample::GSL_RNG& gs_engine);
     void allocate_S(unsigned int M);
-    void initialize_tau(unsigned int M, double nu0, double mu0, double sigma0,
+    void initialize_tau(unsigned int M, const std::vector<double>& init_mean_clus, const std::vector<double>& init_var_clus,
+                        double nu0, double mu0, double sigma0,
                         const sample::GSL_RNG& gs_engine);
     // update methods;
     void allocate_N(unsigned int K);

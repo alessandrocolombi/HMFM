@@ -344,7 +344,51 @@ arrange_partition = function(partition){
   return (partition)
 }
 
-
+#' set_options
+#'
+#' Use this function to set up the options for the conditional Gibbs sampler.
+#' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
+#' @param Mstar0 [integer] the initial value of non-allocated components
+#' @param Lambda0 [double] the initial value for Lambda.
+#' @param gamma0 [double] the initial value for the gamma parameters.
+#' @param mu0 [double] the mean parameter in the prior of mu.
+#' @param k0 [double] the parameter in the prior of mu.
+#' @param sigma0 [double] the rate parameter in the prior of sigma.
+#' @param nu0 [double] the shape parameter in the prior of sigma.
+#' @param Adapt_MH_hyp1 [double] default is 0.7.
+#' @param Adapt_MH_hyp2 [double] default is 0.234.
+#' @param Adapt_MH_power_lim [double] default is 10.
+#' @param Adapt_MH_var0 [double] default is 1.
+#' @param alpha_gamma [double] the shape parameter in the prior of gamma.
+#' @param beta_gamma [double] the rate parameter in the prior of gamma.
+#' @param alpha_lambda [double] the shape parameter in the prior of lambda.
+#' @param beta_lambda [double] the rate parameter in the prior of lambda.
+#' @param UpdateU [bool] set \code{TRUE} if U must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateM [bool] set \code{TRUE} if Mstar must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateGamma [bool] set \code{TRUE} if gamma must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateS [bool] set \code{TRUE} if S must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateTau [bool] set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
+#'
+#' @export
+set_options = function( partition = NULL, Mstar0 = 2,
+                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
+                        k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
+                        init_mean_cluster = NULL, init_var_cluster = NULL,
+                        UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
+)
+{
+  option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
+               "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
+               "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
+               "init_mean_cluster" = init_mean_cluster, "init_var_cluster" = init_var_cluster,
+               "UpdateU" = UpdateU, "UpdateM" = UpdateM, "UpdateGamma" = UpdateGamma, "UpdateS" = UpdateS,
+               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
+  )
+  return (option)
+}
 
 #' GDFMM Gibbs Sampler: function to run the GDFMM model. There is the possibility to fix
 #'                      the partition, passing TRUE to FixPartition and specifying the
@@ -389,10 +433,26 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
 
+  # Check initial values for tau
+  K_init = length(table(option$partition)) # compute initial number of clusters
+  if(is.null(option$init_var_cluster))
+    option$init_var_cluster = rgamma(n=K_init+option$Mstar0,
+                                     shape = option$nu0/2,
+                                     rate  = option$nu0*option$sigma0/2 )
+  if(length(option$init_var_cluster)!=K_init+option$Mstar0)
+    stop("The length of option$init_var_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0 ")
+  if(is.null(option$init_mean_cluster))
+    option$init_mean_cluster = rnorm(n=K_init+option$Mstar0,
+                                     option$mu0, sqrt(option$init_var_cluster/option$k0))
+  if(length(option$init_mean_cluster)!=K_init+option$Mstar0)
+    stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0")
+
+
   #if( any(is.na(data)) )
     #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
-
+ # //sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0));
+ #  //mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
 
 
   return( GDFMM:::GDFMM_sampler_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
@@ -1002,50 +1062,6 @@ generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1
   return( list(data = data, real_partition = real_partition) )
 }
 
-#' set_options
-#'
-#' Use this function to set up the options for the conditional Gibbs sampler.
-#' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
-#' @param Mstar0 [integer] the initial value of non-allocated components
-#' @param Lambda0 [double] the initial value for Lambda.
-#' @param gamma0 [double] the initial value for the gamma parameters.
-#' @param mu0 [double] the mean parameter in the prior of mu.
-#' @param k0 [double] the parameter in the prior of mu.
-#' @param sigma0 [double] the rate parameter in the prior of sigma.
-#' @param nu0 [double] the shape parameter in the prior of sigma.
-#' @param Adapt_MH_hyp1 [double] default is 0.7.
-#' @param Adapt_MH_hyp2 [double] default is 0.234.
-#' @param Adapt_MH_power_lim [double] default is 10.
-#' @param Adapt_MH_var0 [double] default is 1.
-#' @param alpha_gamma [double] the shape parameter in the prior of gamma.
-#' @param beta_gamma [double] the rate parameter in the prior of gamma.
-#' @param alpha_lambda [double] the shape parameter in the prior of lambda.
-#' @param beta_lambda [double] the rate parameter in the prior of lambda.
-#' @param UpdateU [bool] set \code{TRUE} if U must be updated. Set \code{FALSE} to fix it to a common value.
-#' @param UpdateM [bool] set \code{TRUE} if Mstar must be updated. Set \code{FALSE} to fix it to a common value.
-#' @param UpdateGamma [bool] set \code{TRUE} if gamma must be updated. Set \code{FALSE} to fix it to a common value.
-#' @param UpdateS [bool] set \code{TRUE} if S must be updated. Set \code{FALSE} to fix it to a common value.
-#' @param UpdateTau [bool] set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.
-#' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
-#'
-#' @export
-set_options = function( partition = NULL, Mstar0 = 2,
-                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
-                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
-                        k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
-                        UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
-                      )
-{
-  option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
-               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
-               "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
-               "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
-               "UpdateU" = UpdateU, "UpdateM" = UpdateM, "UpdateGamma" = UpdateGamma, "UpdateS" = UpdateS,
-               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
-              )
-  return (option)
-}
-
 #' predictive_new_group
 #'
 #' This function computes the predictive distribution for group \code{d+1} that has not been observed.
@@ -1126,6 +1142,7 @@ set_options_marginal = function( partition = NULL,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
+                        init_mean_cluster = NULL, init_var_cluster = NULL,
                         UpdateU = T, UpdateGamma = T, UpdateTau = T, UpdateLambda = T
                       )
 {
@@ -1133,6 +1150,7 @@ set_options_marginal = function( partition = NULL,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
+               "init_mean_cluster" = init_mean_cluster, "init_var_cluster" = init_var_cluster,
                "UpdateU" = UpdateU, "UpdateGamma" = UpdateGamma,
                "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
               )
@@ -1185,6 +1203,20 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
 
+  # Check initial values for tau
+  K_init = length(table(option$partition)) # compute initial number of clusters
+  if(is.null(option$init_var_cluster))
+    option$init_var_cluster = rgamma(n=K_init,
+                                     shape = option$nu0/2,
+                                     rate  = option$nu0*option$sigma0/2 )
+  if(length(option$init_var_cluster)!=K_init)
+    stop("The length of option$init_var_cluster must be equal to the initial number of clusters deduced from the initial partition ")
+  if(is.null(option$init_mean_cluster))
+    option$init_mean_cluster = rnorm(n=K_init,
+                                     option$mu0, sqrt(option$init_var_cluster/option$k0))
+  if(length(option$init_mean_cluster)!=K_init)
+    stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition ")
+
   #if( any(is.na(data)) )
     #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
@@ -1205,7 +1237,7 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 #' @param varmu [scalar] desired value of the marginal variance of the normally distribuited parameter
 #' @param barsig2 [scalar] desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.
 #' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter
-#' @param correction [scalar] if \code{data} are provided, the expected value of \code{sigma} is set equal to \code{var(data)/correction}. 
+#' @param correction [scalar] if \code{data} are provided, the expected value of \code{sigma} is set equal to \code{var(data)/correction}.
 #' @export
 empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5, correction = 3  )
 {
@@ -1283,12 +1315,12 @@ dnct = function( x, n0, mu0, gamma0 )
 #' This functions computes log(sum_i(a_i)) using a stable formula for log values. Let us denote a* to the the maximum value of vector a which is attained when i = i*.
 #' \eqn{log(sum_i(a_i)) = log(a*) + log[ 1 + sum_{i not i*}(exp{log(a_i) - log(a*)}) ]}
 #' See that only the logarithm of the elements of a are needed. Hence, it is likely that one has already computed them in log scale. If so, set is_log = T
-#' @param a [vector] vector whose values must be summed. 
-#' @param is_log [bool] states if elements of a are already in log scale or not. If not, elements of a must be strictly positive. 
+#' @param a [vector] vector whose values must be summed.
+#' @param is_log [bool] states if elements of a are already in log scale or not. If not, elements of a must be strictly positive.
 #' @export
 log_stable_sum = function(a, is_log = T)
 {
-  
+
   # Check vector length
   if(length(a) == 0)
     return (0.0)
@@ -1299,8 +1331,8 @@ log_stable_sum = function(a, is_log = T)
       stop("Elements of a must be positive.")
     a = log(a)
   }
-      
-  # Find the maximum 
+
+  # Find the maximum
   a_star = max(a)
 
   # Handle degenerate case
@@ -1308,7 +1340,7 @@ log_stable_sum = function(a, is_log = T)
     return (-Inf)
 
   # Compute log stable sum formula
-  return(  a_star + log(sum( exp(a - a_star) ))   )    
+  return(  a_star + log(sum( exp(a - a_star) ))   )
 }
 
 
@@ -1338,20 +1370,20 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
      log_q_it <- fit$log_q[[it]][idx_group,]  # get the weights of required group
 
     if(length(log_q_it)!=(M_it+1))
-      stop("Error in predictive_marginal, length of log_q_it must be M_it + 1") 
+      stop("Error in predictive_marginal, length of log_q_it must be M_it + 1")
     # Kernel_grid is a  M_it x l_grid matrix, it contains the Normal kernels evauated over the grid
     # Kernel_grid[m,i] = Norm(grid[i] | mu_{m}^{(it)}, sigma^2_{m}^{(it)})
     Kernel_grid = t(sapply(1:M_it, simplify = "matrix",
                      function(m){
                          dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
-                     }  
+                     }
                    ))
 
     # Prior_grid is a vector of length l_grid, it contains the marginal prior evauated over the grid
     # Prior_grid[i] = nct(grid[i] | dof = nu0, loc = mu0, scale = sqrt(k0/(k0+1)*sigma0) ), where nct is the non-central student-t distribution
     scale = sqrt( (option$k0)/(option$k0 + 1) * option$sigma0 )
     Prior_grid = GDFMM:::dnct(x = grid, n0 = option$nu0, mu0 = option$mu0, gamma0 = scale)
-    
+
     # Compute normalized weigths
     log_stable_sum = log_stable_sum(log_q_it)
     q = exp( log_q_it - log_stable_sum )
@@ -1361,7 +1393,7 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
     # Density estimation and credible bounds
   pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
   return(pred_est)
-  
+
 }
 
 

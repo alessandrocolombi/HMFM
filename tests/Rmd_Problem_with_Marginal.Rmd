@@ -492,7 +492,8 @@ tibble(value = data[j,],
 ```
 Anche la predittiva è dove dovrebbe essere
 
-  
+
+
 # Tutto aleatorio
 
 ```{r}

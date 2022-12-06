@@ -46,6 +46,8 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
         double a2 = Rcpp::as<double>(option["alpha_lambda"]);
         double b2 = Rcpp::as<double>(option["beta_lambda"]);
+        std::vector<double> init_mean_clus{ Rcpp::as<std::vector<double>>(option["init_mean_cluster"]) };
+        std::vector<double> init_var_clus{ Rcpp::as<std::vector<double>>(option["init_var_cluster"]) };
         bool FixedU = !Rcpp::as<bool>(option["UpdateU"]);
         bool FixedGamma = !Rcpp::as<bool>(option["UpdateGamma"]);
         bool FixedTau = !Rcpp::as<bool>(option["UpdateTau"]);
@@ -53,7 +55,9 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data( data, n_iter, burn_in, thin, random_engine,
-                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, P0_prior_name, partition_vec);
+                           Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, 
+                           init_mean_clus, init_var_clus,
+                           P0_prior_name, partition_vec);
 
         // Iinitialize sums in clusters
         gs_data.initialize_sums_in_clusters();

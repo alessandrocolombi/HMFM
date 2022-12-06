@@ -4,7 +4,9 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, double gamma0, std::string P0_prior_name, std::vector<unsigned int> part_vec) :
+                double nu0, double sigma0, double gamma0, 
+                std::vector<double> _init_mean_clus, std::vector<double> _init_var_clus,
+                std::string P0_prior_name, std::vector<unsigned int> part_vec) :
                 prior(P0_prior_name) {
 
     iterations = 0;
@@ -61,13 +63,24 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     gamma = std::vector<double>(d, gamma0);
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 1.0);
+
     //Initialize log_sum
     update_log_sum();
+
     // Random Initialization of S and tau form the prior
     initialize_S(M, gs_engine); // inutile nel caso marginale ma non fa danni. NON va molto bene in ottica tener fisso S ad un valore iniziale!
     // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
-    initialize_tau(M, nu0, mu0, sigma0, gs_engine); // NON va molto bene in ottica tener fisso tau ad un valore iniziale!
-    // Rcpp::Rcout << "tau Initialized "<< std::endl;
+    initialize_tau(M, _init_mean_clus, _init_var_clus, nu0, mu0, sigma0, gs_engine);
+        //Rcpp::Rcout << "tau Initialized "<< std::endl;
+        //Rcpp::Rcout << "mu: "<<std::endl;     
+        //for(auto __v : mu)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+        //Rcpp::Rcout << "sigma: "<<std::endl;     
+        //for(auto __v : sigma)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+
     //set dimensions of vectors to compute mean and variance in clusters. Their are not filled because their are not used in conditinal sampler
     sum_cluster_elements.resize(K);
     squared_sum_cluster_elements.resize(K);
@@ -178,18 +191,25 @@ void GS_data::initialize_S(unsigned int M, const sample::GSL_RNG& gs_engine){
   }
 }
 
-void GS_data::initialize_tau(unsigned int M, double nu0, double mu0, double sigma0,
+void GS_data::initialize_tau(unsigned int M, const std::vector<double>& init_mean_clus, const std::vector<double>& init_var_clus, 
+                             double nu0, double mu0, double sigma0,
                              const sample::GSL_RNG& gs_engine){
-    mu = std::vector<double>(M, 0.0);
-    sigma = std::vector<double>(M, 1.0);
+    if(init_mean_clus.size()!= M)
+        throw std::runtime_error(" length of init_mean_clus is not equal to M  ");
+    if(init_var_clus.size()!= M)
+        throw std::runtime_error(" length of init_var_clus is not equal to M  ");
+            //mu = std::vector<double>(M, 0.0);
+            //sigma = std::vector<double>(M, 1.0);
+    mu = init_mean_clus;
+    sigma = init_var_clus;
 
-    sample::rgamma Gamma;
-    sample::rnorm rnorm;
-
-    for(unsigned m = 0; m < M; m++){
-        sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0));
-        mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
-  }
+            //sample::rgamma Gamma;
+            //sample::rnorm rnorm;
+        //
+            //for(unsigned m = 0; m < M; m++){
+                //sigma[m] =  1 / Gamma(gs_engine, nu0/2, 2 / (nu0*sigma0));
+                //mu[m] = rnorm(gs_engine, mu0, sqrt(sigma[m]));
+        //}
 }
 
 void GS_data::allocate_N(unsigned int K){

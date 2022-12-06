@@ -132,17 +132,18 @@ for(j in 1:d){
 # Run  --------------------------------------------------------------------
 
 
-niter  <- 20000
+niter  <- 20
 burnin <- 0
 thin   <- 1
 
 
 option = set_options(
-             "nu" = 1, "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0.25, "sigma0"= 0.5, "gamma0" = 1,
+             "Mstar0" = 2, "Lambda0" = 3, "mu0" = 0.25, "sigma0"= 0.5, "gamma0" = 1,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, "Adapt_MH_power_lim"=10, "Adapt_MH_var0"=1,
              "k0" = 0.2, "nu0" = 1, 
              "alpha_gamma"=1, "beta_gamma"=1, 
              "alpha_lambda"=1, "beta_lambda"=1,
+             "init_mean_cluster" = NULL, "init_var_cluster" = NULL,
              "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T,
              "UpdateTau" = T, "UpdateLambda" = T, "partition" = real_partition
         )
