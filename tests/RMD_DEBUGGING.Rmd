@@ -466,7 +466,7 @@ option = set_options_marginal(
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
 # new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
-GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
 ```
 ```{r, echo = F}
@@ -513,7 +513,7 @@ table(binder_sara$cl)
 table(VI_sara$cl)
 table(real_partition)
 ```
-Clustering perfetto, però la catena non ha mixato la partizione
+Clustering osceno, è sempre su 4 cluster ma non va per niente bene
 
 Le stime dei parametri $\mu$ e $\sigma$ sono praticamente uguali al caso in cui la partizione viene tenuta fissa (infatti il clustering è perfetto, non è strano, anzi è quello che c'era da aspettarsi). Ovviamente la predittiva fa schifo tanto quanto l'altro caso
 ```{r}
@@ -604,8 +604,8 @@ for(j in 1:d){
 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <- 1000
-burnin <- 1000
+niter  <-  1000
+burnin <-  1000
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
@@ -625,8 +625,6 @@ option = set_options_marginal(
 GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
 ```
-
-
 ```{r, echo = F}
 #Lambda
 plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
@@ -671,9 +669,9 @@ table(binder_sara$cl)
 table(VI_sara$cl)
 table(real_partition)
 ```
-Clustering perfetto, però la catena non ha mixato la partizione
+male, sia il clustering che la predittiva.
 
-Le stime dei parametri $\mu$ e $\sigma$ sono praticamente uguali al caso in cui la partizione viene tenuta fissa (infatti il clustering è perfetto, non è strano, anzi è quello che c'era da aspettarsi). Quindi la predittiva è buona tanto quanto l'altro caso
+
 ```{r}
 l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
@@ -709,8 +707,6 @@ tibble(value = data[j,],
               alpha = 0.5, inherit.aes = F)
 
 ```
-
-
 
 # Parametri fissati e partizione random
 

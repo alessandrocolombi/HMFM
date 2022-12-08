@@ -618,7 +618,7 @@ option = set_options_marginal(
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
 # new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
-GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
 ```
 ```{r, echo = F}
@@ -665,7 +665,7 @@ table(binder_sara$cl)
 table(VI_sara$cl)
 table(real_partition)
 ```
-Clustering perfetto, però la catena non ha mixato la partizione
+Clustering osceno, è sempre su 4 cluster ma non va per niente bene
 
 Le stime dei parametri $\mu$ e $\sigma$ sono praticamente uguali al caso in cui la partizione viene tenuta fissa (infatti il clustering è perfetto, non è strano, anzi è quello che c'era da aspettarsi). Ovviamente la predittiva fa schifo tanto quanto l'altro caso
 ```{r}
@@ -751,4 +751,111 @@ for(j in 1:d){
   idx_start = idx_end + 1
   idx_end = idx_end + n_j[j]
 }
+```
+
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  1000
+burnin <-  1000
+thin   <- 1
+
+P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+
+option = set_options_marginal(
+             "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "gamma0" = 1,"Lambda0" = 3, 
+             "alpha_gamma"=5, "beta_gamma"=0.5, 
+             "alpha_lambda"=1, "beta_lambda"=5,
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition
+        )
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+
+```
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(mfrow = c(1,2))
+plot(GDFMM$K, type = 'l', main = "K")
+hist(GDFMM$K, main = "K")
+
+```
+
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+```
+male, sia il clustering che la predittiva.
+
+
+```{r}
+l_grid = 200
+grid = seq(-25,25,length.out = l_grid)
+
+# Predictive in all groups
+#Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
+
+# Predictive in one group
+Pred_one_group = predictive_marginal(idx_group = 1, grid = grid, fit = GDFMM, 
+                                     option = option, burnin = 0)
+
+j = 1
+idx_start = 1
+idx_end = n_j[1]
+tibble(value = data[j,],
+       true_clus = as.factor(real_partition[idx_start:idx_end])
+       ) %>%
+  ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+  geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+  geom_histogram(data = tibble(value = data[j,]),
+                 aes(x=value, y = ..density..), 
+                 color = 'black', alpha = 0.3,
+                 binwidth = 0.5, inherit.aes = F) +
+  scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+  scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] )  +
+  geom_path( data = as_tibble( t(Pred_one_group) ),
+             color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+             inherit.aes = F)  +
+  labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+  geom_ribbon(data = as_tibble( t(Pred_one_group) ), fill = mycol[1],
+              aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+              alpha = 0.5, inherit.aes = F)
+
 ```
