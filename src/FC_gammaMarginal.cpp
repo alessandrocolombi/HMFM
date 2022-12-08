@@ -89,7 +89,8 @@ double FC_gammaMarginal::log_raising_factorial(const unsigned int& n, const doub
 
 double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lambda, const unsigned int& K, const double& U_j, const GDFMM_Traits::VecUnsRow& n_jk) const
 {   
-    const double oneplusU{1+U_j};
+    const double oneplusU{1.0+U_j};
+    const double one_over_oneplusU_at_x{1.0/std::pow(oneplusU,x)};
     //sum_{i=1}^K( log_raising_factorial(n_jk[i]), x )
     //const double sumPochammer{ std::accumulate(n_jk.cbegin(), n_jk.cend(), 0.0, [x](const unsigned int& n){return log_raising_factorial(n,x);})   }; //this can be done only from Eigen 3.4
     double sumPochammer{0.0};
@@ -97,8 +98,8 @@ double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lam
         sumPochammer += log_raising_factorial(n_jk[i], x);
 
 
-    return( - x*oneplusU + 
-            std::log( (double)K + Lambda/std::pow(oneplusU,x) ) - 
+    return( one_over_oneplusU_at_x + 
+            std::log( (double)K + Lambda*one_over_oneplusU_at_x ) - 
             ( n_jk.sum() + (double)K*x )*std::log(oneplusU) + 
             sumPochammer +
             (alpha - 1.0)*std::log(x) - 
