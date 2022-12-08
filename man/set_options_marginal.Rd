@@ -18,6 +18,8 @@ set_options_marginal(
   beta_gamma = 1,
   alpha_lambda = 1,
   beta_lambda = 1,
+  init_mean_cluster = NULL,
+  init_var_cluster = NULL,
   UpdateU = T,
   UpdateGamma = T,
   UpdateTau = T,

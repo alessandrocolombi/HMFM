@@ -744,13 +744,13 @@ thin   <- 1
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
 # gamma
 mu_gamma  = opt$par[1]
-var_gamma = 10
+var_gamma = 0.1
 b_gamma = mu_gamma/(var_gamma)
 a_gamma = mu_gamma * b_gamma
 
 #lambda
 mu_lambda  = opt$par[2]
-var_lambda = 10
+var_lambda = 0.1
 a_lambda = (mu_lambda*mu_lambda)/var_lambda
 b_lambda = mu_lambda/(var_lambda)
 
@@ -761,9 +761,10 @@ option = set_options_marginal(
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
-             "init_mean_cluster" = unlist(mean_data_per_cluster), "init_var_cluster" = unlist(var_data_per_cluster),
-             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = F, "UpdateLambda" = F, 
-             "partition" = real_partition
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = NULL#real_partition
         )
 
 # P0 Hyperparameters:
@@ -776,9 +777,10 @@ option = set_options_marginal(
 
 
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
-GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
 ```
+
 ```{r, echo = F}
 #Lambda
 plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
