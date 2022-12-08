@@ -761,8 +761,9 @@ option = set_options_marginal(
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
-             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = NULL#real_partition
+             "init_mean_cluster" = unlist(mean_data_per_cluster), "init_var_cluster" = unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = F, "UpdateLambda" = F, 
+             "partition" = real_partition
         )
 
 # P0 Hyperparameters:
@@ -775,7 +776,7 @@ option = set_options_marginal(
 
 
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
-GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = T, option = option)
 
 ```
 ```{r, echo = F}
