@@ -762,7 +762,7 @@ option = set_options_marginal(
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = real_partition
+             "partition" = NULL#real_partition
         )
 
 # P0 Hyperparameters:
