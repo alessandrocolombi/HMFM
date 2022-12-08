@@ -446,6 +446,60 @@ for(j in 1:d){
 Sembra essere proprio la situazione che voglio, la prior abbraccia tutti e 4 i cluster
 
 
+
+Provo a fissare $\tau$ e $\Lambda$ in modo intelligente.
+Voglio che la probabilità a priori di avere $K=4$ cluster sia più alta possibile.
+
+* f è la funzione da ottimizzare
+```{r}
+f <- function(x){
+  -p_distinct_prior(k = K, n_j = c(n_j), 
+                   gamma = c(x[1]), 
+                   prior = "Poisson", lambda = x[2] )
+}
+
+opt = optim(par = c(0.1,0.1), #initial points
+            method = "L-BFGS-B", # that's the only method that takes bounds
+            fn  = f, #function to be minimized
+            lower = c(0.001,0.001) #lower bound for variables
+            )
+opt
+
+```
+
+Parametrizzo la gamma secondo media e varianza. 
+
+Se $X \sim gamma(a,b)$, allora $E[X] = a/b$ e $V(X) = a/b^2$.
+
+Invece, se $X \sim gamma(\mu_x,V_x)$, allora $a = \frac{\mu_x^2}{V_x}$ e $b = \frac{\mu_x}{V_x}$
+
+```{r}
+# gamma
+mu_gamma  = opt$par[1]
+var_gamma = 0.01
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+x_range_gamma = c(  max(0, mu_gamma-2.5*sqrt(var_gamma) ),
+                    mu_gamma+2.5*sqrt(var_gamma) )
+#lambda
+mu_lambda  = opt$par[2]
+var_lambda = 0.01
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+x_range_lambda = c(  max(0, mu_lambda-2.5*sqrt(var_lambda) ),
+                     mu_lambda+2.5*sqrt(var_lambda) )
+
+
+par(mfrow = c(1,2))
+plot_density(shape = a_gamma, rate = b_gamma,
+             dist = "gamma", main = "gamma prior", use_x11_device = F,
+             xlim = x_range_gamma)
+plot_density(shape = a_lambda, rate = b_lambda,
+             dist = "gamma", main = "lambda prior", use_x11_device = F,
+             xlim = x_range_lambda)
+```
+
+
 ```{r}
 # Run  --------------------------------------------------------------------
 niter  <-  1000
@@ -453,22 +507,47 @@ burnin <-  1000
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+# gamma
+mu_gamma  = opt$par[1]
+var_gamma = 0.01
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+
+#lambda
+mu_lambda  = opt$par[2]
+var_lambda = 0.01
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
 
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
-             "gamma0" = 1,"Lambda0" = 3, 
-             "alpha_gamma"=5, "beta_gamma"=0.5, 
-             "alpha_lambda"=1, "beta_lambda"=5,
+             "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = real_partition
         )
+
+# P0 Hyperparameters:
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
 # new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+
+
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
 GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
 ```
+
+
+
+
+
 ```{r, echo = F}
 #Lambda
 plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
@@ -602,6 +681,60 @@ for(j in 1:d){
 ```
 
 
+
+Provo a fissare $\tau$ e $\Lambda$ in modo intelligente.
+Voglio che la probabilità a priori di avere $K=4$ cluster sia più alta possibile.
+
+* f è la funzione da ottimizzare
+```{r}
+f <- function(x){
+  -p_distinct_prior(k = K, n_j = c(n_j), 
+                   gamma = c(x[1]), 
+                   prior = "Poisson", lambda = x[2] )
+}
+
+opt = optim(par = c(0.1,0.1), #initial points
+            method = "L-BFGS-B", # that's the only method that takes bounds
+            fn  = f, #function to be minimized
+            lower = c(0.001,0.001) #lower bound for variables
+            )
+opt
+
+```
+
+Parametrizzo la gamma secondo media e varianza. 
+
+Se $X \sim gamma(a,b)$, allora $E[X] = a/b$ e $V(X) = a/b^2$.
+
+Invece, se $X \sim gamma(\mu_x,V_x)$, allora $a = \frac{\mu_x^2}{V_x}$ e $b = \frac{\mu_x}{V_x}$
+
+```{r}
+# gamma
+mu_gamma  = opt$par[1]
+var_gamma = 0.1
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+x_range_gamma = c(  max(0, mu_gamma-2*sqrt(var_gamma) ),
+                    mu_gamma+2*sqrt(var_gamma) )
+#lambda
+mu_lambda  = opt$par[2]
+var_lambda = 0.1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+x_range_lambda = c(  max(0, mu_lambda-2*sqrt(var_lambda) ),
+                     mu_lambda+2*sqrt(var_lambda) )
+
+
+par(mfrow = c(1,2))
+plot_density(shape = a_gamma, rate = b_gamma,
+             dist = "gamma", main = "gamma prior", use_x11_device = F,
+             xlim = x_range_gamma)
+plot_density(shape = a_lambda, rate = b_lambda,
+             dist = "gamma", main = "lambda prior", use_x11_device = F,
+             xlim = x_range_lambda)
+```
+
+
 ```{r}
 # Run  --------------------------------------------------------------------
 niter  <-  1000
@@ -609,18 +742,38 @@ burnin <-  1000
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+# gamma
+mu_gamma  = opt$par[1]
+var_gamma = 10
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+
+#lambda
+mu_lambda  = opt$par[2]
+var_lambda = 10
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
 
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
-             "gamma0" = 1,"Lambda0" = 3, 
-             "alpha_gamma"=5, "beta_gamma"=0.5, 
-             "alpha_lambda"=1, "beta_lambda"=5,
+             "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = NULL#real_partition
+             "partition" = real_partition
         )
+
+# P0 Hyperparameters:
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
 # new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+
+
 #GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
 GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
 
