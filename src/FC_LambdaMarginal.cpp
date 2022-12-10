@@ -5,6 +5,8 @@ FC_LambdaMarginal::FC_LambdaMarginal(   std::string _na, double _a, double _b, b
                                         FC_Lambda(_na,_a,_b,_keepfixed), hyp1(_h1), hyp2(_h2), power(_pow), adapt_var_proposal_Lambda(_adapt_var0){};
 
 void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
+    
+    throw std::runtime_error("Error: THIS UPDATE IS WRONG AND SHOULD NOT BE USED ");
     // Samplers
     sample::rnorm rnorm;
     sample::runif runif;

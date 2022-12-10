@@ -13,7 +13,9 @@ private:
     unsigned int power = 10;
     std::vector<double> adapt_var_proposal_U; //vector for variances to be adapted in MH steps
     // evaluate log_f(U_j = x | rest )
-    double log_FCU_marginal(const double& x, const double& Lambda, const unsigned int& K, const double& gamma, const unsigned int& n_j) const;
+    //double log_FCU_marginal(const double& x, const double& Lambda, const unsigned int& K, const double& gamma, const unsigned int& n_j) const;
+    double log_FCU_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K, const std::vector<double>& Gamma, const GDFMM_Traits::MatUnsCol& N) const
+;
 public:
     //FC_UMarginal(bool _keepfixed):FC_U(_keepfixed){};
     FC_UMarginal(std::string _na, bool _keepfixed,  double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0);

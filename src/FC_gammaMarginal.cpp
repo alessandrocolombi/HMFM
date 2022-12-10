@@ -14,8 +14,9 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
     const GDFMM_Traits::MatUnsCol& N = gs_data.N; // dxK matrix; 
 
     // Auxiliary variables
-    double log_gamma_new; //log of proposed new value for gamma_j. gamma_new_j = exp(log_gamma_new)
-    double gamma_new; //proposed new value for gamma_j
+    // Note: gamma_new_j = exp(log_gamma_new[j])
+    std::vector<double> log_gamma_new(d, 1.0); //log of proposed new values for gamma_1, ... , gamma_d. 
+    std::vector<double> gamma_new(d, 1.0); //proposed new value for gamma_j
     double ln_acp;    //log of acceptance probability
     double ln_u;      //log of uniform random variable used to decide if accept the move or not
     
@@ -23,7 +24,8 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
     double ww_g{ pow(iter + 1,-hyp2) };
     
     // Rcpp::Rcout<<"iter="<<iter<<std::endl;
-    
+    /*
+    // OLD IMPLEMENTATION THAT IS WRONG!!
     for (unsigned int j = 0; j < d; j++){
         //Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
         //Rcpp::Rcout<<"Adaptive variamce var["<<j<<"] = "<<adapt_var_pop_gamma[j]<<std::endl;
@@ -60,6 +62,44 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
         }
 
     }
+    */
+    if(d == 1){
+        //Rcpp::Rcout<<"Gamma:"<<gamma[0]<<std::endl;
+        //Rcpp::Rcout<<"Adaptive variamce var["<<0<<"] = "<<adapt_var_pop_gamma[0]<<std::endl;
+
+        // Update of Gamma via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+        
+        //1) Sample proposed value in log scale
+        log_gamma_new[0] = rnorm(gs_engine, std::log(gamma[0]), std::sqrt(adapt_var_pop_gamma[0]));
+        gamma_new[0] = std::exp(log_gamma_new[0]);
+        
+        //2) Compute acceptance probability in log scale
+        ln_acp = log_FCgamma_marginal(gamma_new, Lambda, K, U, N ) - 
+                 log_FCgamma_marginal(gamma,     Lambda, K, U, N ) +
+                 log_gamma_new[0]  - std::log(gamma[0]);
+
+        //3) Acceptance rejection step
+        ln_u = std::log(runif(gs_engine));
+        
+        if (ln_u  < ln_acp)
+            gs_data.gamma[0] = gamma_new[0];
+
+        //std::string update_status = (ln_u  < ln_acp)? " updated" : "NOT updated";
+        //Rcpp::Rcout << "gamma_" << 0 << gs_data.gamma[0] << update_status << std::endl;
+
+        adapt_var_pop_gamma[0] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
+                                                    )  
+                                            );
+
+        if (adapt_var_pop_gamma[0] < 1/pow(10, power)){
+            adapt_var_pop_gamma[0] = 1/pow(10, power);
+        }
+        if(adapt_var_pop_gamma[0] > pow(10,power)){
+            adapt_var_pop_gamma[0] = pow(10,power);
+        }
+    }
+    else
+        throw std::runtime_error("Error in FC_gammaMarginal: d>1 case not yet implemented ");
 }
 
 double FC_gammaMarginal::log_raising_factorial(const unsigned int& n, const double& a) const
@@ -86,7 +126,8 @@ double FC_gammaMarginal::log_raising_factorial(const unsigned int& n, const doub
     }
 }
 
-
+/*
+// OLD FUNCTION THAT IS WRONG
 double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lambda, const unsigned int& K, const double& U_j, const GDFMM_Traits::VecUnsRow& n_jk) const
 {   
     const double oneplusU{1.0+U_j};
@@ -105,4 +146,33 @@ double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lam
             (alpha - 1.0)*std::log(x) - 
             beta*x    
         );
+}
+*/
+
+double FC_gammaMarginal::log_FCgamma_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K, 
+                                              const std::vector<double>& U, const GDFMM_Traits::MatUnsCol& N ) const
+{   
+
+    double res{0.0};
+    double SumLog = 0.0;
+
+    for(size_t j=0; j<x.size(); j++){
+
+        double gamma_log_onePlusU{x[j]*std::log(U[j] + 1.0)};
+        SumLog += gamma_log_onePlusU; 
+
+        //sum_{i=1}^K( log_raising_factorial(N(j,k), x[j] )
+        double sumPochammer{0.0};
+        for(std::size_t k = 0; k < N.cols(); k++)
+            sumPochammer += log_raising_factorial(N(j,k), x[j]);
+
+        res +=  (alpha - 1.0) * std::log(x[j]) - 
+                beta * x[j] - 
+                (double)K * gamma_log_onePlusU +
+                sumPochammer ;
+    }
+    
+    double Lambda_ProdPsi{Lambda*std::exp(-SumLog)};
+    return ( res + std::log( (double)K + Lambda_ProdPsi ) + Lambda_ProdPsi );
+
 }

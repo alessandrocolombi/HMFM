@@ -34,6 +34,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         GDFMM_Traits::MatUnsCol& N = gs_data.N;   //dxK matrix, N(j,m) is the number of elements belonging to level j that are assigned to cluster m
         const std::vector<double>& U = gs_data.U; 
         const std::vector<double>& gamma = gs_data.gamma; 
+        const double& log_sum = gs_data.log_sum;
         std::vector<double>& sum_cluster_elements = gs_data.sum_cluster_elements;
         std::vector<double>& squared_sum_cluster_elements = gs_data.squared_sum_cluster_elements;
 
@@ -52,6 +53,9 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         // Define the function to compute the constant that appears when computing the probability of creating a new cluster.
         // Note that, since U-gamma-Lambda are constants, this constant depends only on the number of clusters K. 
         // Hence its value must be updated only when K changes.
+
+        /*
+        // OLD FUNCTION THAT IS WRONG!!
         auto compute_log_const_new_cluster = [&U, &gamma, &Lambda](const unsigned int& K){
 
             return (std::inner_product(U.cbegin(), U.cend(), gamma.cbegin(), 0.0, std::plus<>(),[&Lambda, &K](const double& U_j, const double& gamma_j)
@@ -64,6 +68,14 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                                                                                              }
                                     )
                     );
+        };
+        */
+        auto compute_log_const_new_cluster = [&log_sum, &Lambda](const unsigned int& K){
+
+            return( -log_sum + 
+                    std::log( (double)K + 1.0 + Lambda*std::exp(-log_sum) ) -
+                    std::log( (double)K + Lambda*std::exp(-log_sum) )   
+                  );
         };
         double log_const_new_cluster{compute_log_const_new_cluster(K)};
 
@@ -211,7 +223,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 
                 // we are done looping over the already occupied clusters. Next, calculate the log probability of a new table.
                 log_probs_vec[K] =  log_const_new_cluster + 
-                                    std::log(gamma[j]) + d*std::log(Lambda) +
+                                    std::log( gamma[j] * Lambda ) +
                                     log_prob_marginal_data[j][i];
 
 
@@ -317,7 +329,7 @@ double FC_PartitionMarginal::log_dnct(const double& x, double const & n0, double
         throw std::runtime_error("Error in log_dnct, the degree of freedom must be strictly positive  ");
     if(gamma0 <= 0)
         throw std::runtime_error("Error in log_dnct, the scale must be strictly positive  ");
-    return(   std::lgamma( (n0+1)/2 ) - std::lgamma( n0/2 ) - 0.5*std::log(M_PI*gamma0*n0) - 0.5*(n0 + 1)*std::log(1 + (1/n0)*(x-mu0)*(x-mu0)/(gamma0*gamma0)  )  );
+    return(   std::lgamma( (n0+1.0)/2.0 ) - std::lgamma( n0/2.0 ) - 0.5*std::log(M_PI*gamma0*n0) - 0.5*(n0 + 1.0)*std::log(1.0 + (1.0/n0)*(x-mu0)*(x-mu0)/(gamma0*gamma0)  )  );
 }
 
 

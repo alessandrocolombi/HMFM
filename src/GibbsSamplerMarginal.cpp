@@ -68,10 +68,11 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, gs_data.d, 1.0, a1, b1, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
         auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU, h1, h2, 10, gs_data.d, 1.0);
-        auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0);
+                //auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0); //update of lambda in conditional and marginal sampler must be the same
+        auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
 
         //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc{ lambdaMarginal_ptr,
+        std::vector< std::shared_ptr<FullConditional> > fc{ lambda_ptr,
                                                             gammaMarginal_ptr,
                                                             UMarginal_ptr,
                                                             PartitionMarginal_ptr,
