@@ -199,6 +199,9 @@ void GibbsSamplerMarginal::store_params_values() {
     GDFMM_Traits::MatRow Weights_it(GDFMM_Traits::MatRow::Constant(gs_data.d,gs_data.K+1,0.0)); //define d x K+1 empty matrix
 
     // Compute product term that is common to all levels j
+
+    /*    
+    // OLD IMPLEMENTATION THAT IS WRONG
     double log_const_new_cluster = std::inner_product(  gs_data.U.cbegin(), gs_data.U.cend(), gs_data.gamma.cbegin(), 
                                                         0.0, std::plus<>(),
                                                         [&Lambda, &K](const double& U_h, const double& gamma_h)
@@ -210,6 +213,10 @@ void GibbsSamplerMarginal::store_params_values() {
                                                                     );
                                                         }
                                                     );
+    */
+    double log_const_new_cluster =  -gs_data.log_sum + 
+                                    std::log( (double)K + 1.0 + Lambda*std::exp(-gs_data.log_sum) ) -
+                                    std::log( (double)K + Lambda*std::exp(-gs_data.log_sum) )   ;
 
     // Start loop over all levels and all clusters + 1
     for(unsigned int j=0; j<gs_data.d; j++){ //for each level
@@ -219,10 +226,15 @@ void GibbsSamplerMarginal::store_params_values() {
                 Weights_it(j,l) = std::log( gs_data.N(j,l) + gs_data.gamma[j] );
             
             else if(l==gs_data.K){ // set q_{K+1} for new cluster
+                /*
+                // OLD IMPLEMENTATION THAT IS WRONG
                 Weights_it(j,l) =   log_const_new_cluster + 
                                     gs_data.d * std::log(gs_data.lambda) + 
                                     std::log(gs_data.gamma[j]) - 
                                     gs_data.gamma[j] * (gs_data.U[j] + 1.0);
+                */
+                Weights_it(j,l) =   log_const_new_cluster +
+                                    std::log(gs_data.lambda * gs_data.gamma[j]) ;
                 
             }
             else
