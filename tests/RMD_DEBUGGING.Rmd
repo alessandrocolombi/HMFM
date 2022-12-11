@@ -506,7 +506,8 @@ niter  <-  1000
 burnin <-  1000
 thin   <- 1
 
-P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+#P0_hyparam = empirical_bayes_normalinvgamma(data = data)
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = 100, correction = 10)
 # gamma
 mu_gamma  = opt$par[1]
 var_gamma = 0.01
@@ -527,7 +528,7 @@ option = set_options_marginal(
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = real_partition
+             "partition" = NULL#real_partition
         )
 
 # P0 Hyperparameters:
@@ -737,7 +738,7 @@ plot_density(shape = a_lambda, rate = b_lambda,
 In questo momento, se parto dalla partizione vera OK (anche se U può crescere tanto) ma se parto da quella nulla malissimo perché U potrebbe anche esplodere completamente (1e+25). 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  1000
+niter  <-  2000
 burnin <-  2000
 thin   <- 1
 
@@ -764,7 +765,7 @@ option = set_options_marginal(
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
              "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = real_partition
+             "partition" = seq(1:length(real_partition))#real_partition
         )
 
 # P0 Hyperparameters:
@@ -795,7 +796,7 @@ for(j in 1:d){
 # U
 par(mfrow = c(1,d))
 for(j in 1:d){
-  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j) )
 }
 
 # K
