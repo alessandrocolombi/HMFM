@@ -14,7 +14,7 @@ void FC_U::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
     const GDFMM_Traits::MatRow& S = gs_data.S;
     // T_j is computed for each group (T_j = sum of S_jm over m for each group j)
 
-    Eigen::VectorXd T = S.rowwise().sum(); //S is S' hence T is T'
+    Eigen::VectorXd T = S.rowwise().sum(); 
     // Sampler for new U
     sample::rgamma Gamma;
     //Rcpp::Rcout<<T(0)<<std::endl;
