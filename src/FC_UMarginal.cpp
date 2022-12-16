@@ -118,14 +118,59 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
             adapt_var_proposal_U[0] = pow(10,power);
         }
     }
-    else
+    else{
+        
+        // ---------------------------------------------
+        // MALA UPDATE for positive valued random vector
+        // ---------------------------------------------
+
+        GDFMM_Traits:MatUnsCol I_d = GDFMM_Traits::MatUnsCol::Identity(d,d); // define identity matrix
+
+        // Compute log of current U vector
+        std::vector<double> log_U(0.0,d); 
+        std::transform(U.cbegin(),U.cend(),log_U.begin(), [](const double& U_j){return(std::log(U_j));}); // compute log of each element
+        
+        // Compute MALA proposal values
+        // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 
+        std::vector<double> mala_mean = grad_log_FCU_marginal(log_U, Lambda, K, gamma, N); // this is log_pi(U|rest) evaluated at U = log(U)
+        for(size_t j=0; j < d; j++){
+            
+            // compute mean
+            mala_mean[j] = log_U[j] + 0.5*s_p*(mala_mean[j] * U[j] + 1.0); // adjust for mapping in the gradient and compute mala mean
+
+            // draw value and compute its exponential
+            log_U_new[j] = rnorm( gs_engine, mala_mean[j], std::sqrt(s_p) );
+            U_new[j]     = std::exp(log_U_new[j]);
+        }
+        // MALA proposal is not symmetric. I also need to compute the mean of the inverse move
+        std::vector<double> mala_mean_invmove = grad_log_FCU_marginal(log_U_new, Lambda, K, gamma, N); // this is log_pi(U|rest) evaluated at U = log(U_new)
+        for(size_t j=0; j < d; j++){
+            // compute mean of inverse move
+            mala_mean_invmove[j] = log_U_new[j] + 0.5*s_p*(mala_mean_invmove[j] * U_new[j] + 1.0); // adjust for mapping in the gradient and compute mala mean
+        }
+        // Compute log acceptance probability
+        ln_acp = log_FCU_marginal(U_new, Lambda, K, gamma, N ) - // target evaluated in exp( log_U_new ) = U_new
+                 log_FCU_marginal(U,     Lambda, K, gamma, N ) + // target evaluated in exp( log_w )     = U
+                 std::accumulate(log_U_new.cbegin(),log_U_new.cend(),0.0)  - // sum of log_U_new
+                 std::accumulate(log_U.cbegin(),log_U.cend(),0.0)  +         // sum of log_U
+                 1.0/(2*s_p)*std::inner_product(log_U.cbegin(),log_U.cend(),mala_mean_invmove.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return(x1-x2);}) + //proposal of inverse move
+                 1.0/(2*s_p)*std::inner_product(log_U_new.cbegin(),log_U_new.cend(),mala_mean.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return(x1-x2);}); //proposal move
+        
+
+        //3) Acceptance rejection step
+        ln_u = std::log(runif(gs_engine));
+        
+        if (ln_u  < ln_acp)
+            gs_data.U = U_new;
+
         throw std::runtime_error("Error in FC_UMarginal: d>1 case not yet implemented ");
+    }
 
 
     // Update log_sum = sum_j( gamma_j * log(1+U_j) )
     gs_data.update_log_sum();
-    
-    //gs_data.update_log_sum();
     // Rcpp::Rcout<< "New log_sum : " << gs_data.log_sum <<std::endl;
 }
 
@@ -158,8 +203,33 @@ double FC_UMarginal::log_FCU_marginal(const std::vector<double>& x, const double
         res += ( (double)N.row(j).sum() - 1.0 )*std::log(x[j]) - 
                ( (double)N.row(j).sum() + (double)K*Gamma[j] )*log_onePlusU ; 
     }
-    double Lambda_ProdPsi{Lambda*std::exp(-SumLog)};
+    double Lambda_ProdPsi{Lambda*std::exp(-SumLog)}; // this is Lambda*prod_psi
     return( res +  Lambda_ProdPsi  +  std::log( (double)K + Lambda_ProdPsi  )  );
 
 }
 
+
+std::vector<double> FC_UMarginal::grad_log_FCU_marginal(const std::vector<double>& x, const double& Lambda, 
+                                                        const unsigned int& K, const std::vector<double>& Gamma, const GDFMM_Traits::MatUnsCol& N) const
+{
+    // Naive implementation with double for-loop
+    unsigned int d = x.size(); // gradient size
+
+    // 1) Compute prod_psi
+    double SumLog = 0.0; 
+    for(size_t j=0; j<x.size(); j++){
+        double log_onePlusU{std::log(x[j] + 1.0)}; // this is log(1+U_j)
+        SumLog += log_onePlusU*Gamma[j]; 
+    }
+    double Lambda_ProdPsi{Lambda*std::exp(-SumLog)}; // this is Lambda*prod_psi
+
+    // 2) Compute the gradient
+    std::vector<double> grad_res(d,0.0); // inizialize the result
+    for(size_t j=0; j<x.size(); j++){
+        grad_res[j] = ( (double)N.row(j).sum() - 1.0 )/x[j] - // this is (n_j-1)/U_j
+                      ( (double)N.row(j).sum() +(double)K*Gamma[j])/(1.0 + x[j] ) - // this is (n_j-Kgamma_j)/(1+U_j)
+                      ( Lambda_ProdPsi*Gamma[j]/(1.0 + x[j]) )*( 1.0 + 1.0/((double)K + Lambda_ProdPsi)  ); // this is Lambda*gamma_j/(1+U_j)*prod_psi*(1 + 1/(K + Lambda*prod_psi))
+    }
+
+    return grad_res;
+}

@@ -9,8 +9,9 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
     const std::vector<double>& U = gs_data.U; //U latent variables
     const unsigned int & d = gs_data.d; //number of levels
     const double& Lambda = gs_data.lambda; 
-    const double& K = gs_data.K; // number of clusters
-    const double& iter = gs_data.iterations; //iteration number
+    //const double& log_sum = gs_data.log_sum; 
+    const unsigned int& K = gs_data.K; // number of clusters
+    const unsigned int& iter = gs_data.iterations; //iteration number
     const GDFMM_Traits::MatUnsCol& N = gs_data.N; // dxK matrix; 
 
     // Auxiliary variables
@@ -149,7 +150,7 @@ double FC_gammaMarginal::log_FCgamma_marginal(const double& x, const double& Lam
 }
 */
 
-double FC_gammaMarginal::log_FCgamma_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K, 
+double FC_gammaMarginal::log_FCgamma_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K,
                                               const std::vector<double>& U, const GDFMM_Traits::MatUnsCol& N ) const
 {   
 
@@ -175,4 +176,44 @@ double FC_gammaMarginal::log_FCgamma_marginal(const std::vector<double>& x, cons
     double Lambda_ProdPsi{Lambda*std::exp(-SumLog)};
     return ( res + std::log( (double)K + Lambda_ProdPsi ) + Lambda_ProdPsi );
 
+}
+
+// evaluate grad_log_pi(gamma_1,...,gamma_d = x_1,...,x_d | rest )
+std::vector<double> FC_gammaMarginal::grad_log_FCgamma_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K, 
+                                                                const std::vector<double>& U, const GDFMM_Traits::MatUnsCol& N) const
+{
+
+    auto sum_diGamma = [](const double& gamma_j, const GDFMM_Traits::VecUnsCol& n_j)
+    {
+        double res = 0.0;
+        for(size_t k=0; k<n_j.size(); k++){
+            res += gsl_sf_psi(gamma_j + (double)n_j(k));
+        }
+        res -= gsl_sf_psi(gamma_j);
+        return res;
+    };
+
+    // Naive implementation with double for-loop
+    unsigned int d = x.size(); // gradient size
+
+    // 1) Compute prod_psi
+    double SumLog = 0.0; 
+    for(size_t j=0; j<x.size(); j++){
+        double log_onePlusU{std::log(U[j] + 1.0)}; // this is log(1+U_j)
+        SumLog += log_onePlusU*x[j]; 
+    }
+    double Lambda_ProdPsi{Lambda*std::exp(-SumLog)}; // this is Lambda*prod_psi
+
+    // 2) Compute the gradient
+    std::vector<double> grad_res(d,0.0); // inizialize the result
+    for(size_t j=0; j<x.size(); j++){
+        grad_res[j] = ( alpha - 1.0 )/(x[j]) - // this is (a_1-1)/(gamma_j)
+                      beta - // this is b_1
+                      (double)K * std::log(1 + U[j]) + // this is K*log(1+U_j)
+                      sum_diGamma(x[j],N.row(j)) - // this is sum_k ( digamma(gamma_j+n_jk) - digamma(gamma_j) )
+                      Lambda_ProdPsi*std::log(1.0 + U[j])*(1.0 + 1.0/( (double)K + Lambda_ProdPsi ));
+
+    }
+
+    return grad_res;
 }
