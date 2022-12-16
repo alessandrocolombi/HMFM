@@ -8,6 +8,7 @@
 
 class FC_gammaMarginal: public FC_gamma {
 private:
+    double s_p  = 0.01; // mala parameter
     // evaluate log_pi(gamma_1,...,gamma_d = x_1,...,x_d | rest )
     double log_FCgamma_marginal(const std::vector<double>& x, const double& Lambda, const unsigned int& K,
                                 const std::vector<double>& U, const GDFMM_Traits::MatUnsCol& N) const; 

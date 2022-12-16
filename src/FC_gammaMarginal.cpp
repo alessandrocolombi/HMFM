@@ -99,8 +99,57 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
             adapt_var_pop_gamma[0] = pow(10,power);
         }
     }
-    else
-        throw std::runtime_error("Error in FC_gammaMarginal: d>1 case not yet implemented ");
+    else{
+
+        // ---------------------------------------------
+        // MALA UPDATE for positive valued random vector
+        // ---------------------------------------------
+        // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different.
+        //     Also the proposal ratio would be different
+
+        // Compute log of current U vector
+        std::vector<double> log_gamma(0.0,d); 
+        std::transform(gamma.cbegin(),gamma.cend(),log_gamma.begin(), 
+                        [](const double& U_j){return(std::log(U_j));}
+                      ); // compute log of each element
+        
+        // Compute MALA proposal values
+        // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 
+        std::vector<double> mala_mean = grad_log_FCgamma_marginal(gamma, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = log(gamma)
+        for(size_t j=0; j < d; j++){
+            
+            // compute mean
+            mala_mean[j] = log_gamma[j] + 0.5*s_p*(mala_mean[j] * gamma[j] + 1.0); // adjust for mapping in the gradient and compute mala mean
+
+            // draw value and compute its exponential
+            log_gamma_new[j] = rnorm( gs_engine, mala_mean[j], std::sqrt(s_p) );
+            gamma_new[j]     = std::exp(log_gamma_new[j]);
+        }
+        // MALA proposal is not symmetric. I also need to compute the mean of the inverse move
+        double& sp_temp = s_p;
+        std::vector<double> mala_mean_invmove = grad_log_FCgamma_marginal(gamma_new, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = exp(log_gamma_new)
+        std::transform(mala_mean_invmove.begin(), mala_mean_invmove.end(), log_gamma_new.cbegin(),mala_mean_invmove.begin(),
+                        [&sp_temp](const double& x_grad, const double& log_x){
+                                    return(  log_x + 0.5*sp_temp*( x_grad * std::exp(log_x) + 1.0 )  );});
+        // Compute log acceptance probability
+        ln_acp = log_FCgamma_marginal(gamma_new, Lambda, K, U, N ) - // target evaluated in exp( log_gamma_new ) = gamma_new
+                 log_FCgamma_marginal(gamma,     Lambda, K, U, N ) + // target evaluated in exp( log_gamma )     = gamma
+                 std::accumulate(log_gamma_new.cbegin(),log_gamma_new.cend(),0.0)  - // sum of log_gamma_new
+                 std::accumulate(log_gamma.cbegin(),log_gamma.cend(),0.0)  -         // sum of log_gamma
+                 1.0/(2*s_p)*std::inner_product(log_gamma.cbegin(),log_gamma.cend(),mala_mean_invmove.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return(x1-x2);}) + //proposal of inverse move
+                 1.0/(2*s_p)*std::inner_product(log_gamma_new.cbegin(),log_gamma_new.cend(),mala_mean.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return(x1-x2);}); //proposal move
+        
+
+        //3) Acceptance rejection step
+        ln_u = std::log(runif(gs_engine));
+        
+        if (ln_u  < ln_acp)
+            gs_data.gamma = gamma_new;
+
+        //throw std::runtime_error("Error in FC_gammaMarginal: d>1 case not yet implemented ");
+    }
 }
 
 double FC_gammaMarginal::log_raising_factorial(const unsigned int& n, const double& a) const
