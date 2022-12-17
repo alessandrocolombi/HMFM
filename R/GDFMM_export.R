@@ -1140,14 +1140,16 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' @export
 set_options_marginal = function( partition = NULL,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
-                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, 
+                        sp_mala_U = 0.01, sp_mala_gamma=0.01,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         init_mean_cluster = NULL, init_var_cluster = NULL,
                         UpdateU = T, UpdateGamma = T, UpdateTau = T, UpdateLambda = T
                       )
 {
   option<-list("Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
-               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2,
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, 
+               "sp_mala_U"=sp_mala_U,"sp_mala_gamma"=sp_mala_gamma,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
                "init_mean_cluster" = init_mean_cluster, "init_var_cluster" = init_var_cluster,

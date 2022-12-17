@@ -41,6 +41,8 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         double gamma0 = Rcpp::as<double>(option["gamma0"]);
         double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
         double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
+        double s_p_U = Rcpp::as<double>(option["sp_mala_U"]);
+        double s_p_gamma = Rcpp::as<double>(option["sp_mala_gamma"]);
         double k0 = Rcpp::as<double>(option["k0"]);
         double a1 = Rcpp::as<double>(option["alpha_gamma"]);
         double b1 = Rcpp::as<double>(option["beta_gamma"]);
@@ -65,9 +67,9 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
 
         //Initialize Full Conditional Objects
         auto PartitionMarginal_ptr = std::make_shared<FC_PartitionMarginal>("Partition", gs_data.d, gs_data.n_j, FixPart, nu0, sigma0, mu0, k0);
-        auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, gs_data.d, 1.0, a1, b1, FixedGamma);
+        auto gammaMarginal_ptr = std::make_shared<FC_gammaMarginal>("gamma", h1, h2, 10, gs_data.d, 1.0, a1, b1, s_p_gamma, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
-        auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU, h1, h2, 10, gs_data.d, 1.0);
+        auto UMarginal_ptr = std::make_shared<FC_UMarginal>("U", FixedU, h1, h2, 10, gs_data.d, 1.0,s_p_U);
                 //auto lambdaMarginal_ptr = std::make_shared<FC_LambdaMarginal>("lambda", a2, b2, FixedLambda, h1, h2, 10, 1.0); //update of lambda in conditional and marginal sampler must be the same
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
 

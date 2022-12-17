@@ -4,8 +4,8 @@
 #include "FC_UMarginal.h"
 
 FC_UMarginal::FC_UMarginal( std::string _na, bool _keepfixed,  
-                            double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0):
-                            FC_U(_na,_keepfixed),hyp1(_h1),hyp2(_h2),power(_pow)
+                            double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0, double _s_p):
+                            FC_U(_na,_keepfixed),hyp1(_h1),hyp2(_h2),power(_pow),s_p(_s_p)
                             {
                                 adapt_var_proposal_U.resize(_d);
                                 std::fill(adapt_var_proposal_U.begin(), adapt_var_proposal_U.end(), _adapt_var0);
@@ -127,8 +127,8 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
         //     Also the proposal ratio would be different
 
         // Compute log of current U vector
-        std::vector<double> log_U(0.0,d); 
-        std::transform(U.cbegin(),U.cend(),log_U.begin(), [](const double& U_j){return(std::log(U_j));}); // compute log of each element
+        std::vector<double> log_U(d,0.0); 
+        std::transform(U.begin(),U.end(),log_U.begin(), [](const double& U_j){return(std::log(U_j));}); // compute log of each element
         
         // Compute MALA proposal values
         // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 

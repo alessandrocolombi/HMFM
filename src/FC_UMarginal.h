@@ -23,7 +23,7 @@ private:
                                               const unsigned int& K, const std::vector<double>& Gamma, const GDFMM_Traits::MatUnsCol& N) const;
 public:
     //FC_UMarginal(bool _keepfixed):FC_U(_keepfixed){};
-    FC_UMarginal(std::string _na, bool _keepfixed,  double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0);
+    FC_UMarginal(std::string _na, bool _keepfixed,  double _h1, double _h2, double _pow, unsigned int _d, double _adapt_var0, double _s_p);
     ~FC_UMarginal() {};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine);
 

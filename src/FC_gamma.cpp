@@ -1,8 +1,8 @@
 #include "FC_gamma.h"
 
 
-FC_gamma::FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, int a, int b, bool _keepfixed) : 
-                    FullConditional(na,_keepfixed), hyp1(h1), hyp2(h2), power(pow), alpha(a), beta(b)
+FC_gamma::FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, int a, int b, double _s_p, bool _keepfixed) : 
+                    FullConditional(na,_keepfixed), hyp1(h1), hyp2(h2), power(pow), alpha(a), beta(b), s_p(_s_p)
             {
                 adapt_var_pop_gamma.resize(d);
                 std::fill(adapt_var_pop_gamma.begin(), adapt_var_pop_gamma.end(), adapt_var0);

@@ -738,8 +738,8 @@ plot_density(shape = a_lambda, rate = b_lambda,
 In questo momento, se parto dalla partizione vera OK (anche se U può crescere tanto) ma se parto da quella nulla malissimo perché U potrebbe anche esplodere completamente (1e+25). 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  2000
-burnin <-  2000
+niter  <-  100
+burnin <-    1
 thin   <- 1
 
 P0_hyparam = empirical_bayes_normalinvgamma(data = data)
@@ -758,14 +758,15 @@ b_lambda = mu_lambda/(var_lambda)
 
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
-             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234,
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
              "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = seq(1:length(real_partition))#real_partition
+             "partition" = real_partition#seq(1:length(real_partition))
         )
 
 # P0 Hyperparameters:
