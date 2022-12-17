@@ -128,7 +128,7 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
         
         // Compute MALA proposal values
         // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 
-        std::vector<double> mala_mean = grad_log_FCgamma_marginal(gamma, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = log(gamma)
+        std::vector<double> mala_mean = grad_log_FCgamma_marginal(gamma, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = exp(log_gamma)
 
                 //Rcpp::Rcout<<"calcolato il primo gradiente"<<std::endl;
         //
