@@ -1,5 +1,5 @@
 ---
-title: "Rmd_Problem_with_Marginal_sampler"
+title: "Marginal Sampler with 1 level only"
 author: "Alessandro Colombi"
 date: "30/8/2022"
 output: html_document
@@ -14,17 +14,17 @@ knitr::opts_chunk$set(
 ```
 
 
-# Testing Marginal sampler and comparing with estimated density
+Testing Marginal sampler, when $d=1$. Density estimation is now implemented.
 
 
-## Primo caso, un solo livello
-Dati esperimento:
+*Dati esperimento:*
 
 * **K = 4**
 * d = 1
 * $n_1 = 200$.
 * parto da partizione vera.
-* **Tengo la partizione fissata**
+
+# Partizione Fissata
 
 ```{r}
 suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
@@ -77,9 +77,9 @@ var_data_per_cluster  = lapply(data_per_cluster, var)
 #log_marginal_prior
 ```
 
-### Iperparametri con empirical Bayes
+## Iperparametri con empirical Bayes
 
-In questo primo esperimento, setto i parametri relativi a P0 con la funzione di empirical Bayes che abbiamo fatto.
+In questo primo esperimento, setto i parametri relativi a $P_0$ con la funzione di empirical Bayes che abbiamo fatto.
 Plotto i dati e la marginale del modello, che è 
 
 $student-t(dof = \nu_0, loc = \mu_0, scale = \sqrt{\frac{k_0}{k_0+1}\sigma^2_0})$
@@ -139,6 +139,7 @@ P0_hyparam = empirical_bayes_normalinvgamma(data = data)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = 1,"Lambda0" = 3, 
              "alpha_gamma"=5, "beta_gamma"=0.5, 
              "alpha_lambda"=1, "beta_lambda"=5,
@@ -209,9 +210,11 @@ tibble(value = data[j,],
 La predittiva non c'entra niente con i dati. 
 
 
-### Iperparametri a caso
+## Iperparametri di default
 
-Faccio come prima ma gli iperparametri gli scelgo "a caso", con dei valori selezionati senza guardare i dati
+La partizione la tengo sempre fissa, questa volta però gli iperparametri non li scelgo con la funzione di empirical Bayes ma con le scelte di default che erano maturate con un po' di esperienza sul codice. In particolare:
+
+$\mu_0 = 0;k_0= 1/10;\nu_0=10;\sigma^2_0=1$
 ```{r}
 # In questo plot sotto colori i pallini secondo il vero cluster.
 idx_start = 1
@@ -254,7 +257,7 @@ for(j in 1:d){
   idx_end = idx_end + n_j[j]
 }
 ```
-Non sembra essere per niente una buona P0, è tutta schiacciata su un cluster 
+Non sembra essere per niente una buona marginale (a priori) dei dati, è tutta schiacciata su un solo cluster 
 
 
 ```{r}
@@ -268,6 +271,7 @@ P0_hyparam = empirical_bayes_normalinvgamma(data = data)
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = 1,"Lambda0" = 3, 
              "alpha_gamma"=5, "beta_gamma"=0.5, 
              "alpha_lambda"=1, "beta_lambda"=5,
@@ -340,7 +344,7 @@ La predittiva è proprio dove dovrebbe essere
 
 Provo a spiegare l'evidenza osservata:
 
-* Dal punto di vista della marginale $m(X)$, la $P_0$ scelta con iperparametri scelti con empirical Bayes     sembra molto bella perché abbraccia bene i dati. Se scelgo invece "a caso" ho una $m(X)$ schiacciata solo sui dati vicini allo zero (perché metto $\mu_0 = 0$), quindi sembra piuttosto brutta. 
+* Dal punto di vista della marginale $m(X)$, la $P_0$ scelta con iperparametri scelti con empirical Bayes sembra molto bella perché abbraccia bene i dati. Se scelgo invece "a caso" ho una $m(X)$ schiacciata solo sui dati vicini allo zero (perché metto $\mu_0 = 0$), quindi sembra piuttosto brutta. 
 
 * Dal punto di vista delle medie a posteriori, abbiamo
 
@@ -364,7 +368,7 @@ In particolare, con empircal bayes vengono dei valori molto alti di $k_0$ e quin
   
 * La contraddizione però resta, tutti questi interventi hanno reso la $m(X)$ molto più concentrata invece che diffusa
 
-### Iperparametri con empirical Bayes - Modificati
+## Iperparametri con empirical Bayes - Modificati
 
 Faccio un terzo esperimento settando i parametri con empirical bayes seguendo le intuizioni elencate al punto precedente
 ```{r}
@@ -423,6 +427,7 @@ P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 1000, varsig2 =
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = 1,"Lambda0" = 3, 
              "alpha_gamma"=5, "beta_gamma"=0.5, 
              "alpha_lambda"=1, "beta_lambda"=5,
@@ -496,6 +501,10 @@ Anche la predittiva è dove dovrebbe essere
 
 # Partizione aleatoria
 
+Rispetto alla prime sezione, ora lascio variare anche la partizione. Quindi tutti i parametri entrano in gioco e devono essere aggiornati. Come prima, analizzerò 3 modi per settare gli iperparametri di $P_0$: con empirical Bayes, con le scelte di default e con empirical Bayes modificato. Vedremo che con la prima scelta, ancora una volta non abbiamo risultati accettabili. Con gli altri due si, dunque per questi due casi analizzo 3 situazioni diverse sulla partizione iniziale: quella vera, quella dove tutti sono in un unico cluster e quella in cui ognuno fa un cluster a sé.
+
+Inolte, discuto anche una procedura su come scegliere i valori iniziali e gli iperparametri per $\gamma$ e $\Lambda$.
+
 ```{r}
 suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
 suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
@@ -551,8 +560,9 @@ var_data_per_cluster  = lapply(data_per_cluster, var)
 Provo a fissare $\gamma$ e $\Lambda$ in modo intelligente.
 Voglio che la probabilità a priori di avere $K=4$ cluster sia più alta possibile.
 
-* f è la funzione da ottimizzare
+
 ```{r}
+# f è la funzione da ottimizzare
 f <- function(x){
   -p_distinct_prior(k = K, n_j = c(n_j), 
                    gamma = c(x[1]), 
@@ -603,7 +613,7 @@ plot_density(shape = a_lambda, rate = b_lambda,
 
 ## Iperparametri con empirical Bayes
 
-In questo primo esperimento, setto i parametri relativi a P0 con la funzione di empirical Bayes che abbiamo fatto.
+In questo primo esperimento, setto i parametri relativi a $P_0$ con la funzione di empirical Bayes che abbiamo fatto.
 Plotto i dati e la marginale del modello, che è 
 
 $student-t(dof = \nu_0, loc = \mu_0, scale = \sqrt{\frac{k_0}{k_0+1}\sigma^2_0})$
@@ -651,7 +661,7 @@ for(j in 1:d){
 ```
 Sembra essere proprio la situazione che voglio, la prior abbraccia tutti e 4 i cluster
 
-
+*Parto dalla partizione vera*
 ```{r}
 # Run  --------------------------------------------------------------------
 niter  <-  1000
@@ -677,6 +687,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -744,7 +755,7 @@ table(binder_sara$cl)
 table(VI_sara$cl)
 table(real_partition)
 ```
-Clustering osceno, è sempre su 2 cluster ma non va per niente bene. Inoltre la $U$ esplode su valori giganteschi
+Clustering osceno, è sempre su 2 cluster ma non va per niente bene. Inoltre la $U$ e la $\gamma$ hanno traceplot bruttissimi.
 
 Le stime dei parametri $\mu$ e $\sigma$ sono praticamente uguali al caso in cui la partizione viene tenuta fissa (in particolare le varianze sono grandissime). Ovviamente la predittiva fa schifo tanto quanto l'altro caso
 ```{r}
@@ -786,7 +797,7 @@ tibble(value = data[j,],
 
 
 
-## Iperparametri a caso
+## Iperparametri di default
 
 Faccio come prima ma gli iperparametri gli scelgo "a caso", con dei valori selezionati senza guardare i dati
 ```{r}
@@ -885,6 +896,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -994,8 +1006,9 @@ tibble(value = data[j,],
 Riassunto:
 
 * $\Lambda$ è molto stabile sui valori scelti dalla prior
-* $\gamma$ e $U$ hanno delle brutte catene, in particolare $U$ ha valori molto grandi
-* $K$ numero di cluster *NON* è quello corretto, è più alto ma si muove tanto, non rimane fisso
+* $\gamma$ e $U$ hanno delle brutte catene, sembrano molto autocorrelate.
+* Sensibilità rispetto al parametro MALA $s_p$: se aumenta ($0.1$), la catena di $U$ esplora anche valori molto più alti mentre per quanto riguarda $\gamma$ non ci sono cambiamenti significativi. Se diminuisce ($0.001$) sembra ci voglia di più per la convergenza, $\gamma$ diminuisce e $U$ non esplode su valori grandi. Il clustering si assesta su partizioni più parsimoniose ma a nei risultati finali non ci sono differenze.  
+* $K$ numero di cluster *NON* è quello corretto, è più alto ma si muove tanto, non rimane fisso. Sembra mixxare molto.
 * A posteriori però ritrovo il clustering esatto 
 * La stima della densità è come vorrei
 
@@ -1003,7 +1016,7 @@ Riassunto:
 ```{r}
 # Run  --------------------------------------------------------------------
 niter  <-  1000
-burnin <-  1000
+burnin <-  2000
 thin   <- 1
 
 # tau 
@@ -1025,6 +1038,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -1132,18 +1146,14 @@ tibble(value = data[j,],
 
 Riassunto:
 
-* $\Lambda$ è molto stabile sui valori scelti dalla prior
-* $\gamma$ ora ha valori leggermente più piccoli rispetto a prima
-* $U$ ha un solo picco con valori abbastanza contenuti
-* $K$ numero di cluster *NON* è quello corretto, è più alto ma si muove tanto, non rimane fisso
-* A posteriori però ritrovo il clustering esatto 
-* La stima della densità è come vorrei
+* Ho aumentato il numero di iterazioni perché $\gamma$ non sembrava per niente a convergenza.
+* Per il resto, le conclusioni sono tali e quali al caso in cui partivo dalla partizione vera.
 
 ### Parto da tutti in un unico cluster
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  1000
-burnin <-  1000
+niter  <-  2000
+burnin <-  3000
 thin   <- 1
 
 # tau 
@@ -1165,6 +1175,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -1272,12 +1283,9 @@ tibble(value = data[j,],
 
 Riassunto:
 
-* $\Lambda$ è molto stabile sui valori scelti dalla prior
-* $\gamma$ ora ha valori molto molto più piccoli rispetto a prima
-* $U$ è oscena, raggiunge valori troppo troppo grandi
-* $K$ numero di cluster *NON* è quello corretto e questa volta rimane pure fisso su 1 oppure 2
-* A posteriori *NON* ritrovo più il clustering esatto 
-* La stima della densità *NON* è più come vorrei
+* Ho aumentato molto il numero di iterazioni perché non mi piaceva la convergenza delle catene
+* Tutto bello come prima
+* Da notare che quando facevo l'update con adaptive-MH questo caso mi dava problemi. Con il MALA invece sembra andare tutto come vorrei
 
 
 
@@ -1382,6 +1390,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -1490,18 +1499,16 @@ tibble(value = data[j,],
 
 Riassunto:
 
-* $\Lambda$ è molto stabile sui valori scelti dalla prior
-* $\gamma$ e $U$ hanno delle brutte catene, in particolare $U$ ha valori molto grandi
 * $K$ numero di cluster mi piace molto, perché come valore più basso ha 4 che è il numero di cluster veri, e poi esplora un po' cosa succede per $K$ maggiori
 * Questa volta anche la matrice di similarity è praticamente perfetta
-* A posteriori però ritrovo il clustering esatto
+* A posteriori ritrovo il clustering esatto
 * La stima della densità è come vorrei
 
 ### Parto da ognuno fa cluster da se
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  1000
-burnin <-  1000
+niter  <-  2000
+burnin <-  2000
 thin   <- 1
 
 # tau 
@@ -1524,6 +1531,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -1631,13 +1639,15 @@ tibble(value = data[j,],
 
 Riassunto:
 
-Tutto molto bello e molto simile al caso in cui parto dalla partizione vera
+* Mi piace, il comportamento è molto simile al caso degli iperparametri settati di default ma c'è da dire che la matrice di similarity ora è quasi perfetta. Infatti si arriva alla partizione corretta anche usando la Binder loss, cosa che per il caso di default non avveniva, bisognava guardare solo la VI. 
+* Anche la convergenza mi piace, ho aumentato il numero di iterazioni ma non era cosi necessario come nel caso di prima
+
 
 ### Parto da tutti in un unico cluster
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  1000
-burnin <-  1000
+niter  <-  2000
+burnin <-  2000
 thin   <- 1
 
 # tau 
@@ -1659,6 +1669,7 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
              "gamma0" = opt$par[1],"Lambda0" = opt$par[2], 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
@@ -1766,10 +1777,12 @@ tibble(value = data[j,],
 
 Riassunto:
 
-Magia, funziona bene anche in questo caso.
+Ancora tutto bene
 
 # CONCLUSIONE
-Meglio settare una $P_0$ più stretta rispetto ai dati ma comunque scelta usando il metodo empirical Bayes. Le catene di $U$ sono oscene e arrivano spesso a valori molto molto alti, questo può causare seri problemi se $d>1$.
+* Settare una $P_0$ più stretta rispetto ai dati ma comunque scelta usando il metodo empirical Bayes sembra essere la scelta più conveniente in termini di mixing, rapidità di convergenza (anche se le catene di $\gamma$ e $\U$ continuano ad essere molto autocorrelate) e come similarity matrix. 
+* Le catene di $U$ e $\gamma$ dipendono chiaramente dalla scelta di parametro MALA $s_p$. In questo caso semplice in cui $d=1$ non sembra esserci niente di problematico, tuttavia bisogna vedere se questo crea problemi quando $d>1$
+* *NON* riesco proprio a capire come mai la scelta di iperparametri fatta con empirical Bayes che ci porta a delle marginali a priori che abbracciano molto bene i dati non funzioni. Se guardo come vengono calcolate le stime a posteriori è chiaro che non stiamo facendo una buona scelta di iperparametri. Però graficamente mi sembrerebbe davvero un'ottima scelta. Non me lo riesco a spiegare.
 
 
 

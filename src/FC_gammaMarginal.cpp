@@ -65,10 +65,13 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
     }
     */
     if(d == 0){ 
-        //Rcpp::Rcout<<"Gamma:"<<gamma[0]<<std::endl;
-        //Rcpp::Rcout<<"Adaptive variamce var["<<0<<"] = "<<adapt_var_pop_gamma[0]<<std::endl;
 
+        // ---------------------------------------------------
+        // ADAPTIVE MH UPDATE for positive valued random vector
+        // ---------------------------------------------------
         // Update of Gamma via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+        // This implementation is only for d=1 case. For sake of code homogeneity, I set an if condition that can never be true
+        // so that also in the case d=1 the MALA update is performed.
         
         //1) Sample proposed value in log scale
         log_gamma_new[0] = rnorm(gs_engine, std::log(gamma[0]), std::sqrt(adapt_var_pop_gamma[0]));
@@ -100,7 +103,6 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
         }
     }
     else{
-        //Rcpp::Rcout<<"Dentro il mala"<<std::endl;
         // ---------------------------------------------
         // MALA UPDATE for positive valued random vector
         // ---------------------------------------------
@@ -109,35 +111,13 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
 
         // Compute log of current gamma vector
         std::vector<double> log_gamma(d,0.0); 
-
-                //Rcpp::Rcout<<"Stampo log_gamma: ";        
-                //for(auto __v : log_gamma)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-        
         std::transform(gamma.begin(),gamma.end(),log_gamma.begin(), 
                         [](const double& gamma_j){return(std::log(gamma_j));}
                       ); // compute log of each element
 
-                //Rcpp::Rcout<<"calcolato il log"<<std::endl;
-                //Rcpp::Rcout<<"Stampo log_gamma: ";        
-                //for(auto __v : log_gamma)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-
-        
         // Compute MALA proposal values
         // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 
         std::vector<double> mala_mean = grad_log_FCgamma_marginal(gamma, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = exp(log_gamma)
-
-                //Rcpp::Rcout<<"calcolato il primo gradiente"<<std::endl;
-        //
-                //Rcpp::Rcout<<"Stampo mala_mean: ";        
-                //for(auto __v : mala_mean)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-
-        
         for(size_t j=0; j < d; j++){
             
             // compute mean
@@ -148,36 +128,12 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
             gamma_new[j]     = std::exp(log_gamma_new[j]);
         }
 
-                //Rcpp::Rcout<<"calcolata la media e estratto il valore"<<std::endl;
-        //        
-                //Rcpp::Rcout<<"Stampo mala_mean: ";        
-                //for(auto __v : mala_mean)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-        //
-                //Rcpp::Rcout<<"Stampo log_gamma_new: ";        
-                //for(auto __v : log_gamma_new)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-        //
-                //Rcpp::Rcout<<"Stampo gamma_new: ";        
-                //for(auto __v : gamma_new)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
-
-        
         // MALA proposal is not symmetric. I also need to compute the mean of the inverse move
-        double& sp_temp = s_p;
+        const double& sp_temp = s_p;
         std::vector<double> mala_mean_invmove = grad_log_FCgamma_marginal(gamma_new, Lambda, K, U, N); // this is log_pi(gamma|rest) evaluated at gamma = exp(log_gamma_new)
         std::transform(mala_mean_invmove.begin(), mala_mean_invmove.end(), log_gamma_new.cbegin(),mala_mean_invmove.begin(),
                         [&sp_temp](const double& x_grad, const double& log_x){
                                     return(  log_x + 0.5*sp_temp*( x_grad * std::exp(log_x) + 1.0 )  );});
-
-                //Rcpp::Rcout<<"calcolata mossa inversa"<<std::endl;
-                //Rcpp::Rcout<<"Stampo mala_mean_invmove: ";        
-                //for(auto __v : mala_mean_invmove)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
         
         // Compute log acceptance probability
         ln_acp = log_FCgamma_marginal(gamma_new, Lambda, K, U, N ) - // target evaluated in exp( log_gamma_new ) = gamma_new
@@ -185,22 +141,16 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
                  std::accumulate(log_gamma_new.cbegin(),log_gamma_new.cend(),0.0)  - // sum of log_gamma_new
                  std::accumulate(log_gamma.cbegin(),log_gamma.cend(),0.0)  -         // sum of log_gamma
                  1.0/(2*s_p)*std::inner_product(log_gamma.cbegin(),log_gamma.cend(),mala_mean_invmove.cbegin(),0.0,std::plus<>(),
-                                                 [](const double& x1, const double& x2){return(x1-x2);}) + //proposal of inverse move
+                                                 [](const double& x1, const double& x2){return( (x1-x2)*(x1-x2) );}) + //proposal of inverse move
                  1.0/(2*s_p)*std::inner_product(log_gamma_new.cbegin(),log_gamma_new.cend(),mala_mean.cbegin(),0.0,std::plus<>(),
-                                                 [](const double& x1, const double& x2){return(x1-x2);}); //proposal move
-        
-                //Rcpp::Rcout<<"calcolato acc prob"<<std::endl;
-                //Rcpp::Rcout<<"ln_acp:"<<std::endl<<ln_acp<<std::endl;
+                                                 [](const double& x1, const double& x2){return( (x1-x2)*(x1-x2) );;}); //proposal move
         
         //3) Acceptance rejection step
         ln_u = std::log(runif(gs_engine));
         
         if (ln_u  < ln_acp)
             gs_data.gamma = gamma_new;
-
-        //Rcpp::Rcout<<"fine"<<std::endl;
         
-        //throw std::runtime_error("Error in FC_gammaMarginal: d>1 case not yet implemented ");
     }
 }
 
@@ -288,7 +238,7 @@ std::vector<double> FC_gammaMarginal::grad_log_FCgamma_marginal(const std::vecto
     {
         double res = 0.0;
         for(size_t k=0; k<n_j.size(); k++){
-            res += gsl_sf_psi(gamma_j + (double)n_j(k));
+            res += gsl_sf_psi( gamma_j + (double)n_j(k) );
         }
         res -= gsl_sf_psi(gamma_j);
         return res;
@@ -312,7 +262,7 @@ std::vector<double> FC_gammaMarginal::grad_log_FCgamma_marginal(const std::vecto
                       beta - // this is b_1
                       (double)K * std::log(1 + U[j]) + // this is K*log(1+U_j)
                       sum_diGamma(x[j],N.row(j)) - // this is sum_k ( digamma(gamma_j+n_jk) - digamma(gamma_j) )
-                      Lambda_ProdPsi*std::log(1.0 + U[j])*(1.0 + 1.0/( (double)K + Lambda_ProdPsi ));
+                      Lambda_ProdPsi * std::log(1.0 + U[j]) * ( 1.0 + 1.0/( (double)K + Lambda_ProdPsi ) );
 
     }
 

@@ -76,11 +76,13 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
 
     }
     */
-    if(d == 1){
-        //Rcpp::Rcout<<"U:"<<U[0]<<std::endl;
-        //cpp::Rcout<<"Adaptive variance var["<<0<<"] = "<<adapt_var_proposal_U[0]<<std::endl;
-
-        // Update of U_j via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+    if(d == 0){
+        // ---------------------------------------------------
+        // ADAPTIVE MH UPDATE for positive valued random vector
+        // ---------------------------------------------------
+        // Update of U via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+        // This implementation is only for d=1 case. For sake of code homogeneity, I set an if condition that can never be true
+        // so that also in the case d=1 the MALA update is performed.
         
         //1) Sample proposed value in log scale
         log_U_new[0] = rnorm(gs_engine, std::log(U[0]), std::sqrt(adapt_var_proposal_U[0]));
@@ -128,7 +130,7 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
 
         // Compute log of current U vector
         std::vector<double> log_U(d,0.0); 
-        std::transform(U.begin(),U.end(),log_U.begin(), [](const double& U_j){return(std::log(U_j));}); // compute log of each element
+        std::transform(U.cbegin(),U.cend(),log_U.begin(), [](const double& U_j){return(std::log(U_j));}); // compute log of each element
         
         // Compute MALA proposal values
         // NB: This is ONLY if the matrix in the proposal is the identity. Otherwise the sampling from the multivariate normal must be different 
@@ -143,25 +145,21 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
             U_new[j]     = std::exp(log_U_new[j]);
         }
         // MALA proposal is not symmetric. I also need to compute the mean of the inverse move
-        double& sp_temp = s_p;
+        const double& sp_temp = s_p;
         std::vector<double> mala_mean_invmove = grad_log_FCU_marginal(U_new, Lambda, K, gamma, N); // this is log_pi(U|rest) evaluated at U = exp(log_U_new)
         std::transform(mala_mean_invmove.begin(), mala_mean_invmove.end(), log_U_new.cbegin(),mala_mean_invmove.begin(),
                         [&sp_temp](const double& x_grad, const double& log_x){
                                     return(  log_x + 0.5*sp_temp*( x_grad * std::exp(log_x) + 1.0 )  );});
-        //for(size_t j=0; j < d; j++){
-            //// compute mean of inverse move
-            //mala_mean_invmove[j] = log_U_new[j] + 0.5*s_p*(mala_mean_invmove[j] * U_new[j] + 1.0); // adjust for mapping in the gradient and compute mala mean
-        //}
+
         // Compute log acceptance probability
         ln_acp = log_FCU_marginal(U_new, Lambda, K, gamma, N ) - // target evaluated in exp( log_U_new ) = U_new
                  log_FCU_marginal(U,     Lambda, K, gamma, N ) + // target evaluated in exp( log_w )     = U
                  std::accumulate(log_U_new.cbegin(),log_U_new.cend(),0.0)  - // sum of log_U_new
                  std::accumulate(log_U.cbegin(),log_U.cend(),0.0)  -         // sum of log_U
-                 1.0/(2*s_p)*std::inner_product(log_U.cbegin(),log_U.cend(),mala_mean_invmove.cbegin(),0.0,std::plus<>(),
-                                                 [](const double& x1, const double& x2){return(x1-x2);}) + //proposal of inverse move
-                 1.0/(2*s_p)*std::inner_product(log_U_new.cbegin(),log_U_new.cend(),mala_mean.cbegin(),0.0,std::plus<>(),
-                                                 [](const double& x1, const double& x2){return(x1-x2);}); //proposal move
-        
+                 1.0/(2.0*s_p)*std::inner_product(log_U.cbegin(),log_U.cend(),mala_mean_invmove.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return( (x1-x2)*(x1-x2) );}) + //proposal of inverse move
+                 1.0/(2.0*s_p)*std::inner_product(log_U_new.cbegin(),log_U_new.cend(),mala_mean.cbegin(),0.0,std::plus<>(),
+                                                 [](const double& x1, const double& x2){return( (x1-x2)*(x1-x2) );}); //proposal move
 
         //3) Acceptance rejection step
         ln_u = std::log(runif(gs_engine));
@@ -169,7 +167,6 @@ void FC_UMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
         if (ln_u  < ln_acp)
             gs_data.U = U_new;
 
-        //throw std::runtime_error("Error in FC_UMarginal: d>1 case not yet implemented ");
     }
 
 
