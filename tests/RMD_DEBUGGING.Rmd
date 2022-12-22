@@ -1241,28 +1241,579 @@ tibble(value = data[j,],
 ```
 
 
-# Due livelli
+# Due livelli - esempio difficile
+
+
+```{r}
+# color palette -----------------------------------------------------------
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+# data generation ---------------------------------------------------------
+
+d = 2               # number of groups
+K = 3               # number of global clusters
+mu = c(-3,0,1)      # vectors of means
+sd = c(sqrt(0.1), sqrt(0.5), sqrt(1.5) )     # vector of sd
+prob <- matrix(c(0.2,0.8,  0,
+                   0,0.1,0.9),nrow = d, ncol = K, byrow = T)
+  
+n_j = rep(200, d)  # set cardinality of the groups
+seed = 20051131
+
+#genD = generate_data_prob(d=d,p=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+genD = simulate_data(d=d,prob=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+table(real_partition)
+table(real_partition[1:n_j[1]])
+table(real_partition[(n_j[1]+1):(n_j[1] + n_j[2])])
+
+
+mycol_cluster = brewer.pal(n=K, name = "Accent")
+```
+
+
+## Default iperparametri
+
+Data plot with prior marginal
+
+```{r}
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+
+mu0 = 0;k0= 1/10;nu0=10;sigma0=1
+
+l_grid = 200
+grid = seq(-5,5,length.out = l_grid)
+scale = sqrt( k0/(k0 + 1) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(  data = tibble(grid = grid, value = Prior_grid),
+                color = 'black', aes(x=grid,y=value), size = 1.2,
+                inherit.aes = F)  +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+```
+
+Set process hyperparameters
+```{r}
+# fK è la funzione da ottimizzare: now it takes 3 parameters, gamma_1, gamma_2 and Lambda
+fK <- function(x){
+  -p_distinct_prior(k = K, n_j = n_j, 
+                    gamma = c(x[1],x[1]), 
+                    prior = "Poisson", lambda = x[2] )
+}
 
 
 
+optK = optim(par = c(0.1,0.1), #initial points
+             method = "L-BFGS-B", # that's the only method that takes bounds
+             fn  = fK, #function to be minimized
+             lower = c(0.001,0.001) #lower bound for variables
+)
+optK
+
+# gamma
+mu_gamma  = optK$par[1]
+var_gamma = 0.1
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+x_range_gamma = c(  max(0, mu_gamma-2*sqrt(var_gamma) ),
+                    mu_gamma+2*sqrt(var_gamma) )
+#lambda
+mu_lambda  = optK$par[2]
+var_lambda = 0.1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+x_range_lambda = c(  max(0, mu_lambda-2*sqrt(var_lambda) ),
+                     mu_lambda+2*sqrt(var_lambda) )
+
+
+par(mfrow = c(1,2))
+plot_density(shape = a_gamma, rate = b_gamma,
+             dist = "gamma", main = "gamma prior", use_x11_device = F,
+             xlim = x_range_gamma)
+plot_density(shape = a_lambda, rate = b_lambda,
+             dist = "gamma", main = "lambda prior", use_x11_device = F,
+             xlim = x_range_lambda)
+```
+Parto dalla partizione in cui ognuno fa cluster a sé
+```{r}
+## Run
+
+niter  <-  1000
+burnin <-  2000
+thin   <- 1
+
+# gamma
+mu_gamma  = optK$par[1]
+var_gamma = 0.1
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+
+#lambda
+mu_lambda  = optK$par[2]
+var_lambda = 0.1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
+
+option = set_options_marginal(
+             "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
+             "gamma0" = optK$par[1],"Lambda0" = optK$par[2], 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = seq(1:length(real_partition))#real_partition
+        )
+
+# P0 Hyperparameters:
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+
+
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(mfrow = c(1,2))
+plot(GDFMM$K, type = 'l', main = "K")
+hist(GDFMM$K, main = "K")
+
+```
+
+```{r}
+l_grid = 200
+grid = seq(-5,5,length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(data = as_tibble(t(Pred_all[[j]])), color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+    geom_ribbon(data = as_tibble(t(Pred_all[[j]])), fill = mycol[1],
+                aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+                alpha = 0.5, inherit.aes = F)
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+
+```
+Global Analysis
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+```
+
+Analisi per gruppo:
+
+Primo livello
+```{r}
+part_matrix_lv1 = part_matrix[,1:100]
+# Compute similarity matrix
+sim_matrix_lv1 <- psm(part_matrix_lv1)
+
+
+heatmap(sim_matrix_lv1)
+
+
+binder_sara_lv1 = minbinder(sim_matrix_lv1)
+VI_sara_lv1 = minVI(sim_matrix_lv1)
+
+table(binder_sara_lv1$cl)
+table(VI_sara_lv1$cl)
+table(real_partition[1:100])
+
+cred_ball_lv1 = credibleball(VI_sara_lv1$cl, sim_matrix_lv1, alpha = 0.05 )
+cred_ball_lv1$dist.uppervert
+```
+
+Secondo livello
+```{r}
+part_matrix_lv2 = part_matrix[,101:200]
+# Compute similarity matrix
+sim_matrix_lv2 <- psm(part_matrix_lv2)
+
+
+heatmap(sim_matrix_lv2)
+
+
+binder_sara_lv2 = minbinder(sim_matrix_lv2)
+VI_sara_lv2 = minVI(sim_matrix_lv2)
+
+table(binder_sara_lv2$cl)
+table(VI_sara_lv2$cl)
+table(real_partition[101:200])
+
+#cred_ball_lv2 = credibleball(VI_sara_lv2$cl, sim_matrix_lv2, alpha = 0.05 )
+#cred_ball_lv2$dist.uppervert
+
+idx_special_data = which(real_partition[101:200] == 2)
+idx_special_data
+idx_bin = which(binder_sara_lv2$cl==2)
+idx_bin
+```
+
+## Modified Bayes iperparametri
+
+Data plot with prior marginal
+
+```{r}
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = 100, correction = 10)
+mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
+
+l_grid = 200
+grid = seq(-5,5,length.out = l_grid)
+scale = sqrt( k0/(k0 + 1) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(  data = tibble(grid = grid, value = Prior_grid),
+                color = 'black', aes(x=grid,y=value), size = 1.2,
+                inherit.aes = F)  +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))  # set title in center and set the
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+```
+
+Set process hyperparameters
+```{r}
+# fK è la funzione da ottimizzare: now it takes 3 parameters, gamma_1, gamma_2 and Lambda
+fK <- function(x){
+  -p_distinct_prior(k = K, n_j = n_j, 
+                    gamma = c(x[1],x[1]), 
+                    prior = "Poisson", lambda = x[2] )
+}
 
 
 
+optK = optim(par = c(0.1,0.1), #initial points
+             method = "L-BFGS-B", # that's the only method that takes bounds
+             fn  = fK, #function to be minimized
+             lower = c(0.001,0.001) #lower bound for variables
+)
+optK
+
+# gamma
+mu_gamma  = optK$par[1]
+var_gamma = 0.1
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+x_range_gamma = c(  max(0, mu_gamma-2*sqrt(var_gamma) ),
+                    mu_gamma+2*sqrt(var_gamma) )
+#lambda
+mu_lambda  = optK$par[2]
+var_lambda = 0.1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+x_range_lambda = c(  max(0, mu_lambda-2*sqrt(var_lambda) ),
+                     mu_lambda+2*sqrt(var_lambda) )
 
 
+par(mfrow = c(1,2))
+plot_density(shape = a_gamma, rate = b_gamma,
+             dist = "gamma", main = "gamma prior", use_x11_device = F,
+             xlim = x_range_gamma)
+plot_density(shape = a_lambda, rate = b_lambda,
+             dist = "gamma", main = "lambda prior", use_x11_device = F,
+             xlim = x_range_lambda)
+```
+Parto dalla partizione in cui ognuno fa cluster a sé
+```{r}
+## Run
+
+niter  <-  1000
+burnin <-  2000
+thin   <- 1
+
+# tau 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = 100, correction = 10)
 
 
+# gamma
+mu_gamma  = optK$par[1]
+var_gamma = 0.1
+b_gamma = mu_gamma/(var_gamma)
+a_gamma = mu_gamma * b_gamma
+
+#lambda
+mu_lambda  = optK$par[2]
+var_lambda = 0.1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
 
 
+option = set_options_marginal(
+             "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
+             "gamma0" = optK$par[1],"Lambda0" = optK$par[2], 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = seq(1:length(real_partition))#real_partition
+        )
+
+# P0 Hyperparameters:
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
 
 
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(mfrow = c(1,2))
+plot(GDFMM$K, type = 'l', main = "K")
+hist(GDFMM$K, main = "K")
+
+```
+
+```{r}
+l_grid = 200
+grid = seq(-5,5,length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+for(j in 1:d){
+
+  print(
+  tibble(value = data[j,],
+         true_clus = as.factor(real_partition[idx_start:idx_end])
+         ) %>%
+    ggplot(aes(x=value, col = true_clus, fill = true_clus)) +
+    geom_point(y = rep(0.005,length(data[j,])), size = 2) +
+    geom_histogram(data = tibble(value = data[j,]),
+                   aes(x=value, y = ..density..), 
+                   color = 'black', alpha = 0.3,
+                   binwidth = 0.5, inherit.aes = F) +
+    scale_color_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    scale_fill_manual(values = mycol_cluster[ sort(unique(real_partition[idx_start:idx_end])) ] ) +
+    geom_path(data = as_tibble(t(Pred_all[[j]])), color = 'black', aes(x=grid,y=`50%`), size = 1.2,
+              inherit.aes = F) +
+    labs(title=paste0("level = ",j), x = "x-axis", y = "y-axis") + theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5)) + # set title in center and set the
+    geom_ribbon(data = as_tibble(t(Pred_all[[j]])), fill = mycol[1],
+                aes(x = grid, ymin=`2.5%`, ymax=`97.5%`, y=`50%`, fill = "band"),
+                alpha = 0.5, inherit.aes = F)
+  )
+
+  idx_start = idx_end + 1
+  idx_end = idx_end + n_j[j]
+}
+
+```
+Global Analysis
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
 
 
+heatmap(sim_matrix)
 
 
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+```
+
+Analisi per gruppo:
+
+Primo livello
+```{r}
+part_matrix_lv1 = part_matrix[,1:100]
+# Compute similarity matrix
+sim_matrix_lv1 <- psm(part_matrix_lv1)
 
 
+heatmap(sim_matrix_lv1)
 
 
+binder_sara_lv1 = minbinder(sim_matrix_lv1)
+VI_sara_lv1 = minVI(sim_matrix_lv1)
 
+table(binder_sara_lv1$cl)
+table(VI_sara_lv1$cl)
+table(real_partition[1:100])
+
+cred_ball_lv1 = credibleball(VI_sara_lv1$cl, sim_matrix_lv1, alpha = 0.05 )
+cred_ball_lv1$dist.uppervert
+```
+
+Secondo livello
+```{r}
+part_matrix_lv2 = part_matrix[,101:200]
+# Compute similarity matrix
+sim_matrix_lv2 <- psm(part_matrix_lv2)
+
+
+heatmap(sim_matrix_lv2)
+
+
+binder_sara_lv2 = minbinder(sim_matrix_lv2)
+VI_sara_lv2 = minVI(sim_matrix_lv2)
+
+table(binder_sara_lv2$cl)
+table(VI_sara_lv2$cl)
+table(real_partition[101:200])
+
+#cred_ball_lv2 = credibleball(VI_sara_lv2$cl, sim_matrix_lv2, alpha = 0.05 )
+#cred_ball_lv2$dist.uppervert
+
+idx_special_data = which(real_partition[101:200] == 2)
+idx_special_data
+idx_bin = which(binder_sara_lv2$cl==2)
+idx_bin
+```
 
