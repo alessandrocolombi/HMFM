@@ -21,8 +21,10 @@ Testing Marginal sampler, when $d=1$. Density estimation is now implemented.
 
 * **K = 4**
 * d = 1
-* $n_1 = 200$.
-* parto da partizione vera.
+* $n_1 = 200$
+* $\mu_1 = -20$, $\mu_1 = -10$, $\mu_3 = -20$, $\mu_4 = -20$
+* $\sigma_1 = \sigma_2 = \sigma_3 = \sigma_4 = 1$
+* $\pi_1 = \pi_2 = \pi_3 = \pi_4 = 1/4$
 
 # Partizione Fissata
 
@@ -49,7 +51,8 @@ sd = c(1,1,1,1)         # vector of sd
 n_j = rep(200, d)        # set cardinality of the groups
 seed = 20051131
 
-genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+#genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+genD = simulate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
 
@@ -526,15 +529,18 @@ K = 4                   # number of global clusters
 mu = c(-20,-10,0, 10)   # vectors of means
 sd = c(1,1,1,1)         # vector of sd
 n_j = rep(200, d)        # set cardinality of the groups
-seed = 20051131
+seed = 2352571
 
-genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+#genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+genD = simulate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
 
 mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
+table(real_partition)
 ```
+
 
 ```{r}
 counter = 1
@@ -553,6 +559,10 @@ for(j in 1:d){
 #data_per_cluster 
 mean_data_per_cluster = lapply(data_per_cluster, mean)
 var_data_per_cluster  = lapply(data_per_cluster, var)
+
+mean_data_per_cluster
+
+var_data_per_cluster
 #log_marginal_prior
 ```
 
@@ -1283,10 +1293,7 @@ tibble(value = data[j,],
 
 Riassunto:
 
-* Ho aumentato molto il numero di iterazioni perché non mi piaceva la convergenza delle catene
-* Tutto bello come prima
-* Da notare che quando facevo l'update con adaptive-MH questo caso mi dava problemi. Con il MALA invece sembra andare tutto come vorrei
-
+* Questo è il caso più problematico, ho notato che cambiando il seed con cui genero i dati, a volte va bene e a volte no
 
 
 

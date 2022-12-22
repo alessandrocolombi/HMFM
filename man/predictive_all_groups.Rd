@@ -2,7 +2,7 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{predictive_all_groups}
 \alias{predictive_all_groups}
-\title{pred_uninorm}
+\title{predictive_all_groups}
 \usage{
 predictive_all_groups(grid, fit, burnin = 1)
 }

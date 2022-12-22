@@ -50,6 +50,7 @@ n_j = rep(200, d)        # set cardinality of the groups
 seed = 20051131
 
 genD = generate_data(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+genD = generate_data_prob2(d = d, K = K, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
 
@@ -1238,6 +1239,30 @@ tibble(value = data[j,],
               alpha = 0.5, inherit.aes = F)
 
 ```
+
+
+# Due livelli
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

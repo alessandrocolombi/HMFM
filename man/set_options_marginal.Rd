@@ -12,6 +12,8 @@ set_options_marginal(
   gamma0 = 1,
   Adapt_MH_hyp1 = 0.7,
   Adapt_MH_hyp2 = 0.234,
+  sp_mala_U = 0.01,
+  sp_mala_gamma = 0.01,
   k0 = 1/10,
   nu0 = 10,
   alpha_gamma = 1,

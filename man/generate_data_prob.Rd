@@ -34,6 +34,7 @@ generate_data_prob(
 and a vector named \code{real_partition} with the cluster membership of each data point.
 }
 \description{
+VECCHIA, NON è DA USARE
 This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
 weights defined in \code{prob}, which may vary in different levels

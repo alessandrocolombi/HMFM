@@ -31,6 +31,7 @@ generate_data(
 and a vector named \code{real_partition} with the cluster membership of each data point.
 }
 \description{
+VECCHIA, NON è DA USARE
 This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
 This is indeed the old version, the newest function is \code{\link{generate_data_prob}}.

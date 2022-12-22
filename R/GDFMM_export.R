@@ -954,7 +954,7 @@ predictive <- function(idx_group, grid, fit, burnin = 1){
     return(pred_est)
 }
 
-#' pred_uninorm
+#' predictive_all_groups
 #'
 #' This function computes the predictive distribution for all groups generated from the \code{\link{GDFMM_sampler}}.
 #' @inheritParams predictive
@@ -969,6 +969,7 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
 
 #' generate_data
 #'
+#' VECCHIA, NON è DA USARE
 #' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 #' A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
 #' This is indeed the old version, the newest function is \code{\link{generate_data_prob}}.
@@ -983,6 +984,7 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
 #' @export
 generate_data <- function(d, K = 3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
 {
+  warning("VECCHIA, NON è DA USARE")
   if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
   if(length(n_j) != d ) stop("The length of n_j must be equal to d")
 
@@ -1018,6 +1020,7 @@ generate_data <- function(d, K = 3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(20
 
 #' generate_data
 #'
+#' VECCHIA, NON è DA USARE
 #' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 #' It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
 #' weights defined in \code{prob}, which may vary in different levels
@@ -1028,6 +1031,7 @@ generate_data <- function(d, K = 3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(20
 #' @export
 generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
 {
+  warning("VECCHIA, NON è DA USARE")
   if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
   if(length(n_j) != d ) stop("The length of n_j must be equal to d")
 
@@ -1055,6 +1059,62 @@ generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1
     #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
     cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
     real_partition = c(real_partition, cluster[j, 1:n_j[j]])
+  }
+  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
+  # quella che viene modificata dentro il sampler è
+  # partion_within_sampler = arrange_partition(real_partition)
+  return( list(data = data, real_partition = real_partition) )
+}
+
+#' simulate_data
+#'
+#' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
+#' It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
+#' weights defined in \code{prob}, which may vary in different levels
+#' @inheritParams generate_data
+#' @param prob [matrix] of dimension \code{d x K} where each row contains the weights for the mixture model in each level. Some may be zero.
+#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
+#' and a vector named \code{real_partition} with the cluster membership of each data point.
+#' @export
+simulate_data <- function(d, K = 3, prob=NULL, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
+{
+
+  set.seed(seed)
+  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
+  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
+  if(is.null(prob)){ # set equal weights
+    prob = matrix(1/K,nrow = d,ncol= K)
+  }
+  
+  n = sum(n_j) #total number of data points
+  
+  # used to save the number of generated clusters in each level
+  #Kgruppo = apply(prob, MARGIN = 1, FUN = function(level_probs){sum(level_probs>0)}) 
+  # used to state what components are used to generate data in each level
+  #componenti_gruppo = vector("list",length = d)
+  
+  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
+  #cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
+  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
+  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
+  
+  for(j in 1:d){
+
+    #componenti_gruppo[[j]] = which(prob[j,]>0)
+    #p[j,1:Kgruppo[j]] = prob[j,]
+    #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
+
+    # generate mixture in level j
+    temp = genera_mix_gas(n = n_j[j], pro = prob[j,], means = mu, sds = sd )
+    
+    # save data
+    data[j, 1:n_j[j]] = temp$y
+    
+    # save clustering
+    #cluster[j, 1:n_j[j]] = temp$clu 
+    #cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][temp$clu[h]]}))
+    #real_partition = c(real_partition, cluster[j, 1:n_j[j]])
+    real_partition = c(real_partition, temp$clu )
   }
   # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
   # quella che viene modificata dentro il sampler è
@@ -1404,3 +1464,13 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
 
 
 
+#' predictive_marginal_all_groups
+#'
+#' This function computes the predictive distribution for all groups generated from the \code{\link{GDFMM_marginal_sampler}}.
+#' @inheritParams predictive
+#' @return [list] of length \code{d} where each element is the return object of \code{\link{predictive_marginal}}.
+#' @export
+predictive_marginal_all_groups <- function(grid, fit, option, burnin = 0){
+  d = nrow(fit$gamma)
+  lapply(1:d, predictive_marginal, grid = grid, fit = fit, option = option, burnin = burnin)
+}
