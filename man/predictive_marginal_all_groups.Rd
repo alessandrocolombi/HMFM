@@ -4,7 +4,7 @@
 \alias{predictive_marginal_all_groups}
 \title{predictive_marginal_all_groups}
 \usage{
-predictive_marginal_all_groups(grid, fit, burnin = 0)
+predictive_marginal_all_groups(grid, fit, option, burnin = 0)
 }
 \arguments{
 \item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
