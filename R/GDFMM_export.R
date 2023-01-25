@@ -1085,19 +1085,19 @@ simulate_data <- function(d, K = 3, prob=NULL, mu= c(-20,0,20), sd = c(1,1,1), n
   if(is.null(prob)){ # set equal weights
     prob = matrix(1/K,nrow = d,ncol= K)
   }
-  
+
   n = sum(n_j) #total number of data points
-  
+
   # used to save the number of generated clusters in each level
-  #Kgruppo = apply(prob, MARGIN = 1, FUN = function(level_probs){sum(level_probs>0)}) 
+  #Kgruppo = apply(prob, MARGIN = 1, FUN = function(level_probs){sum(level_probs>0)})
   # used to state what components are used to generate data in each level
   #componenti_gruppo = vector("list",length = d)
-  
+
   data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
   #cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
   real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
   # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
-  
+
   for(j in 1:d){
 
     #componenti_gruppo[[j]] = which(prob[j,]>0)
@@ -1106,12 +1106,12 @@ simulate_data <- function(d, K = 3, prob=NULL, mu= c(-20,0,20), sd = c(1,1,1), n
 
     # generate mixture in level j
     temp = genera_mix_gas(n = n_j[j], pro = prob[j,], means = mu, sds = sd )
-    
+
     # save data
     data[j, 1:n_j[j]] = temp$y
-    
+
     # save clustering
-    #cluster[j, 1:n_j[j]] = temp$clu 
+    #cluster[j, 1:n_j[j]] = temp$clu
     #cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][temp$clu[h]]}))
     #real_partition = c(real_partition, cluster[j, 1:n_j[j]])
     real_partition = c(real_partition, temp$clu )
@@ -1200,7 +1200,7 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' @export
 set_options_marginal = function( partition = NULL,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
-                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, 
+                        Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
                         sp_mala_U = 0.01, sp_mala_gamma=0.01,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         init_mean_cluster = NULL, init_var_cluster = NULL,
@@ -1208,7 +1208,7 @@ set_options_marginal = function( partition = NULL,
                       )
 {
   option<-list("Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
-               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, 
+               "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2,
                "sp_mala_U"=sp_mala_U,"sp_mala_gamma"=sp_mala_gamma,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
@@ -1368,7 +1368,7 @@ dnct = function( x, n0, mu0, gamma0 )
 {
   if(gamma0 <= 0)
     stop("The scale parameter has to be strictly positive.")
-  return( 1/sqrt(gamma0) * dt(x = (x-mu0)/gamma0, df = n0 ) )
+  return( 1/gamma0 * dt(x = (x-mu0)/gamma0, df = n0 ) )
 }
 
 

@@ -85,7 +85,7 @@ var_data_per_cluster  = lapply(data_per_cluster, var)
 In questo primo esperimento, setto i parametri relativi a $P_0$ con la funzione di empirical Bayes che abbiamo fatto.
 Plotto i dati e la marginale del modello, che è 
 
-$student-t(dof = \nu_0, loc = \mu_0, scale = \sqrt{\frac{k_0}{k_0+1}\sigma^2_0})$
+$$student-t(dof = \nu_0, loc = \mu_0, scale = \sqrt{\frac{k_0}{k_0+1}\sigma^2_0})$$
 ```{r}
 # In questo plot sotto colori i pallini secondo il vero cluster.
 idx_start = 1
@@ -3001,7 +3001,7 @@ for(j in 1:d){
   
   par(mar = c(2,2,1,1), bty = "l")
   hist(data[j,1:n_j[j]], freq = F, breaks = n_j[j]/4,
-       main = paste0("Level = ",j), ylim = c(0,0.22))
+       main = paste0("Level = ",j), ylim = c(0,0.22), nclass = "fd")
   points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
           pch = 16, col = mycol_points)
   lines(dj$x,dj$y, lwd = 2)
@@ -3045,7 +3045,7 @@ P0_hyparam
 ```{r}
 l_grid = 500
 grid = seq(8,35,length.out = l_grid)
-scale = sqrt( k0/(k0 + 1) * sigma0 )
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
 mean_marginal = mu0
 var_marginal  = nu0/(nu0-2) * scale^2
 
@@ -3180,7 +3180,7 @@ option = set_options_marginal(
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
              "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
-             "UpdateU" = T, "UpdateGamma" = F, "UpdateTau" = T, "UpdateLambda" = F, 
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
              "partition" = seq(1,sum(n_j))
         )
 # old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,

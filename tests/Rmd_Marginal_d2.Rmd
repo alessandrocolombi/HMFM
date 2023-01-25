@@ -2265,9 +2265,9 @@ K = 3               # number of global clusters
 mu = c(-3,0,1)      # vectors of means
 sd = c(sqrt(0.1), sqrt(0.5), sqrt(1.5) )     # vector of sd
 prob <- matrix(c(0.2,0.8,  0,
-                   0,0.2,0.8),nrow = d, ncol = K, byrow = T)
+                   0,0.1,0.9),nrow = d, ncol = K, byrow = T)
   
-n_j = rep(200, d)  # set cardinality of the groups
+n_j = rep(100, d)  # set cardinality of the groups
 seed = 20051131
 
 #genD = generate_data_prob(d=d,p=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
@@ -2295,12 +2295,18 @@ idx_start = 1
 idx_end = n_j[1]
 
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, barmu = mean(data), barsig2 = 5, correction = 3 )
+mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
 
-mu0 = 0;k0= 1/10;nu0=10;sigma0=1
+k0 = 0.01
+# mu0 = 0.25
+# k0  = 0.62
+# nu0 = 2*2.07
+# sigma0 = 0.66/2.07
 
 l_grid = 200
 grid = seq(-5,5,length.out = l_grid)
-scale = sqrt( k0/(k0 + 1) * sigma0 )
+scale = sqrt( (k0 + 1)/k0 * sigma0 )
 mean_marginal = mu0
 var_marginal  = nu0/(nu0-2) * scale^2
 
@@ -2374,32 +2380,61 @@ plot_density(shape = a_lambda, rate = b_lambda,
              dist = "gamma", main = "lambda prior", use_x11_device = F,
              xlim = x_range_lambda)
 ```
+
+```{r}
+Kstar = 4
+fExpVal <- function(x){
+  abs( Expected_prior(n_j = n_j, 
+                      gamma = c(x[1],x[1]), 
+                      type = "distinct", prior = "Poisson", 
+                      lambda = x[2])$Mean 
+       - Kstar
+  )
+}
+
+optK = optim(par = rep(1,2), #initial points
+             method = "L-BFGS-B", # that's the only method that takes bounds
+             fn  = fExpVal, #function to be minimized
+             lower = rep(0.001,2) #lower bound for variables
+)
+optK
+
+
+Expected_prior(n_j = n_j, gamma = c(optK$par[1],optK$par[1]), 
+                      type = "distinct", prior = "Poisson", 
+                      lambda = optK$par[2])
+```
+
 Parto dalla partizione in cui ognuno fa cluster a sé
 ```{r}
 ## Run
 
-niter  <-  3000
-burnin <-  3000
+niter  <-  6000
+burnin <-  6000
 thin   <- 1
 
-# gamma
-mu_gamma  = optK$par[1]
-var_gamma = 0.1
-b_gamma = mu_gamma/(var_gamma)
-a_gamma = mu_gamma * b_gamma
+# # gamma
+# mu_gamma  = optK$par[1]
+# var_gamma = 0.1
+# b_gamma = mu_gamma/(var_gamma)
+# a_gamma = mu_gamma * b_gamma
+# 
+# #lambda
+# mu_lambda  = optK$par[2]
+# var_lambda = 0.1
+# a_lambda = (mu_lambda*mu_lambda)/var_lambda
+# b_lambda = mu_lambda/(var_lambda)
 
-#lambda
-mu_lambda  = optK$par[2]
-var_lambda = 0.1
-a_lambda = (mu_lambda*mu_lambda)/var_lambda
-b_lambda = mu_lambda/(var_lambda)
 
+
+a_gamma <- 1; b_gamma <- 1
+a_lambda <- 10; b_lambda <- 2
 
 option = set_options_marginal(
-             "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+             "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
-             "gamma0" = optK$par[1],"Lambda0" = optK$par[2], 
+             "gamma0" = 1,"Lambda0" = 2, 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
@@ -2443,6 +2478,7 @@ par(mfrow = c(1,2))
 plot(GDFMM$K, type = 'l', main = "K")
 hist(GDFMM$K, main = "K")
 
+table(GDFMM$K)
 ```
 
 ```{r}
@@ -2513,6 +2549,12 @@ part_matrix_lv1 = part_matrix[,1:n_j[1]]
 # Compute similarity matrix
 sim_matrix_lv1 <- psm(part_matrix_lv1)
 
+Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+  x = as.factor(x)
+  length(levels(x))
+})
+table(Kest_lv1)
+
 
 heatmap(sim_matrix_lv1)
 
@@ -2531,6 +2573,14 @@ cred_ball_lv1$dist.uppervert
 Secondo livello
 ```{r}
 part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+
+Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+  x = as.factor(x)
+  length(levels(x))
+})
+table(Kest_lv2)
+
+
 # Compute similarity matrix
 sim_matrix_lv2 <- psm(part_matrix_lv2)
 

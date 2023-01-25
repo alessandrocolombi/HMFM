@@ -13,7 +13,7 @@ library(GDFMM)
 
 # Preprocessing of the data -----------------------------------------------
 
-
+?hlrData
 data2<-data(hlrData)
 data1<-data(hlrData)
 df <- data.frame(hlrData$mathScore, hlrData$socioeconomicStatus, hlrData$schoolID)
@@ -30,7 +30,7 @@ for (j in 1:d) {
   n_j[j] <- length(data_level)
   data1[j, 1:n_j[j]] <- data_level
 }
-data2<-data1[c(67,51,79,92,100,94,5,72,17),]
+#data2<-data1[c(67,51,79,92,100,94,5,72,17),]
 
 
 

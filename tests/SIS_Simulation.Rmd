@@ -593,11 +593,11 @@ mycol = hcl.colors(n=3,palette = "Zissou1")
 
 d = 3                   # number of groups
 K = 3                   # number of global clusters
-mu = c(-5.5,0,5.5)   # vectors of means
+mu = c(-5,0,5)   # vectors of means
 sd = c(1,1,1)         # vector of sd
 n_j = c(100,50,50)#rep(200, d)        # set cardinality of the groups
 mix_probs = matrix(c(3/10,3/10,4/10,
-                     3/10,3/10,   0,
+                     3/10,7/10,   0,
                      8/10,1/10,1/10), nrow = d, ncol = K, byrow = T)
 seed = 20051131
 
@@ -766,13 +766,16 @@ idx_start = 1
 idx_end = n_j[1]
 
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
-P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = 100, correction = 10)
+P0_hyparam = empirical_bayes_normalinvgamma(data = data )
 mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
 #mu0 = 0;k0= 3/20;nu0=5;sigma0=1
 
+k0 = 0.01
+
+
 l_grid = 200
 grid = seq(-12,12,length.out = l_grid)
-scale = sqrt( k0/(k0 + 1) * sigma0 )
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
 mean_marginal = mu0
 var_marginal  = nu0/(nu0-2) * scale^2
 
@@ -810,8 +813,8 @@ for(j in 1:d){
 #### One-Shot-Run
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  6000
-burnin <-  3000
+niter  <-  10000
+burnin <-  6000
 thin   <- 1
 
 # tau 
@@ -855,6 +858,20 @@ for(j in 1:d){
   plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
 }
 
+par(mfrow = c(1,d), mar = c(2,2,1,1))
+for(j in 1:d){
+  acf(GDFMM$gamma[j,], main = paste0("ACF - ",expression(gamma), "_",j))
+}
+
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+plot(GDFMM$gamma[1,], GDFMM$gamma[2,], pch = 16)
+plot(GDFMM$gamma[1,], GDFMM$gamma[3,], pch = 16)
+plot(GDFMM$gamma[2,], GDFMM$gamma[3,], pch = 16)
+
+cor(GDFMM$gamma[1,], GDFMM$gamma[2,])
+cor(GDFMM$gamma[1,], GDFMM$gamma[3,])
+cor(GDFMM$gamma[2,], GDFMM$gamma[3,])
+
 # U
 par(mfrow = c(1,d))
 for(j in 1:d){
@@ -865,6 +882,8 @@ for(j in 1:d){
 par(mfrow = c(1,2))
 plot(GDFMM$K, type = 'l', main = "K")
 hist(GDFMM$K, main = "K")
+
+
 
 ```
 
@@ -933,14 +952,16 @@ for(j in 1:d){
        ylab = "y-axis", xlab = "x-axis")
   points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
           pch = 16, col = mycol_points)
-  lines(dj$x,dj$y, lwd = 3)
+  #lines(dj$x,dj$y, lwd = 3)
   #lines(x = grid, y = Pred_all[[j]][1,], col = "blue", lwd = 2, lty = 2) #0.025
   #lines(x = grid, y = Pred_all[[j]][3,], col = "blue", lwd = 2, lty = 2) #0.975
-  polygon( c(grid, rev(grid)), 
-           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
-           col = ACutils::t_col(mycol[1], percent = 45)) 
+  # polygon( c(grid, rev(grid)), 
+  #          c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+  #          col = ACutils::t_col(mycol[1], percent = 45)) 
   lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
   
+  points(grid, dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
 
   idx_start = idx_end + 1
     if(j<d){
