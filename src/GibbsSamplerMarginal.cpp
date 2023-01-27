@@ -22,12 +22,13 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(option["partition"]) }; 
         
         // Stampe
+        /*
         Rcpp::Rcout<<"Partition: "<<std::endl;
         for(unsigned int i = 0; i<partition_vec.size(); i++)
             Rcpp::Rcout<<partition_vec[i]<<"; ";
         
         Rcpp::Rcout<<std::endl;
-
+        */
 
         // To avoid rewriting a lot of code, I can set Mstar = 0. If so, M = K
         double Mstar0{0.0};

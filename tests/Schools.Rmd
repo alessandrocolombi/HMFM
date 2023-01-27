@@ -22,22 +22,181 @@ library(GDFMM)
 
 
 ```{r}
-?hlrData
-data1<-data(hlrData)
+#?hlrData
+data<-data(hlrData)
 df <- data.frame(hlrData$mathScore, hlrData$socioeconomicStatus, hlrData$schoolID)
 names(df) <- c('math_score', 'soc_status', 'school_id')
 count <- df %>% count(school_id)
 count_ordered <- count[order(count$n, decreasing = T),]
-data1 <- matrix(NA, nrow = 100, ncol = max(count$n))
-dim(data1)
+data <- matrix(NA, nrow = 100, ncol = max(count$n))
 d = 100
 n_j <- rep(0, d)
 for (j in 1:d) {
   data_level <- subset(df, school_id == j)
   data_level <- data_level$math_score
   n_j[j] <- length(data_level)
-  data1[j, 1:n_j[j]] <- data_level
+  data[ j, 1:n_j[j] ] <- data_level
 }
 
 ```
+
+
+
+
+## Iperparametri $P_0$
+
+```{r}
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+varsig2 = 100 * var(as.vector(data), na.rm = T)^2 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = varsig2, correction = 100)
+mu0 = P0_hyparam$mu0
+k0= P0_hyparam$k0
+nu0=P0_hyparam$nu0
+sigma0=P0_hyparam$sigma0
+  
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+mean_marginal
+var_marginal
+```
+
+### Marginal density visualization
+
+```{r}
+xrange = c(15,100)
+yrange = c(0,1.25)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+   
+
+mycol_cluster = hcl.colors(n=K, palette = "Berlin")
+mycol_levels  = hcl.colors(n=d, palette = "Zissou 1")
+```
+
+```{r}
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1,ylim = c(0,0.2), xlim = xrange, type = "n",
+     main = "Marginal data Density")
+grid(lty = 1,lwd = 2,col = "gray90" )
+
+
+points(x = na.omit(as.numeric(data)), y = rep(0, length(na.omit(as.numeric(data)))), pch = 16)
+points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
+  
+
+```
+
+
+
+## Run
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  10000
+burnin <-  1#6000
+thin   <-  1
+
+# tau 
+a_gamma <-   1; b_gamma  <- 1
+a_lambda <- 10; b_lambda <- 2
+
+
+# initial partition
+Kmeansfit = kmeans(x = na.omit(as.numeric(data)), 
+                   centers = 5, 
+                   iter.max = 100)
+
+option = set_options_marginal(
+             "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
+             "gamma0" = 3,"Lambda0" = 10, 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = Kmeansfit$cluster
+        )
+
+# P0 Hyperparameters:
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+
+
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+
+### Chains
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# K
+par(mfrow = c(1,1), bty = "l")
+plot(GDFMM$K, type = 'l', main = "K")
+
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(GDFMM$K), main = "Hist - K")
+```
+
+
+```{r, echo = F}
+# ARI
+
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+ARI = apply( part_matrix, 1, 
+             FUN = function(part_it){
+                      arandi(part_it,real_partition, adjust = T)
+                  }
+            )
+
+plot(ARI, type = 'l', main = "ARI")
+
+```
+
+### Clustering
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+
+```
+
+
+
+
+# Conclusioni
+
+
+
 

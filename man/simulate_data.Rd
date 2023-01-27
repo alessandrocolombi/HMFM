@@ -2,18 +2,8 @@
 % Please edit documentation in R/GDFMM_export.R
 \name{simulate_data}
 \alias{simulate_data}
-\title{simulate_data (never checked)}
+\title{simulate_data}
 \usage{
-simulate_data(
-  d,
-  K = 3,
-  prob = NULL,
-  mu = c(-20, 0, 20),
-  sd = c(1, 1, 1),
-  n_j = rep(200, d),
-  seed = 124123
-)
-
 simulate_data(
   d,
   K = 3,
@@ -31,45 +21,19 @@ simulate_data(
 
 \item{prob}{\link{matrix} of dimension \code{d x K} where each row contains the weights for the mixture model in each level. Some may be zero.}
 
-\item{mu}{vector of means for the Gaussian components of the mixture}
+\item{mu}{\link{vector} of length \code{K} defining the means of the clusters.}
 
 \item{sd}{\link{vector} of length \code{K} defining the standard deviations of the clusters.}
 
 \item{n_j}{\link{vector} of length \code{d} defining the cardinality of each groups.}
 
-\item{seed}{seed for the GDFMM run (0 ==> random seed)}
-
-\item{n_simul}{number of datasets to be simulated}
-
-\item{group_dim}{vector of numerosity for each group in a dataset}
-
-\item{p_mix}{matrix with each row that specifies weights for the mixture in the corrispondent
-group}
-
-\item{sigma}{vector of standard deviations for the Gaussian components of the mixture}
-
-\item{burnin}{number of iterations to be discarded for the GDFMM}
-
-\item{n_iter}{number of iterations to be saved for the GDFMM run}
-
-\item{thin}{thinning of the GDFMM run}
-
-\item{option}{list of option for the GDFMM model. See GDFMM_sampler help for the list of
-needed values}
-
-\item{dir}{path to the directory where data about simlation have to be saved}
+\item{seed}{\link{integer} the random seed.}
 }
 \value{
-some metrics to evaluate the goodness of GDFMM
-
 \link{list} with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
 and a vector named \code{real_partition} with the cluster membership of each data point.
 }
 \description{
-function to simulate data from the specified configuration of Gaussian
-mixtures in different groups. Results for each one of the \code{n_simul}
-datasets are saved in a directory create with the time-stamp of the simulation.
-
 This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
 It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
 weights defined in \code{prob}, which may vary in different levels

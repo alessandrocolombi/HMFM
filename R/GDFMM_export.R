@@ -154,22 +154,22 @@ rmix <- function(n, p, mu, sigma){
 #' function to simulate data from the specified configuration of Gaussian
 #' mixtures in different groups. Results for each one of the \code{n_simul}
 #' datasets are saved in a directory create with the time-stamp of the simulation.
-#' @param n_simul number of datasets to be simulated
-#' @param group_dim vector of numerosity for each group in a dataset
-#' @param p_mix matrix with each row that specifies weights for the mixture in the corrispondent
+#' @param n_simul [integer] number of datasets to be simulated
+#' @param group_dim [vector] of numerosity for each group in a dataset
+#' @param p_mix [matrix] with each row that specifies weights for the mixture in the corrispondent
 #'              group
-#' @param mu vector of means for the Gaussian components of the mixture
-#' @param sigma vector of standard deviations for the Gaussian components of the mixture
-#' @param burnin number of iterations to be discarded for the GDFMM
-#' @param n_iter number of iterations to be saved for the GDFMM run
+#' @param mu [vector] of means for the Gaussian components of the mixture
+#' @param sigma [vector] of standard deviations for the Gaussian components of the mixture
+#' @param burnin [integer] number of iterations to be discarded for the GDFMM
+#' @param n_iter [integer] number of iterations to be saved for the GDFMM run
 #' @param thin thinning of the GDFMM run
-#' @param seed seed for the GDFMM run (0 ==> random seed)
-#' @param option list of option for the GDFMM model. See GDFMM_sampler help for the list of
+#' @param seed [integer] seed for the GDFMM run (0 ==> random seed)
+#' @param option [list] of option for the GDFMM model. See GDFMM_sampler help for the list of
 #'               needed values
 #' @param dir path to the directory where data about simlation have to be saved
 #' @return some metrics to evaluate the goodness of GDFMM
 #' @export
-simulate_data <- function(n_simul, group_dim, p_mix, mu, sigma,
+simulate_data_OLD_POLIMI <- function(n_simul, group_dim, p_mix, mu, sigma,
                           burnin = 2000, n_iter = 2000, thin = 3, seed = 1234,
                           option, dir = ".")
   {
@@ -1461,9 +1461,6 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
 
 
 
-
-
-
 #' predictive_marginal_all_groups
 #'
 #' This function computes the predictive distribution for all groups generated from the \code{\link{GDFMM_marginal_sampler}}.
@@ -1474,3 +1471,99 @@ predictive_marginal_all_groups <- function(grid, fit, option, burnin = 0){
   d = nrow(fit$gamma)
   lapply(1:d, predictive_marginal, grid = grid, fit = fit, option = option, burnin = burnin)
 }
+
+
+
+
+
+
+
+#' Compute_coclust_error
+#'
+#' This function computes the coclustering error and the coclustering error star.
+#' Being errors, low values are to be preferred and 1 is the maximum, worst, value.
+#' See Bassetti,Casarin et al. 2020 for proper definition
+#' @param real_partition [vector] of length \code{n}, the total number of points, containing the true cluster membership of each data point
+#' @param psm [matrix] of size \code{n x n} containing the posterior similarity matrix, i.e each element represents the relative frequency of two data points being assigned to the same cluster
+#'
+#' @return [list] \code{coclust_err} and \code{coclust_err_star}
+#' @export
+Compute_coclust_error = function(real_partition, psm){
+
+  Ndata = length(real_partition)
+
+  # Compute the true pairwise co-clustering matrix
+  expg = expand.grid(real_partition, real_partition)
+  expg$match = as.numeric(expg$Var1==expg$Var2)
+
+  coclust_true = matrix( expg$match,
+                         nrow = Ndata,
+                         ncol = Ndata,
+                         byrow = T
+  )
+
+  # Co-clustering error
+  coclust_error = (1/(Ndata^2)) * sum(abs(coclust_true - psm))
+
+  # Co-clustering error star
+  psm[psm<0.5]  = 0
+  psm[psm>=0.5] = 1
+  coclust_error_star = (1/(Ndata^2)) * sum(abs(coclust_true - psm))
+
+  return(  list("coclust_err"=coclust_error,
+                "coclust_err_star"=coclust_error_star)  )
+
+}
+
+
+#' Compute_L1_dist
+#'
+#' This function computes the L1 distance between the true density and the predictive density within each level
+#' and the mean value across all levels.
+#' Low values are to be preferred.
+#' @param Pred [list] the predictive distributions of all levels evaluated  \code{grid}
+#' @inheritParams simulate_data
+#' @inheritParams predictive
+#'
+#' @return [list] the first element, ??? , is a vector with the L1 error within each level.
+#' The second element, ???, is the mean value across all levels.
+#'
+#' @export
+#'
+#' @examples Compute_L1_dist(list(Pred_all[[1]][2,], Pred_all[[2]][2,]),mix_probs,mu,sd)
+Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
+
+  d = length(Pred)
+  K = length(mu)
+  L1_err = rep(0,d)
+
+  if(d != nrow(p_mix))
+    stop("Mismatch of dimensions. Pred must be a list of d elements,
+          p_mix must be a matrix with d rows")
+  if(K != length(sigma) || K != ncol(p_mix))
+    stop("Mismatch of dimensions. mu and sigma must be vector of length K.
+          p_mix must be a matrix with K columns")
+
+  # Evaluate the true densities over a grid of points
+  true_dens_eval = apply(p_mix, 1, FUN = function(x){
+    GDFMM::dmix(x = grid, w_j = x, mu_vec = mu, sigma_vec = sd)
+  })
+
+
+  for(j in 1:d){
+
+    # Compute the absolute value of the differences between the true and the predicted densities
+    ydiff = abs( true_dens_eval[,j] - Pred[[j]] )
+    # Compute L1 distance
+    L1_err[j] = pracma::trapz(x = grid, y = ydiff)
+
+  }
+
+  return(  list( "L1err_per_level" = L1_err,
+                 "L1err_average" = mean(L1_err)
+               )
+         )
+
+}
+
+
