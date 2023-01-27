@@ -810,3 +810,247 @@ barplot(table(Kest_lv2), main = "Hist - K")
 
 
 
+# 4 - Moments of the Number of Clusters $K$ a priori
+
+## One level
+
+I first consider the case where $d=1$ and $n=100$
+
+### Grid for Expected value and Variance
+
+```{r}
+n_j = 100
+Npoints = 10
+gamma_grid  = seq(1,10,length.out = Npoints)
+Lambda_grid = seq(2,10,length.out = Npoints)
+Exp_val = matrix(nrow = Npoints,ncol = Npoints)
+Var = matrix(nrow = Npoints,ncol = Npoints)
+
+for(i in 1:Npoints){
+  for(j in 1:Npoints){
+    Moments = Expected_prior(n_j = n_j, gamma = gamma_grid[i], type = "distinct", 
+                             prior = "Poisson", lambda = Lambda_grid[j])
+    Exp_val[i,j] = Moments$Mean
+    Var[i,j] = Moments$Variance
+  }
+}
+
+# Unicode for capital Lambda "\u039B"
+
+
+Lambda_names = unlist(  lapply( as.list(as.character(round(gamma_grid, digits = 1))),  
+                                FUN = function(x){ paste0( "\u039B", "=",x)  }
+                              )
+                     )
+
+gamma_names = unlist(  lapply( as.list(as.character(round(gamma_grid, digits = 1))),  
+                                FUN = function(x){ paste0( "γ", "=",x)  }
+                              )
+                     )
+
+rownames(Exp_val) <- rownames(Var) <- gamma_names
+colnames(Exp_val) <- colnames(Var) <- Lambda_names
+```
+
+
+Guardo la media
+```{r}
+Exp_val
+```
+
+L'impatto di $\gamma$ sembra bassissimo, il numero di cluster attesi sembra variare solo con $\Lambda$.
+
+Guardo anche la varianza
+```{r}
+Var
+```
+
+Anche per quanto riguarda la varianza, l'impatto di $\gamma$ sembra trascurabile rispetto a $\Lambda$. In più, la varianza sembra essere sempre simile alla media, cosa che può dato che $\Lambda$ è distribuita con una Poisson. Potrebbe tuttavia essere una limitazione.
+
+
+### Distribution for $\Lambda$ fixed
+
+Fisso $\Lambda = 4$ e guardo la distribuzione del numero di cluster al variare di $\gamma$
+```{r}
+Npoints = 100
+Lambda = 4
+gamma_grid  = seq(1,100,length.out = Npoints)
+prob_k = matrix(nrow = Npoints, ncol = n_j)
+
+for(i in 1:Npoints){
+  
+  #threshold = 0.995
+  for(kk in 1:n_j ){
+    prob_k[i,kk] = p_distinct_prior(k = kk, n_j = n_j, 
+                                    gamma = gamma_grid[i],
+                                    prior = "Poisson", 
+                                    lambda = Lambda)
+    #if(sum(prob_k)>=threshold)
+      #break
+  }
+}
+```
+
+La curva nera è la prima, quella con $\gamma$ minore
+
+```{r}
+par(mar = c(2,2,4,1), bty = "l")
+matplot( t(prob_k), type = "l", lwd = 2,xlim = c(0,20),
+          col = c("black",hcl.colors(n=Npoints, palette = "Zissou 1")),
+          main = paste0(  paste0( "Distribution of K for \u039B=4 and γ varying") ))
+```
+
+Come mi aspettavo, fissato $\Lambda$ le differenze sono minime al variare di $\gamma$. 
+
+Tuttavia ho notato che se $\Lambda$ è più grande, allora $\gamma$ ha un po' di impatto
+
+
+```{r}
+Npoints = 100
+Lambda = 20
+gamma_grid  = seq(1,100,length.out = Npoints)
+prob_k2 = matrix(nrow = Npoints, ncol = n_j)
+
+for(i in 1:Npoints){
+  
+  #threshold = 0.995
+  for(kk in 1:n_j ){
+    prob_k2[i,kk] = p_distinct_prior(k = kk, n_j = n_j, 
+                                    gamma = gamma_grid[i],
+                                    prior = "Poisson", 
+                                    lambda = Lambda)
+    #if(sum(prob_k)>=threshold)
+      #break
+  }
+}
+```
+
+La curva nera è la prima, quella con $\gamma$ minore
+
+```{r}
+par(mar = c(2,2,4,1), bty = "l")
+matplot( t(prob_k2), type = "l", lwd = 2,xlim = c(0,40), lty = 1,
+         col = c("black",hcl.colors(n=Npoints, palette = "Zissou 1")),
+         main = paste0(  paste0( "Distribution of K for \u039B=20 and γ varying") ))
+```
+
+### Distribution for $\gamma$ fixed
+
+Ora faccio l'esperimento inverso, tengo fisso $\gamma$ e faccio variare $\Lambda$.
+
+```{r}
+Npoints = 20
+gamma = 2
+Lambda_grid  = seq(1,20,length.out = Npoints)
+prob_k3 = matrix(nrow = Npoints, ncol = n_j)
+
+for(i in 1:Npoints){
+  
+  #threshold = 0.995
+  for(kk in 1:n_j ){
+    prob_k3[i,kk] = p_distinct_prior(k = kk, n_j = n_j, 
+                                     gamma = gamma,
+                                     prior = "Poisson", 
+                                     lambda = Lambda_grid[i])
+    #if(sum(prob_k)>=threshold)
+      #break
+  }
+}
+```
+
+La curva nera è la prima, quella con $\Lambda$ minore
+
+```{r}
+par(mar = c(2,2,4,1), bty = "l")
+matplot( t(prob_k3), type = "l", lwd = 2,xlim = c(0,35),
+         col = c("black",hcl.colors(n=Npoints, palette = "Zissou 1")),
+         main = paste0(  paste0( "Distribution of K for γ=2 and \u039B varying") ))
+```
+
+A parte per valori piccoli di $\Lambda$, la distribuzione sembra sempre uguale ma viene traslata sempre di circa 1. 
+In particolare, **non possiamo controllare sia media che varianza**. Possiamo fissare la media al valore che vogliamo ma non stringere significativamente la varianza attorno a quel valore, quindi non possiamo essere troppo informativi sul numero di cluster che vogliamo.
+
+
+
+
+
+## Two levels
+
+I repeat the experiment when $d=2$. Now, the process parameters are $\gamma_1,\gamma_2, \Lambda$.
+
+I consider an unbalanced number of points in the two levels, $n=(100,50)$
+
+
+### Grid for fixed Lambda 
+
+```{r}
+n_j = c(100,50)
+
+Npoints = 10
+gamma_grid  = seq(1,10,length.out = Npoints)
+Lambda_grid = seq(2,10,length.out = Npoints)
+Exp_val = matrix(nrow = Npoints,ncol = Npoints)
+Var = matrix(nrow = Npoints,ncol = Npoints)
+
+for(i in 1:Npoints){
+  for(j in 1:Npoints){
+    Moments = Expected_prior(n_j = n_j, gamma = gamma_grid[i], type = "distinct", 
+                             prior = "Poisson", lambda = Lambda_grid[j])
+    Exp_val[i,j] = Moments$Mean
+    Var[i,j] = Moments$Variance
+  }
+}
+
+# Unicode for capital Lambda "\u039B"
+
+
+Lambda_names = unlist(  lapply( as.list(as.character(round(gamma_grid, digits = 1))),  
+                                FUN = function(x){ paste0( "\u039B", "=",x)  }
+                              )
+                     )
+
+gamma_names = unlist(  lapply( as.list(as.character(round(gamma_grid, digits = 1))),  
+                                FUN = function(x){ paste0( "γ", "=",x)  }
+                              )
+                     )
+
+rownames(Exp_val) <- rownames(Var) <- gamma_names
+colnames(Exp_val) <- colnames(Var) <- Lambda_names
+```
+
+
+Guardo la media
+```{r}
+Exp_val
+```
+
+L'impatto di $\gamma$ sembra bassissimo, il numero di cluster attesi sembra variare solo con $\Lambda$.
+
+Guardo anche la varianza
+```{r}
+Var
+```
+
+
+### Grid for fixed $gamma_1$ 
+
+TODO
+
+### Grid for fixed $gamma_2$ 
+
+TODO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
