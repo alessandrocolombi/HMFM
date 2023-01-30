@@ -938,8 +938,9 @@ suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
 Inizio variando un solo parametro alla volta. Qui, vario $\bar{\text{V}}_\mu$. La variabile di riferimento è $\texttt{varmu}$.
 
-* $\texttt{correction} = 3$
-* $\texttt{varsig2} = \text{Var}(data)^2$
+* $\bar{V}_\mu $ variabile
+* $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
+* $\text{c} = 3$
 
 ```{r}
 ## Data Generation
@@ -969,10 +970,9 @@ a_gamma <-   1; b_gamma  <- 1
 a_lambda <- 10; b_lambda <- 2
 
 
-varmu_grid = c(1,5,10,50,100,vardata,vardata^2)
+varmu_grid = c(1,5,10,vardata,50,100,vardata^2)
 N_varmu = length(varmu_grid)
-nomi_varmu_grid = c("Vmu=1","Vmu=5","Vmu=10","Vmu=50","Vmu=100",
-                    "Vmu=Vdata", "Vmu=Vdata^2")
+nomi_varmu_grid = c("Vmu=1","Vmu=5","Vmu=10","Vmu=Vdata","Vmu=50","Vmu=100","Vmu=Vdata^2")
 
 FinalResults = vector("list", length = N_varmu)
 
@@ -1241,8 +1241,9 @@ Kest_var
 
 Inizio variando un solo parametro alla volta. Qui, vario $\bar{\text{V}}_{\sigma^2}$. La variabile di riferimento è $\texttt{varsig2}$.
 
-* $\texttt{correction} = 3$
-* $\texttt{varsig2} = \text{Var}(data)^2$
+* $\bar{V}_\mu = 10$ 
+* $\bar{V}_{\sigma^2} $ variabile
+* $\text{c} = 3$
 
 ```{r}
 ## Data Generation
@@ -1544,8 +1545,9 @@ Kest_var
 
 Inizio variando un solo parametro alla volta. Qui, vario $\text{c}$. La variabile di riferimento è $\texttt{correction}$.
 
-* $\texttt{varmu} = 10$
-* $\texttt{varsig2} = \text{Var}(data)^2$
+* $\bar{V}_\mu = 10$ 
+* $\bar{V}_{\sigma^2} = \text{Var}(\text{data})^2$ 
+* $\text{c}$ variabile
 
 ```{r}
 ## Data Generation
@@ -1845,7 +1847,10 @@ Kest_var
 
 ## 3.4 - Experiment Setup 
 
-In questo esperimento, tengo fisso $\texttt{varmu}=10$. Variano $\texttt{varsig2}$, per cui tengo una perturbazione della varianza al quadrato dei dati e $\texttt{correction}$
+
+* $\bar{V}_\mu = 10$ 
+* $\bar{V}_{\sigma^2}$ variabile 
+* $\text{c}$ variabile
 
 ```{r}
 ## Data Generation
@@ -2143,7 +2148,10 @@ Kvar_mat
 
 ## 3.5 - Experiment Setup 
 
-In questo esperimento, tengo fisso $\texttt{varsig2}$. Variano $\texttt{varmu}$ e $\texttt{correction}$
+
+* $\bar{V}_\mu $ variabilie 
+* $\bar{V}_{\sigma^2} = \text{Var}(\text{data})^2$ 
+* $\text{c} $ variabile
 
 ```{r}
 ## Data Generation
@@ -2174,15 +2182,14 @@ a_lambda <- 10; b_lambda <- 2
 vardata = var(as.vector(data), na.rm = T)
 
 correction_grid = c(1,5,10,50,100,sum(n_j))
-varmu_grid = c(5,10,50,100,vardata,vardata^2)
+varmu_grid = c(5,10,vardata,50,100,vardata^2)
 
 N_varmu = length(varmu_grid)
 N_corr = length(correction_grid)
 
 
 nomi_correction_grid = c("c=1","c=5","c=10","c=50","c=100","c=200")
-nomi_varmu_grid = c("Vmu=5","Vmu=10","Vmu=50","Vmu=100",
-                    "Vmu=Vdata", "Vmu=Vdata^2")
+nomi_varmu_grid = c("Vmu=5","Vmu=10","Vmu=Vdata","Vmu=50","Vmu=100", "Vmu=Vdata^2")
 
 
 lists = vector("list", length = N_corr*N_varmu)
@@ -2444,7 +2451,10 @@ Kvar_mat
 
 ## 3.6 - Experiment Setup 
 
-In questo esperimento, tengo fisso $\texttt{correction}$. Variano $\texttt{varmu}$ e $\texttt{varsig2}$
+
+* $\bar{V}_\mu $ variabile 
+* $\bar{V}_{\sigma^2} $ variabile 
+* $\text{c} = 50$
 
 ```{r}
 ## Data Generation
@@ -2475,15 +2485,14 @@ a_lambda <- 10; b_lambda <- 2
 vardata = var(as.vector(data), na.rm = T)
 
 
-varmu_grid = c(5,10,50,100,vardata,vardata^2)
+varmu_grid = c(5,10,vardata,50,100,vardata^2)
 varsig2_grid = c(0.1*vardata,vardata,10*vardata,vardata^2,10*vardata^2)
 
 N_varmu = length(varmu_grid)
 N_varsd = length(varsig2_grid)
 
 
-nomi_varmu_grid = c("Vmu=5","Vmu=10","Vmu=50","Vmu=100",
-                    "Vmu=Vdata", "Vmu=Vdata^2")
+nomi_varmu_grid = c("Vmu=5","Vmu=10","Vmu=Vdata","Vmu=50","Vmu=100","Vmu=Vdata^2")
 nomi_varsig2_grid = c("Vsig=0.1Vdata","Vsig=Vdata","Vsig=10Vdata","Vsig=Vdata^2","Vsig=10Vdata^2")
 
 
@@ -2749,6 +2758,11 @@ Kvar_mat
 ## 3.7 - Experiment Setup 
 
 In questo esperimento, fisso gli iperparametri di $P_0$ e mi concentro solo su $\Lambda$. Infatti dall'altro caso studio ho visto che il ruolo di $\Lambda$ è fondamentale nel definire il numero di cluster a priori.
+
+
+* $\bar{V}_\mu = 10$ 
+* $\bar{V}_{\sigma^2} = \text{Var}(\text{data})^2$ 
+* $\text{c} = 50$
 
 Negli esperimenti di prima avevo $\Lambda \sim \text{Gamma}(10,2)$, quindi $\text{E}[\Lambda] = 5$, $\text{Var}(\Lambda) = 2.5$.
 
@@ -3022,7 +3036,11 @@ Kest_var
 
 ## 3.8 - Experiment Setup 
 
-Rispetto alla sezione precedente, non lascio $\Lambda$ fisso ma aleatorio. Parametrizzo $\Lambda$ come media e varianza. Metto la media pari ai valori fissati prima e varianza 1
+Rispetto alla sezione precedente, non lascio $\Lambda$ fisso ma aleatorio. Parametrizzo $\Lambda$ come media e varianza. Metto la media pari ai valori fissati prima e varianza 10 perché voglio vedere se si muove da quel valore
+
+* $\bar{V}_\mu = 10$ 
+* $\bar{V}_{\sigma^2} = \text{Var}(\text{data})^2$ 
+* $\text{c} = 50$
 
 ```{r}
 ## Data Generation
@@ -3050,10 +3068,10 @@ burnin <-  6000
 thin   <-  1
 a_gamma <-   1; b_gamma  <- 1
 
-N_Lambda = 10
+N_Lambda = 5#10
 
 mean_Lambda_grid = seq(1,20,by = 2)
-var_lambda = 1
+var_lambda = 10
 
 FinalResults = vector("list", length = N_Lambda)
 
@@ -3239,14 +3257,14 @@ Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Lambda[2]
 }))
 
-names(Lambda_mean) <- names(Lambda_mean) <- paste0("Lambda=", Lambda_grid)
+names(Lambda_mean) <- names(Lambda_mean) <- paste0("MeanLambda=", mean_Lambda_grid)
 
 gamma_means = matrix(0,nrow = N_Lambda, ncol = d)
 for(it in 1:N_Lambda){
   gamma_means[it,] = FinalResults[[it]]$gamma
 }
 
-rownames(gamma_means) <- paste0("Lambda=", Lambda_grid)
+rownames(gamma_means) <- paste0("MeanLambda=", mean_Lambda_grid)
 colnames(gamma_means) <- paste0("Lev=", 1:d)
 
 Lambda_mean
