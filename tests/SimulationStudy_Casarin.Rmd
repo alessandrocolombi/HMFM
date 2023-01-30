@@ -3068,10 +3068,11 @@ burnin <-  6000
 thin   <-  1
 a_gamma <-   1; b_gamma  <- 1
 
-N_Lambda = 5#10
 
 mean_Lambda_grid = seq(1,20,by = 2)
 var_lambda = 10
+
+N_Lambda = length(mean_Lambda_grid)
 
 FinalResults = vector("list", length = N_Lambda)
 
