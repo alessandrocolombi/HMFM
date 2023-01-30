@@ -1749,8 +1749,8 @@ real_partition = genD$real_partition
 
 ## Common parameters
 
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 a_gamma <-   1; b_gamma  <- 1
 a_lambda <- 10; b_lambda <- 2
@@ -1990,8 +1990,8 @@ real_partition = genD$real_partition
 
 ## Common parameters
 
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 a_gamma <-   1; b_gamma  <- 1
 
