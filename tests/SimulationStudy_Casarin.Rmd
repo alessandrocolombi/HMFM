@@ -338,6 +338,11 @@ cor(GDFMM$gamma[1,], GDFMM$gamma[2,])
 cor(GDFMM$gamma[1,], GDFMM$gamma[3,])
 cor(GDFMM$gamma[2,], GDFMM$gamma[3,])
 
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+for(j in 1:d){
+  hist(GDFMM$gamma[j,], nclass = "fd", freq = FALSE, main = paste0("gamma_",j))
+}
+
 # U
 par(mfrow = c(1,d))
 for(j in 1:d){
@@ -946,11 +951,11 @@ a_lambda <- 10; b_lambda <- 2
 
 
 
-N_corr  = 6
-N_varsd = 6
+N_corr  = 5
+N_varsd = 5
 
-correction_grid = c( 0.1, 1, 5, 50, 100, sum(n_j) )#seq(0.1,100,length.out = N_corr)
-varsig2_grid = c( 0.001, 0.1, 1,10,  50, 100 )*(var(as.vector(data), na.rm = T)^2)#*seq(0.001,2,length.out = N_varsd)
+correction_grid = c( 1, 5, 50, 100, sum(n_j) )#seq(0.1,100,length.out = N_corr)
+varsig2_grid = c( 0.01, 0.1, 1,  10, 50 )*(var(as.vector(data), na.rm = T)^2)#*seq(0.001,2,length.out = N_varsd)
 
 lists = vector("list", length = N_corr*N_varsd)
 
@@ -963,7 +968,7 @@ FinalResults = matrix(lists, nrow = N_corr, ncol = N_varsd, byrow = T)
 
 ### Run simulations
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, warning=TRUE, include=FALSE}
 nsim = 1
 for(ii in 1:N_corr){
   for(jj in 1:N_varsd){
@@ -1108,37 +1113,11 @@ for(ii in 1:N_corr){
 
 ```{r}
 # Save
-save(FinalResults, file = "G:\\.shortcut-targets-by-id\\1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz\\BicoccaDrive\\TutoratoPoli2121_Group-dependent\\Test&Results\\SimCasarin_muvar10_exp2.Rdat")
+# save(FinalResults, file = "G:\\.shortcut-targets-by-id\\1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz\\BicoccaDrive\\TutoratoPoli2121_Group-dependent\\Test&Results\\SimCasarin_muvar10_exp2.Rdat")
 ```
 
 
 ### Leggo
-```{r}
-
-RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[3]
-})
-
-RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[4]
-})
-
-L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$L1err
-})
-
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Kstats[1]
-})
-
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- paste0("corr=", correction_grid)
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- paste0("*", round(seq(0.001,2,length.out = N_varsd), digits = 3) )
-
-RI_mat_VI
-L1_mat
-Kest_mat
-```
-
 
 ```{r}
 nu0s = apply(FinalResults, c(1,2), FUN = function(x){
@@ -1163,10 +1142,6 @@ round(sigma02, digits = 4)
 
 ```
 
-
-
-
-
 ```{r}
 PriorVar = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Prior_marginal[2]
@@ -1180,6 +1155,37 @@ round(PriorVar, digits = 4)
 ```
 
 
+```{r}
+
+RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[3]
+})
+
+RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[4]
+})
+
+L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$L1err
+})
+
+Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[4]
+})
+
+Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- paste0("corr=", correction_grid)
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- paste0("*", round(seq(0.001,2,length.out = N_varsd), digits = 3) )
+
+RI_mat_VI
+L1_mat
+Kest_mat
+Kvar_mat
+```
 
 
 
@@ -1233,7 +1239,7 @@ FinalResults = matrix(lists, nrow = N_corr, ncol = N_varmu, byrow = T)
 
 ### Run simulations
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, warning=TRUE, include=FALSE}
 nsim = 1
 for(ii in 1:N_corr){
   for(jj in 1:N_varmu){
@@ -1382,31 +1388,6 @@ for(ii in 1:N_corr){
 
 
 ### Leggo
-```{r}
-
-RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[3]
-})
-
-RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[4]
-})
-
-L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$L1err
-})
-
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Kstats[4]
-})
-
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- paste0("corr=", correction_grid)
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- paste0("varmu=", varmu_grid)
-
-RI_mat_VI
-L1_mat
-Kest_mat
-```
 
 
 ```{r}
@@ -1449,6 +1430,37 @@ round(PriorVar, digits = 4)
 ```
 
 
+```{r}
+
+RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[3]
+})
+
+RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[4]
+})
+
+L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$L1err
+})
+
+Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[4]
+})
+
+Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- paste0("corr=", correction_grid)
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- paste0("varmu=", varmu_grid)
+
+RI_mat_VI
+L1_mat
+Kest_mat
+Kvar_mat
+```
 
 ## 3.3 - Experiment Setup 
 
@@ -1483,11 +1495,11 @@ a_lambda <- 10; b_lambda <- 2
 
 
 
-N_varsd = 6
+N_varsd = 5
 N_varmu = 4
 
 
-varsig2_grid = c( 0.001, 0.1, 1,10,  50, 100 )*(var(as.vector(data), na.rm = T)^2)#*seq(0.001,2,length.out = N_varsd)
+varsig2_grid = c( 0.01, 0.1, 1,  10, 50 )*(var(as.vector(data), na.rm = T)^2)#*seq(0.001,2,length.out = N_varsd)
 varmu_grid = c( 1, 10, 100,500 )
 
 
@@ -1503,7 +1515,7 @@ FinalResults = matrix(lists, nrow = N_varsd, ncol = N_varmu, byrow = T)
 
 ### Run simulations
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, warning=TRUE, include=FALSE}
 nsim = 1
 for(ii in 1:N_varsd){
   for(jj in 1:N_varmu){
@@ -1652,31 +1664,6 @@ for(ii in 1:N_varsd){
 
 
 ### Leggo
-```{r}
-
-RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[3]
-})
-
-RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$RI[4]
-})
-
-L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$L1err
-})
-
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Kstats[4]
-})
-
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- paste0("*", round(seq(0.001,2,length.out = N_varsd), digits = 3) )
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- paste0("varmu=", varmu_grid)
-
-RI_mat_VI
-L1_mat
-Kest_mat
-```
 
 
 ```{r}
@@ -1716,6 +1703,39 @@ rownames(PriorVar) <- paste0("*", round(seq(0.001,2,length.out = N_varsd), digit
 colnames(PriorVar) <- paste0("varmu=", varmu_grid)
 
 round(PriorVar, digits = 4)
+```
+
+
+```{r}
+
+RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[3]
+})
+
+RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$RI[4]
+})
+
+L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$L1err
+})
+
+Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[4]
+})
+
+Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- paste0("*", round(seq(0.001,2,length.out = N_varsd), digits = 3) )
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- paste0("varmu=", varmu_grid)
+
+RI_mat_VI
+L1_mat
+Kest_mat
+Kvar_mat
 ```
 
 
@@ -1769,13 +1789,13 @@ FinalResults = vector("list", length = N_Lambda)
 
 ### Run simulations
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, warning=TRUE, include=FALSE}
 nsim = 1
 for(jj in 1:N_Lambda){
     
     cat("\n Sim Number ",nsim,"\n")
     # Define hyperparameters
-    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, 
+    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 10, 
                                                 varsig2 = var(as.vector(data), na.rm = T)^2, 
                                                 correction = 50
                                                 )
@@ -1894,7 +1914,9 @@ for(jj in 1:N_Lambda){
                "CoClust"=c("err" = CoClust$coclust_err, "star" = CoClust$coclust_err_star), 
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
-                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) )
+                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
+               "gamma" =  colMeans(t(GDFMM$gamma))
                )
     
     FinalResults[[jj]] = res
@@ -1919,10 +1941,32 @@ for(jj in 1:N_Lambda){
 c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
 ```
 
-
-
 ```{r}
 var_marginal
+```
+
+```{r}
+Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[1]
+}))
+
+Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[2]
+}))
+
+names(Lambda_mean) <- names(Lambda_mean) <- paste0("Lambda=", Lambda_grid)
+
+gamma_means = matrix(0,nrow = N_Lambda, ncol = d)
+for(it in 1:N_Lambda){
+  gamma_means[it,] = FinalResults[[it]]$gamma
+}
+
+rownames(gamma_means) <- paste0("Lambda=", Lambda_grid)
+colnames(gamma_means) <- paste0("Lev=", 1:d)
+
+Lambda_mean
+Lambda_var
+gamma_means
 ```
 
 
@@ -2012,13 +2056,13 @@ FinalResults = vector("list", length = N_Lambda)
 
 ### Run simulations
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, warning=TRUE, include=FALSE}
 nsim = 1
 for(jj in 1:N_Lambda){
     
     cat("\n Sim Number ",nsim,"\n")
     # Define hyperparameters
-    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, 
+    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 10, 
                                                 varsig2 = var(as.vector(data), na.rm = T)^2, 
                                                 correction = 50
                                                 )
@@ -2142,7 +2186,9 @@ for(jj in 1:N_Lambda){
                "CoClust"=c("err" = CoClust$coclust_err, "star" = CoClust$coclust_err_star), 
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
-                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) )
+                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
+               "gamma" = colMeans(t(GDFMM$gamma))
                )
     
     FinalResults[[jj]] = res
@@ -2173,7 +2219,29 @@ c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
 var_marginal
 ```
 
+```{r}
+Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[1]
+}))
 
+Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[2]
+}))
+
+names(Lambda_mean) <- names(Lambda_mean) <- paste0("Lambda=", Lambda_grid)
+
+gamma_means = matrix(0,nrow = N_Lambda, ncol = d)
+for(it in 1:N_Lambda){
+  gamma_means[it,] = FinalResults[[it]]$gamma
+}
+
+rownames(gamma_means) <- paste0("Lambda=", Lambda_grid)
+colnames(gamma_means) <- paste0("Lev=", 1:d)
+
+Lambda_mean
+Lambda_var
+gamma_means
+```
 
 ```{r}
 
