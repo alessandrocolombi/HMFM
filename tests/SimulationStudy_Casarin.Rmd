@@ -1720,7 +1720,496 @@ round(PriorVar, digits = 4)
 
 
 
+## 3.4 - Experiment Setup 
 
+In questo esperimento, fisso gli iperparametri di $P_0$ e mi concentro solo su $\Lambda$. Infatti dall'altro caso studio ho visto che il ruolo di $\Lambda$ è fondamentale nel definire il numero di cluster a priori.
+
+Negli esperimenti di prima avevo $\Lambda \sim \text{Gamma}(10,2)$, quindi $\text{E}[\Lambda] = 5$, $\text{Var}(\Lambda) = 2.5$.
+
+Come prima prova, non lascio $\Lambda$ aleatorio ma lo fisso
+
+```{r}
+## Data Generation
+
+d = 3                   # number of groups
+K = 3                   # number of global clusters
+mu = c(-5,0,5)          # vectors of means
+sd = c(1,1,1)           # vector of sd
+n_j = c(100,50,50)      # set cardinality of the groups
+
+mix_probs = matrix(c(3/10,3/10,4/10,
+                     3/10,7/10,   0,
+                     8/10,1/10,1/10), nrow = d, ncol = K, byrow = T)
+seed = 200532121
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+## Common parameters
+
+niter  <-  10#000
+burnin <-  6#000
+thin   <-  1
+a_gamma <-   1; b_gamma  <- 1
+a_lambda <- 10; b_lambda <- 2
+
+N_Lambda = 10
+
+Lambda_grid = seq(1,20,by = 2)
+
+FinalResults = vector("list", length = N_Lambda)
+
+```
+
+
+
+
+
+### Run simulations
+
+```{r message=TRUE, warning=TRUE}
+nsim = 1
+for(jj in 1:N_Lambda){
+    
+    cat("\n Sim Number ",nsim,"\n")
+    # Define hyperparameters
+    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, 
+                                                varsig2 = var(as.vector(data), na.rm = T)^2, 
+                                                correction = 50
+                                                )
+    mu0 = P0_hyparam$mu0
+    k0= P0_hyparam$k0
+    nu0=P0_hyparam$nu0
+    sigma0=P0_hyparam$sigma0
+    
+    # Compute mean and variance marginals
+    scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+    mean_marginal = mu0
+    var_marginal  = nu0/(nu0-2) * scale^2
+    
+    
+    counter = 1
+    data_per_cluster = vector("list", length = K)
+    log_marginal_prior = vector("list", length = d)
+    for(j in 1:d){
+      log_marginal_prior[[j]] = vector( length = n_j[j])
+      for(i in 1:n_j[j]){
+        c_ji = real_partition[counter]
+        data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+        log_marginal_prior[[j]][i] = log(ACutils::dnct(data[j,i], n0 = 10, mu0 = 1, gamma0 = sqrt(2)) )
+        counter = counter + 1
+      }
+      
+    }
+    mean_data_per_cluster = unlist(lapply(data_per_cluster, mean))
+    var_data_per_cluster  = unlist(lapply(data_per_cluster, var))
+    ndata_per_cluster = unlist(lapply(data_per_cluster, length))
+    
+    
+    dof_post = nu0 + ndata_per_cluster
+    k0_post  = k0 + ndata_per_cluster
+    location_post = (k0*mu0 + mean_data_per_cluster*ndata_per_cluster)/(k0 + ndata_per_cluster)
+    sigma0_post   = 1/dof_post*( (ndata_per_cluster - 1)*var_data_per_cluster + 
+                                  nu0*sigma0 + 
+                                  (k0*ndata_per_cluster)/(k0 + ndata_per_cluster) * (mu0 - mean_data_per_cluster)^2  
+                               )
+    
+    scale_post = sqrt( (sigma0_post*(k0_post + 1))/(k0_post)  )
+    
+    mean_marginal_per_cluster = location_post
+    var_marginal_per_cluster = scale_post^2 * (dof_post)/(dof_post - 2)
+    
+    
+    
+    
+    # Run 
+    
+    option = set_options_marginal(
+                 "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
+                 "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+                 "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
+                 "gamma0" = 3,"Lambda0" = Lambda_grid[jj], 
+                 "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+                 "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+                 "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+                 "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+                 "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = F, 
+                 "partition" = real_partition#seq(1,sum(n_j))
+            )
+    
+    GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+    
+    
+    
+    # RI
+    
+    part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+    RI = apply( part_matrix, 1, 
+                 FUN = function(part_it){
+                          arandi(part_it,real_partition)
+                      }
+                )
+    
+    # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+    part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+    
+    # Compute similarity matrix
+    sim_matrix <- psm(part_matrix)
+    
+    
+    binder_sara = minbinder(sim_matrix)
+    VI_sara = minVI(sim_matrix)
+    
+    
+    Bin = arandi(binder_sara$cl,real_partition, )
+    VI  = arandi(VI_sara$cl,real_partition)
+    
+    
+    CoClust = Compute_coclust_error(real_partition, sim_matrix)
+    
+    
+    xrange = c(-10,10)
+    l_grid = 200
+    grid = seq(xrange[1],xrange[2],length.out = l_grid)
+    # Predictive in all groups
+    Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+    
+    
+    Pred_median = vector("list", length = d)
+    for(j in 1:d){
+      Pred_median[[j]] = Pred_all[[j]][2,]
+    }
+    
+    L1err = Compute_L1_dist(Pred = Pred_median, 
+                             p_mix = mix_probs, mu = mu, sigma = sd,
+                             grid = grid)
+    
+    
+    res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
+               "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
+               "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
+               "RI" = c("MCmean" = mean(RI), "MCvar" = var(RI), "Binder"=Bin, "VI"=VI ),
+               "CoClust"=c("err" = CoClust$coclust_err, "star" = CoClust$coclust_err_star), 
+               "L1err" = L1err$L1err_average, 
+               "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
+                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) )
+               )
+    
+    FinalResults[[jj]] = res
+    
+    #Update simulation number
+    nsim = nsim + 1
+  }
+```
+
+
+
+```{r}
+# Save
+#save(FinalResults, file = "G:\\.shortcut-targets-by-id\\1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz\\BicoccaDrive\\TutoratoPoli2121_Group-dependent\\Test&Results\\SimCasarin_varsig2fix_exp1.Rdat")
+```
+
+
+### Leggo
+
+
+```{r}
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+```
+
+
+
+```{r}
+var_marginal
+```
+
+
+
+```{r}
+
+RI_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[3]
+}))
+
+RI_VI = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[4]
+}))
+
+CoClustering_error = unlist(lapply(FinalResults, FUN = function(x){
+  x$CoClust[1]
+}))
+
+L1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$L1err
+}))
+
+Kest = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[4]
+}))
+
+Kest_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[2]
+}))
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(CoClustering_error) <- paste0("Lambda=", Lambda_grid)
+
+RI_VI
+CoClustering_error
+L1
+Kest
+Kest_var
+```
+
+
+
+## 3.5 - Experiment Setup 
+
+Rispetto alla sezione precedente, non lascio $\Lambda$ fisso ma aleatorio. Parametrizzo $\Lambda$ come media e varianza. Metto la media pari ai valori fissati prima e varianza 1
+
+```{r}
+## Data Generation
+
+d = 3                   # number of groups
+K = 3                   # number of global clusters
+mu = c(-5,0,5)          # vectors of means
+sd = c(1,1,1)           # vector of sd
+n_j = c(100,50,50)      # set cardinality of the groups
+
+mix_probs = matrix(c(3/10,3/10,4/10,
+                     3/10,7/10,   0,
+                     8/10,1/10,1/10), nrow = d, ncol = K, byrow = T)
+seed = 200532121
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+## Common parameters
+
+niter  <-  10#000
+burnin <-  6#000
+thin   <-  1
+a_gamma <-   1; b_gamma  <- 1
+
+N_Lambda = 10
+
+mean_Lambda_grid = seq(1,20,by = 2)
+var_lambda = 1
+
+FinalResults = vector("list", length = N_Lambda)
+
+
+
+```
+
+
+
+
+
+### Run simulations
+
+```{r message=TRUE, warning=TRUE}
+nsim = 1
+for(jj in 1:N_Lambda){
+    
+    cat("\n Sim Number ",nsim,"\n")
+    # Define hyperparameters
+    P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, 
+                                                varsig2 = var(as.vector(data), na.rm = T)^2, 
+                                                correction = 50
+                                                )
+    mu0 = P0_hyparam$mu0
+    k0= P0_hyparam$k0
+    nu0=P0_hyparam$nu0
+    sigma0=P0_hyparam$sigma0
+    
+    # Compute mean and variance marginals
+    scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+    mean_marginal = mu0
+    var_marginal  = nu0/(nu0-2) * scale^2
+    
+    
+    counter = 1
+    data_per_cluster = vector("list", length = K)
+    log_marginal_prior = vector("list", length = d)
+    for(j in 1:d){
+      log_marginal_prior[[j]] = vector( length = n_j[j])
+      for(i in 1:n_j[j]){
+        c_ji = real_partition[counter]
+        data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+        log_marginal_prior[[j]][i] = log(ACutils::dnct(data[j,i], n0 = 10, mu0 = 1, gamma0 = sqrt(2)) )
+        counter = counter + 1
+      }
+      
+    }
+    mean_data_per_cluster = unlist(lapply(data_per_cluster, mean))
+    var_data_per_cluster  = unlist(lapply(data_per_cluster, var))
+    ndata_per_cluster = unlist(lapply(data_per_cluster, length))
+    
+    
+    dof_post = nu0 + ndata_per_cluster
+    k0_post  = k0 + ndata_per_cluster
+    location_post = (k0*mu0 + mean_data_per_cluster*ndata_per_cluster)/(k0 + ndata_per_cluster)
+    sigma0_post   = 1/dof_post*( (ndata_per_cluster - 1)*var_data_per_cluster + 
+                                  nu0*sigma0 + 
+                                  (k0*ndata_per_cluster)/(k0 + ndata_per_cluster) * (mu0 - mean_data_per_cluster)^2  
+                               )
+    
+    scale_post = sqrt( (sigma0_post*(k0_post + 1))/(k0_post)  )
+    
+    mean_marginal_per_cluster = location_post
+    var_marginal_per_cluster = scale_post^2 * (dof_post)/(dof_post - 2)
+    
+    
+    # Lambda hyperparameters
+    mu_lambda  = mean_Lambda_grid[jj]
+    var_lambda = 1
+    a_lambda = (mu_lambda*mu_lambda)/var_lambda
+    b_lambda = mu_lambda/(var_lambda)
+
+    
+    # Run 
+    
+    option = set_options_marginal(
+                 "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
+                 "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+                 "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
+                 "gamma0" = 3,"Lambda0" = mu_lambda, 
+                 "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+                 "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+                 "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+                 "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+                 "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = F, 
+                 "partition" = real_partition#seq(1,sum(n_j))
+            )
+    
+    GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+    
+    
+    
+    # RI
+    
+    part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+    RI = apply( part_matrix, 1, 
+                 FUN = function(part_it){
+                          arandi(part_it,real_partition)
+                      }
+                )
+    
+    # COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+    part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+    
+    # Compute similarity matrix
+    sim_matrix <- psm(part_matrix)
+    
+    
+    binder_sara = minbinder(sim_matrix)
+    VI_sara = minVI(sim_matrix)
+    
+    
+    Bin = arandi(binder_sara$cl,real_partition, )
+    VI  = arandi(VI_sara$cl,real_partition)
+    
+    
+    CoClust = Compute_coclust_error(real_partition, sim_matrix)
+    
+    
+    xrange = c(-10,10)
+    l_grid = 200
+    grid = seq(xrange[1],xrange[2],length.out = l_grid)
+    # Predictive in all groups
+    Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+    
+    
+    Pred_median = vector("list", length = d)
+    for(j in 1:d){
+      Pred_median[[j]] = Pred_all[[j]][2,]
+    }
+    
+    L1err = Compute_L1_dist(Pred = Pred_median, 
+                             p_mix = mix_probs, mu = mu, sigma = sd,
+                             grid = grid)
+    
+    
+    res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
+               "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
+               "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
+               "RI" = c("MCmean" = mean(RI), "MCvar" = var(RI), "Binder"=Bin, "VI"=VI ),
+               "CoClust"=c("err" = CoClust$coclust_err, "star" = CoClust$coclust_err_star), 
+               "L1err" = L1err$L1err_average, 
+               "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
+                            "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) )
+               )
+    
+    FinalResults[[jj]] = res
+    
+    #Update simulation number
+    nsim = nsim + 1
+  }
+```
+
+
+
+```{r}
+# Save
+#save(FinalResults, file = "G:\\.shortcut-targets-by-id\\1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz\\BicoccaDrive\\TutoratoPoli2121_Group-dependent\\Test&Results\\SimCasarin_varsig2fix_exp1.Rdat")
+```
+
+
+### Leggo
+
+
+```{r}
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+```
+
+
+
+```{r}
+var_marginal
+```
+
+
+
+```{r}
+
+RI_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[3]
+}))
+
+RI_VI = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[4]
+}))
+
+CoClustering_error = unlist(lapply(FinalResults, FUN = function(x){
+  x$CoClust[1]
+}))
+
+L1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$L1err
+}))
+
+Kest = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[4]
+}))
+
+Kest_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[2]
+}))
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(CoClustering_error) <- paste0("Lambda=", Lambda_grid)
+
+RI_VI
+CoClustering_error
+L1
+Kest
+Kest_var
+```
 
 
 
