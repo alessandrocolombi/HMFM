@@ -13,6 +13,22 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Empirical Bayes
+
+We use an Empirical Bayes strategy to choose $P_0$ hyperparameters $(\mu_0,\kappa_0,\nu_0,\sigma^2_0)$. Let $\hat{y}_n$ be the sample mean of all data points and let $\hat{s}^2_n$ be their variance.
+
+The strategy we proposed requires 3 additional parameters to be specified
+
+* $\bar{\text{V}}_\mu$: a priori variance for $\mu$
+* $\bar{\text{V}}_{\sigma^2}$: a priori variance for $\sigma^2$
+* $\text{c}$: extra parameter I can not interpret
+
+$$
+\text{E}[\mu] = \hat{y}_n \\
+\text{Var}(\mu) = \bar{\text{V}}_\mu \\
+\text{E}[\sigma^2] = \hat{s}^2_n / \text{c}\\
+\text{Var}[\sigma^2] = \bar{\text{V}}_{\sigma^2} 
+$$
 
 # 0 - Osservazioni
 
