@@ -12,7 +12,7 @@
 <meta name="author" content="Alessandro Colombi" />
 
 
-<title>SimulationStudy_Casarin</title>
+<title>Simulation Study - Casarin</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -362,7 +362,7 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">SimulationStudy_Casarin</h1>
+<h1 class="title toc-ignore">Simulation Study - Casarin</h1>
 <h4 class="author">Alessandro Colombi</h4>
 <h4 class="date">27/1/2023</h4>
 
@@ -2661,26 +2661,26 @@ colnames(gamma_means) &lt;- paste0(&quot;Lev=&quot;, 1:d)
 
 Lambda_mean
 #&gt;  MeanLambda=1  MeanLambda=3  MeanLambda=5  MeanLambda=7  MeanLambda=9 
-#&gt;      1.496809      2.773264      4.529127      6.367614      8.362328 
+#&gt;      1.969232      2.279879      3.139797      4.165101      5.562585 
 #&gt; MeanLambda=11 MeanLambda=13 MeanLambda=15 MeanLambda=17 MeanLambda=19 
-#&gt;     10.288322     12.338129     14.358671     16.480082     18.466415
+#&gt;      6.786811      8.532847     10.014562     12.297243     14.678249
 Lambda_var
 #&gt;    median    median    median    median    median    median    median    median 
-#&gt;  1.335894  2.693003  4.478387  6.336342  8.326737 10.271522 12.304781 14.329921 
+#&gt;  1.674728  2.023007  2.885887  3.950806  5.369268  6.606360  8.352300  9.840312 
 #&gt;    median    median 
-#&gt; 16.453722 18.431382
+#&gt; 12.069029 14.411511
 gamma_means
 #&gt;                   Lev=1      Lev=2     Lev=3
-#&gt; MeanLambda=1  1.8350924 0.29219097 0.6760634
-#&gt; MeanLambda=3  1.5992654 0.50830361 0.9226137
-#&gt; MeanLambda=5  1.5071469 0.50200578 0.6147206
-#&gt; MeanLambda=7  1.0514606 0.18005076 0.8788327
-#&gt; MeanLambda=9  1.3592357 0.16407922 0.8938643
-#&gt; MeanLambda=11 1.2970828 0.40765703 0.7516495
-#&gt; MeanLambda=13 1.3528046 0.43610027 0.6811128
-#&gt; MeanLambda=15 1.0468539 0.12266195 0.6443366
-#&gt; MeanLambda=17 0.4759956 0.08259584 0.3873495
-#&gt; MeanLambda=19 0.3843791 0.24786528 0.3331801</code></pre>
+#&gt; MeanLambda=1  1.5234579 0.59358090 0.9381587
+#&gt; MeanLambda=3  1.2035482 0.55802546 0.8263804
+#&gt; MeanLambda=5  1.7971832 0.62079534 0.5728890
+#&gt; MeanLambda=7  1.6144331 0.60334150 0.6597495
+#&gt; MeanLambda=9  1.0619424 0.07720715 0.8409760
+#&gt; MeanLambda=11 0.8446838 0.33184245 1.0549776
+#&gt; MeanLambda=13 1.1674780 0.33562735 0.7139977
+#&gt; MeanLambda=15 1.6823278 0.51262427 0.7742307
+#&gt; MeanLambda=17 0.6685070 0.09682266 0.8431616
+#&gt; MeanLambda=19 0.3487433 0.13980079 0.5452486</code></pre>
 <pre class="r"><code>
 RI_Bin = unlist(lapply(FinalResults, FUN = function(x){
   x$RI[3]
@@ -2715,34 +2715,179 @@ names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(K
 
 RI_VI
 #&gt;  Lambda=1  Lambda=3  Lambda=5  Lambda=7  Lambda=9 Lambda=11 Lambda=13 Lambda=15 
-#&gt; 0.9674075 0.9674075 0.9674075 0.4585927 0.9674075 0.9674075 0.9514822 0.4585927 
+#&gt; 0.9674075 0.9674075 0.9674075 0.9674075 0.9420161 0.6385560 0.4585927 0.9674075 
 #&gt; Lambda=17 Lambda=19 
 #&gt; 0.4585927 0.4585927
 CoClustering_error
 #&gt;   Lambda=1   Lambda=3   Lambda=5   Lambda=7   Lambda=9  Lambda=11  Lambda=13 
-#&gt; 0.01777473 0.01895118 0.05845523 0.29874580 0.12936193 0.16246627 0.15191385 
+#&gt; 0.01837323 0.01857316 0.02096241 0.01917449 0.19587709 0.26334197 0.20401248 
 #&gt;  Lambda=15  Lambda=17  Lambda=19 
-#&gt; 0.25269362 0.32025161 0.27381676
+#&gt; 0.02690297 0.28696460 0.32076280
 L1
 #&gt;  Lambda=1  Lambda=3  Lambda=5  Lambda=7  Lambda=9 Lambda=11 Lambda=13 Lambda=15 
-#&gt; 0.1205392 0.1182140 0.1132476 0.4289338 0.1099538 0.1374460 0.1100314 0.3866738 
+#&gt; 0.1167690 0.1193837 0.1218153 0.1208054 0.3167593 0.2890496 0.3197024 0.1175739 
 #&gt; Lambda=17 Lambda=19 
-#&gt; 0.4587396 0.3926283
+#&gt; 0.4284102 0.4540908
 Kest
 #&gt;  Lambda=1  Lambda=3  Lambda=5  Lambda=7  Lambda=9 Lambda=11 Lambda=13 Lambda=15 
-#&gt;         3         3         3         2         3         3         3         2 
+#&gt;         3         3         3         3         3         2         2         3 
 #&gt; Lambda=17 Lambda=19 
 #&gt;         2         2
 MC_Kest
 #&gt;  Lambda=1  Lambda=3  Lambda=5  Lambda=7  Lambda=9 Lambda=11 Lambda=13 Lambda=15 
-#&gt;         3         3         3         3         3         3         3         4 
+#&gt;         3         3         3         3         3         3         3         3 
 #&gt; Lambda=17 Lambda=19 
-#&gt;         5         6
+#&gt;         4         4
 Kest_var
-#&gt;    Lambda=1    Lambda=3    Lambda=5    Lambda=7    Lambda=9   Lambda=11 
-#&gt;  0.02580722  0.12891608  0.23514326  0.72375542  1.64848289  0.73726244 
-#&gt;   Lambda=13   Lambda=15   Lambda=17   Lambda=19 
-#&gt;  4.20261382  7.05635035  3.54577858 12.03667051</code></pre>
+#&gt;   Lambda=1   Lambda=3   Lambda=5   Lambda=7   Lambda=9  Lambda=11  Lambda=13 
+#&gt; 0.07303126 0.10694573 0.26059597 0.20842820 0.55941313 1.44920092 1.30008000 
+#&gt;  Lambda=15  Lambda=17  Lambda=19 
+#&gt; 0.98744910 3.77603599 8.05438960</code></pre>
+</div>
+</div>
+<div id="experiment-setup-8" class="section level2">
+<h2>3.9 - Experiment Setup</h2>
+<p>Ora invece faccio esperimenti al variare dei parametri di <span class="math inline">\(\gamma\)</span>.</p>
+<ul>
+<li><span class="math inline">\(a_\gamma = 1\)</span></li>
+<li><span class="math inline">\(b_\gamma\)</span> variabile</li>
+<li><span class="math inline">\(\Lambda\)</span> media 5 e varianza
+1</li>
+<li><span class="math inline">\(\bar{V}_{\mu} = 10\)</span></li>
+<li><span class="math inline">\(\bar{V}_{\sigma^2} =
+\text{Var}(\text{data})^2\)</span></li>
+<li><span class="math inline">\(\text{c} = 50\)</span></li>
+</ul>
+<pre class="r"><code>## Data Generation
+
+d = 3                   # number of groups
+K = 3                   # number of global clusters
+mu = c(-5,0,5)          # vectors of means
+sd = c(1,1,1)           # vector of sd
+n_j = c(100,50,50)      # set cardinality of the groups
+
+mix_probs = matrix(c(3/10,3/10,4/10,
+                     3/10,7/10,   0,
+                     8/10,1/10,1/10), nrow = d, ncol = K, byrow = T)
+seed = 200532121
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+## Common parameters
+
+niter  &lt;-  10000
+burnin &lt;-  6000
+thin   &lt;-  1
+
+# Lambda hyperparameters
+mu_lambda  = 5
+var_lambda = 1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
+b_gamma_grid = c(1,5,10,100)
+nomi_bgamma_grid = c(&quot;b=1&quot;,&quot;b=5&quot;,&quot;b=10&quot;,&quot;b=100&quot;)
+
+N_gamma = length(b_gamma_grid)
+
+FinalResults = vector(&quot;list&quot;, length = N_gamma)
+</code></pre>
+<div id="run-simulations-8" class="section level3">
+<h3>Run simulations</h3>
+<pre class="r"><code># Save
+#save(FinalResults, file = &quot;G:\\.shortcut-targets-by-id\\1Ck2MctcmCBWOueSMeW4Zr8IOvOaOzdqz\\BicoccaDrive\\TutoratoPoli2121_Group-dependent\\Test&amp;Results\\SimCasarin_varsig2fix_exp1.Rdat&quot;)</code></pre>
+</div>
+<div id="leggo-8" class="section level3">
+<h3>Leggo</h3>
+<pre class="r"><code>c(&quot;mu0&quot;=mu0,&quot;k0&quot;=k0,&quot;nu0&quot;=nu0,&quot;sigma0&quot;=sigma0)
+#&gt;         mu0          k0         nu0      sigma0 
+#&gt; -0.76114182  0.03500266  4.00080000  0.17504831</code></pre>
+<pre class="r"><code>var_marginal
+#&gt; [1] 10.35003</code></pre>
+<pre class="r"><code>Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[1]
+}))
+
+Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Lambda[2]
+}))
+
+names(Lambda_mean) &lt;- names(Lambda_mean) &lt;- nomi_bgamma_grid
+
+gamma_means = matrix(0,nrow = N_gamma, ncol = d)
+for(it in 1:N_gamma){
+  gamma_means[it,] = FinalResults[[it]]$gamma
+}
+
+rownames(gamma_means) &lt;-nomi_bgamma_grid
+colnames(gamma_means) &lt;- paste0(&quot;Lev=&quot;, 1:d)
+
+Lambda_mean
+#&gt;      b=1      b=5     b=10    b=100 
+#&gt; 4.529127 4.633150 4.722652 5.124511
+Lambda_var
+#&gt;   median   median   median   median 
+#&gt; 4.478387 4.578254 4.668345 5.063735
+gamma_means
+#&gt;            Lev=1      Lev=2      Lev=3
+#&gt; b=1   1.50714693 0.50200578 0.61472057
+#&gt; b=5   0.22708653 0.09213471 0.31134944
+#&gt; b=10  0.15074181 0.06822290 0.19235270
+#&gt; b=100 0.01848703 0.01248803 0.01556301</code></pre>
+<pre class="r"><code>
+RI_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[3]
+}))
+
+RI_VI = unlist(lapply(FinalResults, FUN = function(x){
+  x$RI[4]
+}))
+
+CoClustering_error = unlist(lapply(FinalResults, FUN = function(x){
+  x$CoClust[1]
+}))
+
+L1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$L1err
+}))
+
+Kest = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[4]
+}))
+
+MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[1]
+}))
+
+Kest_var = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[2]
+}))
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_bgamma_grid
+
+RI_VI
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 0.9674075 0.3077375 0.4585927 0.0000000
+CoClustering_error
+#&gt;        b=1        b=5       b=10      b=100 
+#&gt; 0.05845523 0.33855438 0.34886041 0.42775413
+L1
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 0.1132476 0.4853125 0.4857986 0.5395996
+Kest
+#&gt;   b=1   b=5  b=10 b=100 
+#&gt;     3     2     2     1
+MC_Kest
+#&gt;   b=1   b=5  b=10 b=100 
+#&gt;     3     3     3     3
+Kest_var
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 0.2351433 0.6161588 0.8515885 0.4673475</code></pre>
+<p>Peggiora sensibilmente al crescere di <span class="math inline">\(b_\gamma\)</span></p>
 </div>
 </div>
 </div>
