@@ -602,6 +602,7 @@ idx_end = n_j[1]
 
 
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+vardata = var(as.vector(data), na.rm = T)
 P0_hyparam = empirical_bayes_normalinvgamma(data = data )
 mu0 = P0_hyparam$mu0;k0= P0_hyparam$k0;nu0=P0_hyparam$nu0;sigma0=P0_hyparam$sigma0
 k0 = 0.1
