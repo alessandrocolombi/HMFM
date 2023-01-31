@@ -1349,7 +1349,7 @@ Var_pred_in_cluster
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_mean) &lt;- nomi_varmu_grid
@@ -1368,8 +1368,8 @@ Lambda_mean
 #&gt; Vmu=Vdata^2 
 #&gt;    5.385100
 Lambda_var
-#&gt;   median   median   median   median   median   median   median 
-#&gt; 3.837667 4.769102 5.212158 5.445164 5.496433 5.482966 5.215865
+#&gt;      var      var      var      var      var      var      var 
+#&gt; 1.449392 2.217512 2.449546 2.552063 2.741994 3.375839 2.706132
 gamma_means
 #&gt;                 Lev=1     Lev=2     Lev=3
 #&gt; Vmu=1       0.2882108 0.3148109 0.6802447
@@ -1544,7 +1544,7 @@ Var_pred_in_cluster
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_var) &lt;- nomi_varsig2_grid
@@ -1562,7 +1562,7 @@ Lambda_mean
 #&gt;       5.692296       5.596041       5.441807       5.370309       5.194185
 Lambda_var
 #&gt;  Vsig=0.1Vdata     Vsig=Vdata   Vsig=10Vdata   Vsig=Vdata^2 Vsig=10Vdata^2 
-#&gt;       5.521961       5.430487       5.313155       5.212158       5.039838
+#&gt;       2.814635       2.670629       2.307361       2.449546       2.159999
 gamma_means
 #&gt;                    Lev=1     Lev=2     Lev=3
 #&gt; Vsig=0.1Vdata  0.4767019 0.3193595 0.4114523
@@ -1726,7 +1726,7 @@ Var_pred_in_cluster
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_var) &lt;- nomi_correction_grid
@@ -1744,7 +1744,7 @@ Lambda_mean
 #&gt; 5.661787 5.370309 5.385568 4.704055 4.050945 4.012417 4.051277
 Lambda_var
 #&gt;      c=1      c=3      c=5     c=10     c=50    c=100    c=200 
-#&gt; 5.540378 5.212158 5.231619 4.546968 3.942036 3.922378 3.939794
+#&gt; 2.430556 2.449546 2.583885 2.161931 1.378268 1.355960 1.375104
 gamma_means
 #&gt;           Lev=1     Lev=2     Lev=3
 #&gt; c=1   0.5667534 0.2321639 0.2575730
@@ -1922,7 +1922,7 @@ round(PriorVar, digits = 4)
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) &lt;- rownames(Lambda_var_mat) &lt;- nomi_correction_grid
@@ -1938,12 +1938,12 @@ Lambda_mean_mat
 #&gt; c=200      4.037661   4.022806     4.051277     4.051277       4.051277
 Lambda_var_mat
 #&gt;       Vsig=0.1Vdata Vsig=Vdata Vsig=10Vdata Vsig=Vdata^2 Vsig=10Vdata^2
-#&gt; c=3        5.521961   5.430487     5.313155     5.212158       5.039838
-#&gt; c=5        5.860370   5.490805     5.098088     5.231619       4.806301
-#&gt; c=10       5.982335   4.921238     4.554624     4.546968       4.592943
-#&gt; c=50       3.907511   3.937634     3.917408     3.942036       3.936738
-#&gt; c=100      3.893344   3.895114     3.922378     3.922378       3.922378
-#&gt; c=200      3.929862   3.911245     3.939794     3.939794       3.939794</code></pre>
+#&gt; c=3        2.814635   2.670629     2.307361     2.449546       2.159999
+#&gt; c=5        2.711271   2.869429     2.474534     2.583885       2.383300
+#&gt; c=10       2.883453   2.291390     2.153016     2.161931       1.941639
+#&gt; c=50       1.370243   1.385138     1.378726     1.378268       1.378990
+#&gt; c=100      1.323825   1.347929     1.355960     1.355960       1.355960
+#&gt; c=200      1.351026   1.331403     1.375104     1.375104       1.375104</code></pre>
 <pre class="r"><code>
 RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$RI[3]
@@ -2133,7 +2133,7 @@ round(PriorVar, digits = 4)
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) &lt;- rownames(Lambda_var_mat) &lt;- nomi_correction_grid
@@ -2149,12 +2149,12 @@ Lambda_mean_mat
 #&gt; c=200 4.017828 4.051277  4.010735 4.021974 4.028474    4.037909
 Lambda_var_mat
 #&gt;          Vmu=5   Vmu=10 Vmu=Vdata   Vmu=50  Vmu=100 Vmu=Vdata^2
-#&gt; c=1   5.305043 5.540378  5.568863 5.670030 5.645289    5.246095
-#&gt; c=5   5.042836 5.231619  4.883043 5.852678 6.111360    5.588861
-#&gt; c=10  4.375417 4.546968  5.296276 5.035819 4.453509    4.551390
-#&gt; c=50  3.937680 3.942036  3.926798 3.842052 3.919562    3.907180
-#&gt; c=100 3.946707 3.922378  3.923983 3.913596 3.905616    3.640397
-#&gt; c=200 3.905528 3.939794  3.896311 3.902182 3.922120    3.912571</code></pre>
+#&gt; c=1   2.451908 2.430556  2.489871 2.541023 2.494097    2.278970
+#&gt; c=5   2.210017 2.583885  2.688154 3.666410 3.476713    2.981606
+#&gt; c=10  1.920223 2.161931  2.879625 3.205374 2.196632    2.319831
+#&gt; c=50  1.346994 1.378268  1.379569 1.451674 1.360856    1.361298
+#&gt; c=100 1.376992 1.355960  1.348405 1.330602 1.367376    1.274802
+#&gt; c=200 1.357889 1.375104  1.311607 1.365476 1.306814    1.373728</code></pre>
 <pre class="r"><code>
 RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$RI[3]
@@ -2339,7 +2339,7 @@ round(PriorVar, digits = 4)
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) &lt;- rownames(Lambda_var_mat) &lt;- nomi_varsig2_grid
@@ -2354,11 +2354,11 @@ Lambda_mean_mat
 #&gt; Vsig=10Vdata^2 4.057556 4.045810  4.037711 3.997835 4.057950    4.019814
 Lambda_var_mat
 #&gt;                   Vmu=5   Vmu=10 Vmu=Vdata   Vmu=50  Vmu=100 Vmu=Vdata^2
-#&gt; Vsig=0.1Vdata  3.940214 3.907511  3.933964 3.892308 3.921855    3.924254
-#&gt; Vsig=Vdata     3.951884 3.937634  3.935834 3.992185 3.924760    3.944217
-#&gt; Vsig=10Vdata   3.937680 3.917408  4.011744 3.854540 3.804836    3.917527
-#&gt; Vsig=Vdata^2   3.937680 3.942036  3.926798 3.842052 3.919562    3.907180
-#&gt; Vsig=10Vdata^2 3.945550 3.936738  3.926798 3.885770 3.934986    3.904020</code></pre>
+#&gt; Vsig=0.1Vdata  1.406156 1.370243  1.371619 1.353986 1.373516    1.351894
+#&gt; Vsig=Vdata     1.374394 1.385138  1.448675 1.467637 1.364480    1.370086
+#&gt; Vsig=10Vdata   1.346994 1.378726  1.524584 1.441347 1.346547    1.357069
+#&gt; Vsig=Vdata^2   1.346994 1.378268  1.379569 1.451674 1.360856    1.361298
+#&gt; Vsig=10Vdata^2 1.356921 1.378990  1.379569 1.366038 1.439616    1.361135</code></pre>
 <pre class="r"><code>
 RI_mat_Bin = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$RI[3]
@@ -2487,7 +2487,7 @@ FinalResults = vector(&quot;list&quot;, length = N_Lambda)</code></pre>
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_mean) &lt;- paste0(&quot;Lambda=&quot;, Lambda_grid)
@@ -2506,8 +2506,8 @@ Lambda_mean
 #&gt; Lambda=17 Lambda=19 
 #&gt;        17        19
 Lambda_var
-#&gt; median median median median median median median median median median 
-#&gt;      1      3      5      7      9     11     13     15     17     19
+#&gt; var var var var var var var var var var 
+#&gt;   0   0   0   0   0   0   0   0   0   0
 gamma_means
 #&gt;               Lev=1      Lev=2     Lev=3
 #&gt; Lambda=1  2.1726954 0.38508615 0.7735859
@@ -2646,7 +2646,7 @@ FinalResults = vector(&quot;list&quot;, length = N_Lambda)
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_mean) &lt;- paste0(&quot;MeanLambda=&quot;, mean_Lambda_grid)
@@ -2665,10 +2665,10 @@ Lambda_mean
 #&gt; MeanLambda=11 MeanLambda=13 MeanLambda=15 MeanLambda=17 MeanLambda=19 
 #&gt;      6.786811      8.532847     10.014562     12.297243     14.678249
 Lambda_var
-#&gt;    median    median    median    median    median    median    median    median 
-#&gt;  1.674728  2.023007  2.885887  3.950806  5.369268  6.606360  8.352300  9.840312 
-#&gt;    median    median 
-#&gt; 12.069029 14.411511
+#&gt;      var      var      var      var      var      var      var      var 
+#&gt; 1.855664 1.821401 2.259292 2.560228 3.133600 3.670816 4.202333 4.158324 
+#&gt;      var      var 
+#&gt; 5.813591 7.885258
 gamma_means
 #&gt;                   Lev=1      Lev=2     Lev=3
 #&gt; MeanLambda=1  1.5234579 0.59358090 0.9381587
@@ -2812,7 +2812,7 @@ FinalResults = vector(&quot;list&quot;, length = N_gamma)
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) &lt;- names(Lambda_mean) &lt;- nomi_bgamma_grid
@@ -2829,8 +2829,8 @@ Lambda_mean
 #&gt;      b=1      b=5     b=10    b=100 
 #&gt; 4.529127 4.633150 4.722652 5.124511
 Lambda_var
-#&gt;   median   median   median   median 
-#&gt; 4.478387 4.578254 4.668345 5.063735
+#&gt;       var       var       var       var 
+#&gt; 0.7443551 0.7978857 0.8408199 0.9949508
 gamma_means
 #&gt;            Lev=1      Lev=2      Lev=3
 #&gt; b=1   1.50714693 0.50200578 0.61472057
