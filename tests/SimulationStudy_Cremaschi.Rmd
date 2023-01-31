@@ -505,7 +505,7 @@ var(GDFMM$K)
 ```{r}
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
 vardata = var(as.vector(data), na.rm = T)
-P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, correction = 3, varsig2 = 100  )
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, correction = 3, varsig2 = vardata  )
 
 mu0 = P0_hyparam$mu0
 k0= P0_hyparam$k0
@@ -679,7 +679,7 @@ option = set_options_marginal(
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
              "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = NULL#seq(1,sum(n_j))#real_partition
+             "partition" = seq(1,sum(n_j))#real_partition
         )
 
 # P0 Hyperparameters:
@@ -1150,7 +1150,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_varmu_grid
@@ -1470,7 +1470,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_var) <- nomi_varsig2_grid
@@ -1792,7 +1792,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_var) <- nomi_correction_grid
@@ -2088,7 +2088,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_meanL_grid
@@ -2379,7 +2379,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_varL_grid
@@ -2481,8 +2481,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 
@@ -2673,7 +2673,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_bgamma_grid
@@ -2775,8 +2775,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 
@@ -3008,7 +3008,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_meanL_grid
@@ -3100,8 +3100,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 
@@ -3328,7 +3328,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_correction_grid
@@ -3420,8 +3420,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 # gamma
@@ -3653,7 +3653,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_correction_grid
@@ -3742,8 +3742,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 
@@ -3974,7 +3974,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_varsig2_grid
@@ -4067,8 +4067,8 @@ mycol_cluster = brewer.pal(n=K, name = "Dark2")
 
 ## Common parameters
 vardata = var(as.vector(data), na.rm = T)
-niter  <-  10#000
-burnin <-  6#000
+niter  <-  10000
+burnin <-  6000
 thin   <-  1
 
 
@@ -4304,7 +4304,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_varmu_grid

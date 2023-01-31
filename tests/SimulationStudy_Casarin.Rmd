@@ -1178,7 +1178,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_varmu_grid
@@ -1481,7 +1481,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_var) <- nomi_varsig2_grid
@@ -1785,7 +1785,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_var) <- nomi_correction_grid
@@ -2095,7 +2095,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_correction_grid
@@ -2401,7 +2401,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_correction_grid
@@ -2704,7 +2704,7 @@ Lambda_mean_mat = apply(FinalResults, c(1,2), FUN = function(x){
 })
 
 Lambda_var_mat = apply(FinalResults, c(1,2), FUN = function(x){
-  x[[1]]$Lambda[2]
+  x[[1]]$Lambda[3]
 })
 
 rownames(Lambda_mean_mat) <- rownames(Lambda_var_mat) <- nomi_varsig2_grid
@@ -2971,7 +2971,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- paste0("Lambda=", Lambda_grid)
@@ -3254,7 +3254,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- paste0("MeanLambda=", mean_Lambda_grid)
@@ -3625,7 +3625,7 @@ Lambda_mean = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 Lambda_var = unlist(lapply(FinalResults, FUN = function(x){
-  x$Lambda[2]
+  x$Lambda[3]
 }))
 
 names(Lambda_mean) <- names(Lambda_mean) <- nomi_bgamma_grid
