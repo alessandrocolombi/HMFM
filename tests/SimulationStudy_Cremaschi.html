@@ -1170,7 +1170,8 @@ suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))</code></p
 <p>Inizio variando un solo parametro alla volta. Qui, vario <span class="math inline">\(\bar{\text{V}}_\mu\)</span>. La variabile di
 riferimento è <span class="math inline">\(\texttt{varmu}\)</span>.</p>
 <ul>
-<li>${V}_$ variabile</li>
+<li><span class="math inline">\(\bar{V}_\mu
+\text{  variabile}\)</span></li>
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
@@ -1353,11 +1354,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varmu_grid
@@ -1395,10 +1396,10 @@ Kest_var_lv1
 #&gt;   0.7051433   0.6485476   0.3394089   1.6916904   1.0128376   1.1328069
 MC_Kest_lv2
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
-#&gt;           1           2           1           3           3           3
+#&gt;           1           2           2           1           1           2
 Kest_var_lv2
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
-#&gt;   0.7051433   0.6485476   0.3394089   1.6916904   1.0128376   1.1328069</code></pre>
+#&gt;   0.4623282   0.4340626   0.4376875   0.4953918   0.4744446   0.6694618</code></pre>
 </div>
 </div>
 <div id="experiment-setup-1" class="section level2">
@@ -1407,7 +1408,7 @@ Kest_var_lv2
 di riferimento è <span class="math inline">\(\texttt{varsig2}\)</span>.</p>
 <ul>
 <li><span class="math inline">\(\bar{V}_\mu = 10\)</span></li>
-<li>${V}_{^2} $ variabile</li>
+<li>${V}_{^2} $</li>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
 <li><span class="math inline">\(b_\gamma = 1\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
@@ -1586,11 +1587,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -1629,10 +1630,10 @@ Kest_var_lv1
 #&gt;     2.797173     1.814552     1.691690     1.233372     1.638293
 MC_Kest_lv2
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
-#&gt;            4            3            3            3            3
+#&gt;            2            1            1            1            1
 Kest_var_lv2
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
-#&gt;     2.797173     1.814552     1.691690     1.233372     1.638293</code></pre>
+#&gt;    0.7812559    0.2639190    0.4953918    0.4316639    0.4418281</code></pre>
 </div>
 </div>
 <div id="experiment-setup-2" class="section level2">
@@ -1643,7 +1644,8 @@ Kest_var_lv2
 <li><span class="math inline">\(\bar{V}_\mu = 10\)</span></li>
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
-<li>$ $ variabile</li>
+<li><span class="math inline">\(\text{c}
+\text{  variabile}\)</span></li>
 <li><span class="math inline">\(b_\gamma = 1\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
@@ -1826,11 +1828,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -1869,10 +1871,10 @@ Kest_var_lv1
 #&gt; 3.29968341 1.69169036 1.08258342 0.57306402 0.58152286 0.10064477 0.09295521
 MC_Kest_lv2
 #&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
-#&gt;     4     3     3     2     2     1     1
+#&gt;     1     1     1     1     1     1     1
 Kest_var_lv2
 #&gt;        c=1        c=3        c=5       c=10       c=50      c=100      c=200 
-#&gt; 3.29968341 1.69169036 1.08258342 0.57306402 0.58152286 0.10064477 0.09295521</code></pre>
+#&gt; 0.31206472 0.49539185 0.30737918 0.45471103 0.19589059 0.02208537 0.02763195</code></pre>
 </div>
 </div>
 <div id="experiment-setup-3" class="section level2">
@@ -1884,8 +1886,8 @@ Kest_var_lv2
 \text{Var}(data)^2\)</span></li>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
 <li><span class="math inline">\(b_\gamma = 1\)</span></li>
-<li><span class="math inline">\(\text{E}[\Lambda]\)</span>
-variabile</li>
+<li><span class="math inline">\(\text{E}[\Lambda]
+\text{  variabile}\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
 </ul>
 <pre class="r"><code># Data generation
@@ -2014,11 +2016,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2057,10 +2059,10 @@ Kest_var_lv1
 #&gt;  1.022532  1.691690  3.751414 10.850833
 MC_Kest_lv2
 #&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
-#&gt;       2       3       4       9
+#&gt;       1       1       1       1
 Kest_var_lv2
 #&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
-#&gt;  1.022532  1.691690  3.751414 10.850833</code></pre>
+#&gt; 0.3412588 0.4953918 0.7087669 1.3689346</code></pre>
 </div>
 </div>
 <div id="experiment-setup-4" class="section level2">
@@ -2074,7 +2076,7 @@ imbrogliare)</p>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
 <li><span class="math inline">\(b_\gamma = 1\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
-<li>$() $ variabile</li>
+<li>$() $</li>
 </ul>
 <pre class="r"><code># Data generation
 d = 2               # number of groups
@@ -2201,11 +2203,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2244,10 +2246,10 @@ Kest_var_lv1
 #&gt;   1.606811   1.655560   1.691690 122.102428
 MC_Kest_lv2
 #&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
-#&gt;         3         3         3         2
+#&gt;         1         1         1         2
 Kest_var_lv2
-#&gt;  V(L)=0.01   V(L)=0.1     V(L)=1    V(L)=10 
-#&gt;   1.606811   1.655560   1.691690 122.102428</code></pre>
+#&gt;   V(L)=0.01    V(L)=0.1      V(L)=1     V(L)=10 
+#&gt;   0.3004098   0.6821197   0.4953918 137.7648931</code></pre>
 </div>
 </div>
 <div id="experiment-setup-5" class="section level2">
@@ -2258,7 +2260,7 @@ Kest_var_lv2
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
-<li>$b_$ variabile</li>
+<li>$b_ $</li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
 </ul>
@@ -2391,11 +2393,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2434,10 +2436,10 @@ Kest_var_lv1
 #&gt; 1.6916904 1.6729517 1.3784882 0.5245504
 MC_Kest_lv2
 #&gt;   b=1   b=5  b=10 b=100 
-#&gt;     3     3     3     2
+#&gt;     1     2     1     1
 Kest_var_lv2
 #&gt;       b=1       b=5      b=10     b=100 
-#&gt; 1.6916904 1.6729517 1.3784882 0.5245504</code></pre>
+#&gt; 0.4953918 0.8518132 0.2367230 0.1668304</code></pre>
 </div>
 </div>
 <div id="experiment-setup-6" class="section level2">
@@ -2448,8 +2450,11 @@ Kest_var_lv2
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
 <li><span class="math inline">\(\text{c} = 3\)</span></li>
-<li>$b_$ variabile</li>
-<li>$[] $ variabile</li>
+<li><span class="math inline">\(b_\gamma
+\text{  variabile}\)</span></li>
+<li><span class="math inline">\(\text{E}[\Lambda]
+\text{  variabile}\)</span><br />
+</li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
 </ul>
 <pre class="r"><code># Data generation
@@ -2702,9 +2707,9 @@ Kvar_lv2_mat
 <h2>3.8 - Experiment Setup</h2>
 <ul>
 <li><span class="math inline">\(\bar{V}_\mu = 10\)</span></li>
-<li><span class="math inline">\(\bar{V}_{\sigma^2}\)</span>
-variabile</li>
-<li>$ $ variabile</li>
+<li><span class="math inline">\(\bar{V}_{\sigma^2}
+\text{  variabile}\)</span></li>
+<li>$ $</li>
 <li><span class="math inline">\(b_\gamma = 10\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
@@ -2995,10 +3000,13 @@ Kvar_lv2_mat
 <div id="experiment-setup-8" class="section level2">
 <h2>3.9 - Experiment Setup</h2>
 <ul>
-<li>${V}_$ variabile</li>
+<li><span class="math inline">\(\bar{V}_\mu
+\text{  variabile}\)</span><br />
+</li>
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
-<li>$ $ variabile</li>
+<li><span class="math inline">\(\text{c}
+\text{  variabile}\)</span></li>
 <li><span class="math inline">\(b_\gamma = 10\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
@@ -3289,9 +3297,11 @@ Kvar_lv2_mat
 <div id="experiment-setup-9" class="section level2">
 <h2>3.10 - Experiment Setup</h2>
 <ul>
-<li>${V}_$ variabile</li>
-<li><span class="math inline">\(\bar{V}_{\sigma^2}\)</span>
-variabile</li>
+<li><span class="math inline">\(\bar{V}_\mu
+\text{  variabile}\)</span><br />
+</li>
+<li><span class="math inline">\(\bar{V}_{\sigma^2}
+\text{  variabile}\)</span></li>
 <li>$ $</li>
 <li><span class="math inline">\(b_\gamma = 10\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
@@ -3567,11 +3577,13 @@ Kvar_lv2_mat
 <div id="experiment-setup-10" class="section level2">
 <h2>3.11 - Experiment Setup</h2>
 <ul>
-<li>${V}_$ variabile</li>
+<li>${V}_ $<br />
+</li>
 <li><span class="math inline">\(\bar{V}_{\sigma^2} =
 \text{Var}(data)^2\)</span></li>
 <li>$ $</li>
-<li>$b_$ variabile</li>
+<li><span class="math inline">\(b_\gamma
+\text{  variabile}\)</span></li>
 <li><span class="math inline">\(\text{E}[\Lambda] = 3\)</span></li>
 <li><span class="math inline">\(\text{Var}(\Lambda) = 1\)</span></li>
 </ul>
