@@ -1328,8 +1328,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1340,8 +1344,24 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varmu_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varmu_grid
+
 
 RI_Bin
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
@@ -1355,15 +1375,30 @@ CoClustering_error
 L1
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
 #&gt;   0.3587700   0.3550043   0.3556470   0.2423704   0.1692399   0.1660621
-Kest
+Kest_VI
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
 #&gt;           2           2           2           2           2           3
+Kest_Bin
+#&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
+#&gt;           2           2           2           3           3           3
 MC_Kest
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
 #&gt;           2           2           2           3           3           3
 Kest_var
 #&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
-#&gt;   0.5216585   0.5182108   0.4605958   1.8003172   1.1063305   1.2206098</code></pre>
+#&gt;   0.5216585   0.5182108   0.4605958   1.8003172   1.1063305   1.2206098
+MC_Kest_lv1
+#&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
+#&gt;           1           2           1           3           3           3
+Kest_var_lv1
+#&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
+#&gt;   0.7051433   0.6485476   0.3394089   1.6916904   1.0128376   1.1328069
+MC_Kest_lv2
+#&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
+#&gt;           1           2           1           3           3           3
+Kest_var_lv2
+#&gt;       Vmu=1   Vmu=Vdata Vmu=Vdata^2      Vmu=10      Vmu=50     Vmu=100 
+#&gt;   0.7051433   0.6485476   0.3394089   1.6916904   1.0128376   1.1328069</code></pre>
 </div>
 </div>
 <div id="experiment-setup-1" class="section level2">
@@ -1526,8 +1561,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1538,8 +1577,25 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varsig2_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varsig2_grid
 
 RI_Bin
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
@@ -1553,15 +1609,30 @@ CoClustering_error
 L1
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
 #&gt;    0.2076626    0.2547913    0.2425992    0.2588712    0.2295411
-Kest
+Kest_VI
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
 #&gt;            2            2            2            2            2
+Kest_Bin
+#&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
+#&gt;            4            3            3            3            3
 MC_Kest
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
 #&gt;            4            3            3            3            3
 Kest_var
 #&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
-#&gt;     2.926116     1.823929     1.800317     1.420479     1.650362</code></pre>
+#&gt;     2.926116     1.823929     1.800317     1.420479     1.650362
+MC_Kest_lv1
+#&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
+#&gt;            4            3            3            3            3
+Kest_var_lv1
+#&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
+#&gt;     2.797173     1.814552     1.691690     1.233372     1.638293
+MC_Kest_lv2
+#&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
+#&gt;            4            3            3            3            3
+Kest_var_lv2
+#&gt;       Vsig=1   Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata     Vsig=100 
+#&gt;     2.797173     1.814552     1.691690     1.233372     1.638293</code></pre>
 </div>
 </div>
 <div id="experiment-setup-2" class="section level2">
@@ -1730,8 +1801,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1742,8 +1817,25 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_correction_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_correction_grid
 
 RI_Bin
 #&gt;       c=1       c=3       c=5      c=10      c=50     c=100     c=200 
@@ -1757,15 +1849,30 @@ CoClustering_error
 L1
 #&gt;       c=1       c=3       c=5      c=10      c=50     c=100     c=200 
 #&gt; 0.2918346 0.2423704 0.3272040 0.2591653 0.4566196 0.5519633 0.5532755
-Kest
+Kest_VI
 #&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
 #&gt;     2     2     2     2     1     1     1
+Kest_Bin
+#&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
+#&gt;    18     3     2     2     2     1     1
 MC_Kest
 #&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
 #&gt;     5     3     3     3     2     1     1
 Kest_var
 #&gt;       c=1       c=3       c=5      c=10      c=50     c=100     c=200 
-#&gt; 2.9124590 1.8003172 1.2504906 0.8449282 0.9236488 0.1368897 0.1254492</code></pre>
+#&gt; 2.9124590 1.8003172 1.2504906 0.8449282 0.9236488 0.1368897 0.1254492
+MC_Kest_lv1
+#&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
+#&gt;     4     3     3     2     2     1     1
+Kest_var_lv1
+#&gt;        c=1        c=3        c=5       c=10       c=50      c=100      c=200 
+#&gt; 3.29968341 1.69169036 1.08258342 0.57306402 0.58152286 0.10064477 0.09295521
+MC_Kest_lv2
+#&gt;   c=1   c=3   c=5  c=10  c=50 c=100 c=200 
+#&gt;     4     3     3     2     2     1     1
+Kest_var_lv2
+#&gt;        c=1        c=3        c=5       c=10       c=50      c=100      c=200 
+#&gt; 3.29968341 1.69169036 1.08258342 0.57306402 0.58152286 0.10064477 0.09295521</code></pre>
 </div>
 </div>
 <div id="experiment-setup-3" class="section level2">
@@ -1882,8 +1989,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1894,8 +2005,25 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_meanL_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_meanL_grid
 
 RI_Bin
 #&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
@@ -1909,15 +2037,30 @@ CoClustering_error
 L1
 #&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
 #&gt; 0.2684844 0.2423704 0.1909015 0.1862725
-Kest
+Kest_VI
 #&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
 #&gt;       1       2       2       3
+Kest_Bin
+#&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
+#&gt;       3       3       4      50
 MC_Kest
 #&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
 #&gt;       2       3       5      10
 Kest_var
 #&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
-#&gt;  1.204700  1.800317  3.669507 10.500458</code></pre>
+#&gt;  1.204700  1.800317  3.669507 10.500458
+MC_Kest_lv1
+#&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
+#&gt;       2       3       4       9
+Kest_var_lv1
+#&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
+#&gt;  1.022532  1.691690  3.751414 10.850833
+MC_Kest_lv2
+#&gt;  E[L]=1  E[L]=3  E[L]=5 E[L]=10 
+#&gt;       2       3       4       9
+Kest_var_lv2
+#&gt;    E[L]=1    E[L]=3    E[L]=5   E[L]=10 
+#&gt;  1.022532  1.691690  3.751414 10.850833</code></pre>
 </div>
 </div>
 <div id="experiment-setup-4" class="section level2">
@@ -2033,8 +2176,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -2045,8 +2192,25 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varL_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_varL_grid
 
 RI_Bin
 #&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
@@ -2060,15 +2224,30 @@ CoClustering_error
 L1
 #&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
 #&gt; 0.2777669 0.2090056 0.2423704 0.2539926
-Kest
+Kest_VI
 #&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
 #&gt;         2         3         2         2
+Kest_Bin
+#&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
+#&gt;         2         3         3         3
 MC_Kest
 #&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
 #&gt;         3         3         3         3
 Kest_var
 #&gt;  V(L)=0.01   V(L)=0.1     V(L)=1    V(L)=10 
-#&gt;   1.730576   1.560175   1.800317 257.175025</code></pre>
+#&gt;   1.730576   1.560175   1.800317 257.175025
+MC_Kest_lv1
+#&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
+#&gt;         3         3         3         2
+Kest_var_lv1
+#&gt;  V(L)=0.01   V(L)=0.1     V(L)=1    V(L)=10 
+#&gt;   1.606811   1.655560   1.691690 122.102428
+MC_Kest_lv2
+#&gt; V(L)=0.01  V(L)=0.1    V(L)=1   V(L)=10 
+#&gt;         3         3         3         2
+Kest_var_lv2
+#&gt;  V(L)=0.01   V(L)=0.1     V(L)=1    V(L)=10 
+#&gt;   1.606811   1.655560   1.691690 122.102428</code></pre>
 </div>
 </div>
 <div id="experiment-setup-5" class="section level2">
@@ -2187,8 +2366,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -2199,9 +2382,29 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_bgamma_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
 
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+names(RI_Bin) &lt;- names(RI_VI) &lt;- names(L1) &lt;- names(Kest_VI) &lt;- names(Kest_Bin) &lt;- names(MC_Kest_lv1)&lt;- names(MC_Kest_lv2)&lt;- names(Kest_var_lv1) &lt;- names(Kest_var_lv2) &lt;- names(Kest_var) &lt;- names(MC_Kest) &lt;- names(CoClustering_error) &lt;- nomi_bgamma_grid
+
+
+RI_Bin
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 0.8719571 0.8719571 0.8719571 0.8719571
 RI_VI
 #&gt;       b=1       b=5      b=10     b=100 
 #&gt; 0.2073859 0.8719571 0.8719571 0.7529027
@@ -2211,15 +2414,30 @@ CoClustering_error
 L1
 #&gt;       b=1       b=5      b=10     b=100 
 #&gt; 0.2423704 0.1653681 0.1646967 0.1862541
-Kest
+Kest_VI
 #&gt;   b=1   b=5  b=10 b=100 
 #&gt;     2     3     3     2
+Kest_Bin
+#&gt;   b=1   b=5  b=10 b=100 
+#&gt;     3     3     3     3
 MC_Kest
 #&gt;   b=1   b=5  b=10 b=100 
 #&gt;     3     4     3     3
 Kest_var
 #&gt;       b=1       b=5      b=10     b=100 
-#&gt; 1.8003172 1.7601510 1.2622024 0.5277211</code></pre>
+#&gt; 1.8003172 1.7601510 1.2622024 0.5277211
+MC_Kest_lv1
+#&gt;   b=1   b=5  b=10 b=100 
+#&gt;     3     3     3     2
+Kest_var_lv1
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 1.6916904 1.6729517 1.3784882 0.5245504
+MC_Kest_lv2
+#&gt;   b=1   b=5  b=10 b=100 
+#&gt;     3     3     3     2
+Kest_var_lv2
+#&gt;       b=1       b=5      b=10     b=100 
+#&gt; 1.6916904 1.6729517 1.3784882 0.5245504</code></pre>
 </div>
 </div>
 <div id="experiment-setup-6" class="section level2">
@@ -2376,8 +2594,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -2388,9 +2610,25 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_meanL_grid
-colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_bgamma_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
+
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_VI_mat) &lt;- rownames(Kest_Bin_mat) &lt;- rownames(MC_Kest_lv1_mat) &lt;- rownames(MC_Kest_lv2_mat) &lt;- rownames(Kvar_lv1_mat) &lt;- rownames(Kvar_lv2_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_meanL_grid
+colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_VI_mat) &lt;- colnames(Kest_Bin_mat) &lt;- colnames(MC_Kest_lv1_mat) &lt;- colnames(MC_Kest_lv2_mat) &lt;- colnames(Kvar_lv1_mat) &lt;- colnames(Kvar_lv2_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_bgamma_grid
 
 RI_mat_Bin
 #&gt;               b=1       b=5      b=10     b=100
@@ -2410,12 +2648,18 @@ L1_mat
 #&gt; E[L]=3  0.2423704 0.1653681 0.1646967 0.1862541
 #&gt; E[L]=5  0.1909015 0.1682034 0.1541107 0.1599876
 #&gt; E[L]=10 0.1862725 0.1549936 0.1521354 0.1487618
-Kest_mat
+Kest_VI_mat
 #&gt;         b=1 b=5 b=10 b=100
 #&gt; E[L]=1    1   2    2     3
 #&gt; E[L]=3    2   3    3     2
 #&gt; E[L]=5    2   3    3     3
 #&gt; E[L]=10   3   3    3     3
+Kest_Bin_mat
+#&gt;         b=1 b=5 b=10 b=100
+#&gt; E[L]=1    3   3    3     3
+#&gt; E[L]=3    3   3    3     3
+#&gt; E[L]=5    4   3    3     3
+#&gt; E[L]=10  50   3    3     3
 MC_Kest_mat
 #&gt;         b=1 b=5 b=10 b=100
 #&gt; E[L]=1    2   3    3     3
@@ -2427,7 +2671,31 @@ Kvar_mat
 #&gt; E[L]=1   1.204700 0.9936065 0.8742624 0.6725645
 #&gt; E[L]=3   1.800317 1.7601510 1.2622024 0.5277211
 #&gt; E[L]=5   3.669507 3.0467847 2.7888277 0.8633212
-#&gt; E[L]=10 10.500458 7.2477248 5.3751365 1.7591823</code></pre>
+#&gt; E[L]=10 10.500458 7.2477248 5.3751365 1.7591823
+MC_Kest_lv1_mat
+#&gt;         b=1 b=5 b=10 b=100
+#&gt; E[L]=1    2   2    2     2
+#&gt; E[L]=3    3   3    3     2
+#&gt; E[L]=5    4   4    4     2
+#&gt; E[L]=10   9   5    5     3
+Kvar_lv1_mat
+#&gt;               b=1      b=5     b=10     b=100
+#&gt; E[L]=1   1.022532 1.156272 1.050183 0.6789442
+#&gt; E[L]=3   1.691690 1.672952 1.378488 0.5245504
+#&gt; E[L]=5   3.751414 3.122348 2.839604 0.9078385
+#&gt; E[L]=10 10.850833 9.154783 5.320126 1.4801230
+MC_Kest_lv2_mat
+#&gt;         b=1 b=5 b=10 b=100
+#&gt; E[L]=1    1   1    1     1
+#&gt; E[L]=3    1   2    1     1
+#&gt; E[L]=5    1   2    1     1
+#&gt; E[L]=10   1   2    2     1
+Kvar_lv2_mat
+#&gt;               b=1       b=5      b=10     b=100
+#&gt; E[L]=1  0.3412588 0.3752254 0.3542497 0.1869864
+#&gt; E[L]=3  0.4953918 0.8518132 0.2367230 0.1668304
+#&gt; E[L]=5  0.7087669 1.0013158 0.7758713 0.1890495
+#&gt; E[L]=10 1.3689346 2.0193130 1.6050765 0.5252535</code></pre>
 </div>
 </div>
 <div id="experiment-setup-7" class="section level2">
@@ -2598,23 +2866,41 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[1]
 })
 
-
 Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_mat) &lt;- rownames(MC_Kest_mat) &lt;- rownames(Kvar_mat) &lt;- nomi_correction_grid
-colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_mat) &lt;- colnames(MC_Kest_mat) &lt;- colnames(Kvar_mat) &lt;- nomi_varsig2_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_VI_mat) &lt;- rownames(Kest_Bin_mat) &lt;- rownames(MC_Kest_lv1_mat) &lt;- rownames(MC_Kest_lv2_mat) &lt;- rownames(Kvar_lv1_mat) &lt;- rownames(Kvar_lv2_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_correction_grid
+colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_VI_mat) &lt;- colnames(Kest_Bin_mat) &lt;- colnames(MC_Kest_lv1_mat) &lt;- colnames(MC_Kest_lv2_mat) &lt;- colnames(Kvar_lv1_mat) &lt;- colnames(Kvar_lv2_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_varsig2_grid
 
 RI_mat_Bin
 #&gt;          Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata  Vsig=100
@@ -2640,12 +2926,20 @@ L1_mat
 #&gt; c=50  0.3809254  0.3736954    0.3948177    0.3926056 0.3646554
 #&gt; c=100 0.5160039  0.5123339    0.5123342    0.5123344 0.5123344
 #&gt; c=200 0.5516624  0.5516625    0.5516626    0.5516626 0.5516626
-Kest_mat
+Kest_VI_mat
 #&gt;       Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata Vsig=100
 #&gt; c=3        3          3            3            3        3
 #&gt; c=5        3          3            3            3        3
 #&gt; c=10       3          3            3            3        3
 #&gt; c=50       1          1            1            1        1
+#&gt; c=100      1          1            1            1        1
+#&gt; c=200      1          1            1            1        1
+Kest_Bin_mat
+#&gt;       Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata Vsig=100
+#&gt; c=3        3          3            3            3        3
+#&gt; c=5        3          3            3            3        3
+#&gt; c=10       3          3            3            3        3
+#&gt; c=50       2          2            2            2        2
 #&gt; c=100      1          1            1            1        1
 #&gt; c=200      1          1            1            1        1
 MC_Kest_mat
@@ -2663,7 +2957,39 @@ Kvar_mat
 #&gt; c=10  0.7960678  0.4869175    0.7990297    0.7785294 0.9244635
 #&gt; c=50  0.8336642  0.9567267    0.7847471    0.7503656 0.8341642
 #&gt; c=100 0.8201530  0.8298537    0.8298537    0.8298537 0.8298537
-#&gt; c=200 0.2474065  0.2474065    0.2474065    0.2474065 0.2474065</code></pre>
+#&gt; c=200 0.2474065  0.2474065    0.2474065    0.2474065 0.2474065
+MC_Kest_lv1_mat
+#&gt;       Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata Vsig=100
+#&gt; c=3        3          3            3            3        3
+#&gt; c=5        3          2            2            3        3
+#&gt; c=10       3          2            3            3        3
+#&gt; c=50       2          2            2            2        2
+#&gt; c=100      2          2            2            2        2
+#&gt; c=200      1          1            1            1        1
+Kvar_lv1_mat
+#&gt;          Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata  Vsig=100
+#&gt; c=3   1.8503449  1.7884020    1.3784882    1.4341086 1.9145638
+#&gt; c=5   1.0398012  0.5195680    0.7872058    0.9409677 0.8970353
+#&gt; c=10  0.7680526  0.5106523    0.7153291    0.7377128 0.9060624
+#&gt; c=50  0.4321871  0.4979492    0.4872265    0.4021912 0.4179978
+#&gt; c=100 0.5248881  0.5129133    0.5129133    0.5129133 0.5129133
+#&gt; c=200 0.1867297  0.1867297    0.1867297    0.1867297 0.1867297
+MC_Kest_lv2_mat
+#&gt;       Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata Vsig=100
+#&gt; c=3        1          1            1            1        1
+#&gt; c=5        1          1            1            1        1
+#&gt; c=10       1          1            1            1        1
+#&gt; c=50       1          1            1            1        1
+#&gt; c=100      1          1            1            1        1
+#&gt; c=200      1          1            1            1        1
+Kvar_lv2_mat
+#&gt;           Vsig=1 Vsig=Vdata Vsig=Vdata^2 Vsig=10Vdata   Vsig=100
+#&gt; c=3   0.55318876 0.71124671   0.23672303   0.29438908 0.37530853
+#&gt; c=5   0.61063830 0.45640963   0.45069211   0.30737505 0.49922288
+#&gt; c=10  0.33518296 0.28608461   0.48461125   0.47597535 0.58141350
+#&gt; c=50  0.30410512 0.40489288   0.28743350   0.29299330 0.31154794
+#&gt; c=100 0.22341110 0.24387363   0.24387363   0.24387363 0.24387363
+#&gt; c=200 0.05871362 0.05871362   0.05871362   0.05871362 0.05871362</code></pre>
 </div>
 </div>
 <div id="experiment-setup-8" class="section level2">
@@ -2834,9 +3160,12 @@ RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
 L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
-
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -2847,10 +3176,25 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;-  nomi_correction_grid
-colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_varmu_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_VI_mat) &lt;- rownames(Kest_Bin_mat) &lt;- rownames(MC_Kest_lv1_mat) &lt;- rownames(MC_Kest_lv2_mat) &lt;- rownames(Kvar_lv1_mat) &lt;- rownames(Kvar_lv2_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_correction_grid
+colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_VI_mat) &lt;- colnames(Kest_Bin_mat) &lt;- colnames(MC_Kest_lv1_mat) &lt;- colnames(MC_Kest_lv2_mat) &lt;- colnames(Kvar_lv1_mat) &lt;- colnames(Kvar_lv2_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_varmu_grid
 
 RI_mat_Bin
 #&gt;           Vmu=1 Vmu=Vdata Vmu=Vdata^2    Vmu=10    Vmu=50   Vmu=100
@@ -2876,13 +3220,21 @@ L1_mat
 #&gt; c=50  0.3974576 0.3958826   0.3691383 0.3948177 0.4351840 0.4329105
 #&gt; c=100 0.4426254 0.4794218   0.5105723 0.5123342 0.5429471 0.5411893
 #&gt; c=200 0.5479197 0.5512805   0.5521609 0.5516626 0.5512823 0.5495157
-Kest_mat
+Kest_VI_mat
 #&gt;       Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
 #&gt; c=3       2         2           2      3      3       3
 #&gt; c=5       2         2           3      3      3       3
 #&gt; c=10      2         3           3      3      3       3
 #&gt; c=50      1         1           1      1      1       1
 #&gt; c=100     1         1           1      1      1       1
+#&gt; c=200     1         1           1      1      1       1
+Kest_Bin_mat
+#&gt;       Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; c=3       2         2           3      3      3       3
+#&gt; c=5       2         2           3      3      3       3
+#&gt; c=10      2         3           3      3      3       3
+#&gt; c=50      2         2           2      2      2       2
+#&gt; c=100     2         1           1      1      1       1
 #&gt; c=200     1         1           1      1      1       1
 MC_Kest_mat
 #&gt;       Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
@@ -2899,7 +3251,39 @@ Kvar_mat
 #&gt; c=10  0.3956120 0.6778092   0.7753058 0.7990297 0.8565496 0.6055418
 #&gt; c=50  0.6304870 0.6129003   0.8333824 0.7847471 0.9124460 1.0346932
 #&gt; c=100 0.4758045 0.7158392   0.7459098 0.8298537 0.6420494 0.4841844
-#&gt; c=200 0.2735864 0.2142355   0.2337077 0.2474065 0.2974275 0.4970493</code></pre>
+#&gt; c=200 0.2735864 0.2142355   0.2337077 0.2474065 0.2974275 0.4970493
+MC_Kest_lv1_mat
+#&gt;       Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; c=3       1         1           2      3      3       3
+#&gt; c=5       1         1           3      2      3       3
+#&gt; c=10      1         2           2      3      3       2
+#&gt; c=50      2         2           2      2      2       2
+#&gt; c=100     2         2           2      2      1       1
+#&gt; c=200     1         1           1      1      1       1
+Kvar_lv1_mat
+#&gt;           Vmu=1 Vmu=Vdata Vmu=Vdata^2    Vmu=10    Vmu=50   Vmu=100
+#&gt; c=3   0.5412636 0.9553294   0.8735753 1.3784882 0.7556343 1.0224374
+#&gt; c=5   0.5535513 0.4982361   0.9647272 0.7872058 0.8879465 0.6281338
+#&gt; c=10  0.5177373 0.6197057   0.6579400 0.7153291 0.7267675 0.5891149
+#&gt; c=50  0.3912678 0.3625116   0.4451643 0.4872265 0.4673430 0.5185757
+#&gt; c=100 0.3891061 0.4139538   0.5134591 0.5129133 0.3266231 0.4096925
+#&gt; c=200 0.2153974 0.1335311   0.1432081 0.1867297 0.1684232 0.2709691
+MC_Kest_lv2_mat
+#&gt;       Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; c=3       1         1           1      1      1       1
+#&gt; c=5       1         1           1      1      1       1
+#&gt; c=10      1         1           1      1      2       1
+#&gt; c=50      1         1           1      1      1       1
+#&gt; c=100     1         1           1      1      1       1
+#&gt; c=200     1         1           1      1      1       1
+Kvar_lv2_mat
+#&gt;            Vmu=1  Vmu=Vdata Vmu=Vdata^2     Vmu=10    Vmu=50    Vmu=100
+#&gt; c=3   0.32373637 0.58364572  0.35433427 0.23672303 0.6778594 0.49891500
+#&gt; c=5   0.34306947 0.29714647  0.42368713 0.45069211 0.6131508 0.69060362
+#&gt; c=10  0.31550959 0.28564215  0.41649684 0.48461125 0.6438019 0.39851121
+#&gt; c=50  0.12877807 0.09980898  0.31239043 0.28743350 0.3496381 0.37903989
+#&gt; c=100 0.03835695 0.13305370  0.14107007 0.24387363 0.2727082 0.06446261
+#&gt; c=200 0.06256226 0.08307967  0.09590875 0.05871362 0.1261774 0.21446344</code></pre>
 </div>
 </div>
 <div id="experiment-setup-9" class="section level2">
@@ -3065,8 +3449,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -3077,10 +3465,25 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_varsig2_grid
-colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_varmu_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_VI_mat) &lt;- rownames(Kest_Bin_mat) &lt;- rownames(MC_Kest_lv1_mat) &lt;- rownames(MC_Kest_lv2_mat) &lt;- rownames(Kvar_lv1_mat) &lt;- rownames(Kvar_lv2_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_varsig2_grid
+colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_VI_mat) &lt;- colnames(Kest_Bin_mat) &lt;- colnames(MC_Kest_lv1_mat) &lt;- colnames(MC_Kest_lv2_mat) &lt;- colnames(Kvar_lv1_mat) &lt;- colnames(Kvar_lv2_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_varmu_grid
 
 RI_mat_Bin
 #&gt;                  Vmu=1 Vmu=Vdata Vmu=Vdata^2    Vmu=10    Vmu=50   Vmu=100
@@ -3103,13 +3506,20 @@ L1_mat
 #&gt; Vsig=Vdata^2 0.3559925 0.3489101   0.2649748 0.1646967 0.1449423 0.1473482
 #&gt; Vsig=10Vdata 0.3584846 0.3498416   0.2170999 0.1675755 0.1419907 0.1481735
 #&gt; Vsig=100     0.3574423 0.3530780   0.2179808 0.1642387 0.1454381 0.1400333
-Kest_mat
+Kest_VI_mat
 #&gt;              Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
 #&gt; Vsig=1           2         2           2      3      3       3
 #&gt; Vsig=Vdata       2         2           2      3      3       3
 #&gt; Vsig=Vdata^2     2         2           2      3      3       3
 #&gt; Vsig=10Vdata     2         2           2      3      3       3
 #&gt; Vsig=100         2         2           2      3      3       3
+Kest_Bin_mat
+#&gt;              Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; Vsig=1           2         2           3      3      3       3
+#&gt; Vsig=Vdata       2         2           3      3      3       3
+#&gt; Vsig=Vdata^2     2         2           3      3      3       3
+#&gt; Vsig=10Vdata     2         2           3      3      3       3
+#&gt; Vsig=100         2         2           3      3      3       3
 MC_Kest_mat
 #&gt;              Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
 #&gt; Vsig=1           2         2           3      4      4       4
@@ -3123,7 +3533,35 @@ Kvar_mat
 #&gt; Vsig=Vdata   0.3806339 0.7387418   1.8902798 1.833153 1.4197098 1.1060044
 #&gt; Vsig=Vdata^2 0.4818721 0.9414207   0.8121202 1.262202 0.9290929 1.0107986
 #&gt; Vsig=10Vdata 0.4207611 0.7379332   1.2100166 1.221040 1.2716349 0.7916691
-#&gt; Vsig=100     0.3645449 0.5186008   1.4442110 1.562906 1.1921770 1.0325973</code></pre>
+#&gt; Vsig=100     0.3645449 0.5186008   1.4442110 1.562906 1.1921770 1.0325973
+MC_Kest_lv1_mat
+#&gt;              Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; Vsig=1           1         1           3      3      3       3
+#&gt; Vsig=Vdata       1         1           3      3      3       3
+#&gt; Vsig=Vdata^2     1         1           2      3      3       3
+#&gt; Vsig=10Vdata     1         1           3      3      3       3
+#&gt; Vsig=100         1         1           2      3      3       3
+Kvar_lv1_mat
+#&gt;                  Vmu=1 Vmu=Vdata Vmu=Vdata^2   Vmu=10    Vmu=50   Vmu=100
+#&gt; Vsig=1       0.5319906 0.2147110   1.7868775 1.850345 1.6155579 1.0719491
+#&gt; Vsig=Vdata   0.3849053 0.7144055   2.1335255 1.788402 1.4799459 1.1026328
+#&gt; Vsig=Vdata^2 0.5412636 0.9553294   0.8735753 1.378488 0.7556343 1.0224374
+#&gt; Vsig=10Vdata 0.3227683 0.8709241   1.4739971 1.434109 1.1845120 0.8723872
+#&gt; Vsig=100     0.4456922 0.6317332   1.6947896 1.914564 1.2805764 0.9181432
+MC_Kest_lv2_mat
+#&gt;              Vmu=1 Vmu=Vdata Vmu=Vdata^2 Vmu=10 Vmu=50 Vmu=100
+#&gt; Vsig=1           1         1           1      1      1       2
+#&gt; Vsig=Vdata       1         1           1      1      1       1
+#&gt; Vsig=Vdata^2     1         1           1      1      1       1
+#&gt; Vsig=10Vdata     1         1           1      1      1       1
+#&gt; Vsig=100         1         1           1      1      1       2
+Kvar_lv2_mat
+#&gt;                  Vmu=1 Vmu=Vdata Vmu=Vdata^2    Vmu=10    Vmu=50   Vmu=100
+#&gt; Vsig=1       0.4671058 0.1537369   0.5240552 0.5531888 0.6181004 0.8271039
+#&gt; Vsig=Vdata   0.3670465 0.5219605   0.5730288 0.7112467 0.6230235 0.5250520
+#&gt; Vsig=Vdata^2 0.3237364 0.5836457   0.3543343 0.2367230 0.6778594 0.4989150
+#&gt; Vsig=10Vdata 0.4303342 0.3449769   0.2964504 0.2943891 0.6673605 0.3707068
+#&gt; Vsig=100     0.2553513 0.2751758   0.4575720 0.3753085 0.4807840 0.7157906</code></pre>
 </div>
 </div>
 <div id="experiment-setup-10" class="section level2">
@@ -3296,8 +3734,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -3308,10 +3750,25 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_varmu_grid
-colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_bgamma_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) &lt;- rownames(RI_mat_VI) &lt;- rownames(L1_mat) &lt;- rownames(Kest_VI_mat) &lt;- rownames(Kest_Bin_mat) &lt;- rownames(MC_Kest_lv1_mat) &lt;- rownames(MC_Kest_lv2_mat) &lt;- rownames(Kvar_lv1_mat) &lt;- rownames(Kvar_lv2_mat) &lt;- rownames(Kvar_mat) &lt;- rownames(MC_Kest_mat) &lt;- nomi_varmu_grid
+colnames(RI_mat_Bin) &lt;- colnames(RI_mat_VI) &lt;- colnames(L1_mat) &lt;- colnames(Kest_VI_mat) &lt;- colnames(Kest_Bin_mat) &lt;- colnames(MC_Kest_lv1_mat) &lt;- colnames(MC_Kest_lv2_mat) &lt;- colnames(Kvar_lv1_mat) &lt;- colnames(Kvar_lv2_mat) &lt;- colnames(Kvar_mat) &lt;- colnames(MC_Kest_mat) &lt;- nomi_bgamma_grid
 
 RI_mat_Bin
 #&gt;                   b=1       b=5      b=10     b=100
@@ -3337,13 +3794,21 @@ L1_mat
 #&gt; Vmu=10      0.2423704 0.1653681 0.1646967 0.1862541
 #&gt; Vmu=50      0.1692399 0.1503566 0.1449423 0.1453998
 #&gt; Vmu=100     0.1660621 0.1485419 0.1473482 0.1444604
-Kest_mat
+Kest_VI_mat
 #&gt;             b=1 b=5 b=10 b=100
 #&gt; Vmu=1         2   2    2     2
 #&gt; Vmu=Vdata     2   2    2     2
 #&gt; Vmu=Vdata^2   2   2    2     2
 #&gt; Vmu=10        2   3    3     2
 #&gt; Vmu=50        2   3    3     3
+#&gt; Vmu=100       3   3    3     3
+Kest_Bin_mat
+#&gt;             b=1 b=5 b=10 b=100
+#&gt; Vmu=1         2   2    2     2
+#&gt; Vmu=Vdata     2   2    2     2
+#&gt; Vmu=Vdata^2   2   3    3     2
+#&gt; Vmu=10        3   3    3     3
+#&gt; Vmu=50        3   3    3     3
 #&gt; Vmu=100       3   3    3     3
 MC_Kest_mat
 #&gt;             b=1 b=5 b=10 b=100
@@ -3360,7 +3825,39 @@ Kvar_mat
 #&gt; Vmu=Vdata^2 0.4605958 2.1132693 0.8121202 0.4752085
 #&gt; Vmu=10      1.8003172 1.7601510 1.2622024 0.5277211
 #&gt; Vmu=50      1.1063305 1.2264583 0.9290929 0.3719178
-#&gt; Vmu=100     1.2206098 1.3292039 1.0107986 0.3989996</code></pre>
+#&gt; Vmu=100     1.2206098 1.3292039 1.0107986 0.3989996
+MC_Kest_lv1_mat
+#&gt;             b=1 b=5 b=10 b=100
+#&gt; Vmu=1         1   1    1     1
+#&gt; Vmu=Vdata     2   1    1     1
+#&gt; Vmu=Vdata^2   1   3    2     1
+#&gt; Vmu=10        3   3    3     2
+#&gt; Vmu=50        3   3    3     2
+#&gt; Vmu=100       3   3    3     2
+Kvar_lv1_mat
+#&gt;                   b=1       b=5      b=10      b=100
+#&gt; Vmu=1       0.7051433 0.4140692 0.5412636 0.09366328
+#&gt; Vmu=Vdata   0.6485476 0.7877403 0.9553294 0.21585903
+#&gt; Vmu=Vdata^2 0.3394089 2.3171501 0.8735753 0.41985475
+#&gt; Vmu=10      1.6916904 1.6729517 1.3784882 0.52455045
+#&gt; Vmu=50      1.0128376 1.2926333 0.7556343 0.40851436
+#&gt; Vmu=100     1.1328069 1.1870975 1.0224374 0.42078183
+MC_Kest_lv2_mat
+#&gt;             b=1 b=5 b=10 b=100
+#&gt; Vmu=1         1   1    1     1
+#&gt; Vmu=Vdata     2   1    1     1
+#&gt; Vmu=Vdata^2   2   1    1     1
+#&gt; Vmu=10        1   2    1     1
+#&gt; Vmu=50        1   1    1     1
+#&gt; Vmu=100       2   2    1     1
+Kvar_lv2_mat
+#&gt;                   b=1       b=5      b=10      b=100
+#&gt; Vmu=1       0.4623282 0.4258863 0.3237364 0.11295526
+#&gt; Vmu=Vdata   0.4340626 0.5126232 0.5836457 0.07897094
+#&gt; Vmu=Vdata^2 0.4376875 0.5708468 0.3543343 0.19102885
+#&gt; Vmu=10      0.4953918 0.8518132 0.2367230 0.16683044
+#&gt; Vmu=50      0.4744446 0.5006836 0.6778594 0.11038943
+#&gt; Vmu=100     0.6694618 0.8109619 0.4989150 0.17875964</code></pre>
 </div>
 </div>
 </div>
