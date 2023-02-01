@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 * $\pi_{21} = 1/3, \pi_{22} =   0, \pi_{23} = 1/3, \pi_{24} = 1/3$
 * $\pi_{31} =   0, \pi_{22} = 1/2, \pi_{23} =   0, \pi_{24} =   0$
 
-## Partizione Fissata
+
 
 ```{r}
 suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
@@ -232,9 +232,11 @@ mu0 = 0;k0= 3/10;nu0=5;sigma0=1
 
 l_grid = 200
 grid = seq(-25,15,length.out = l_grid)
-scale = sqrt( k0/(k0 + 1) * sigma0 )
+
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
 mean_marginal = mu0
 var_marginal  = nu0/(nu0-2) * scale^2
+
 
 Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
 
@@ -327,6 +329,15 @@ par(mfrow = c(1,2))
 plot(GDFMM$K, type = 'l', main = "K")
 hist(GDFMM$K, main = "K")
 
+# ARI
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+ARI = apply( part_matrix, 1, 
+             FUN = function(part_it){
+                      arandi(part_it,real_partition, adjust = T)
+                  }
+            )
+
+plot(ARI, type = 'l', main = "ARI")
 ```
 
 
@@ -400,12 +411,65 @@ for(j in 1:d){
 
 ```
 ```{r}
+xrange = c(-25,25)
 l_grid = 200
 grid = seq(-25,25,length.out = l_grid)
 
 # Predictive in all groups
 Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+```
 
+
+```{r}
+idx_start = 1
+idx_end = n_j[1]
+
+par(mfrow = c(1,d), mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  
+  # set colors
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  
+  # frequentist density
+  dj = density(data[j,1:n_j[j]])
+  yrange = range(Pred_all[[j]][3,]) + 0.001*max(Pred_all[[j]][3,])
+  
+  # Trick to add the grid below the plot
+  plot.new()
+  grid(lty = 1,lwd = 2,col = "gray90" )
+  par(new = TRUE)
+  
+  # plot
+  hist(data[j,1:n_j[j]], freq = F, breaks = n_j[j]/5,
+       main = paste0("Level = ",j), 
+       ylim = c(0,0.12), xlim = xrange,
+       ylab = "y-axis", xlab = "x-axis")
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = "black")
+  #lines(dj$x,dj$y, lwd = 3)
+  #lines(x = grid, y = Pred_all[[j]][1,], col = "blue", lwd = 2, lty = 2) #0.025
+  #lines(x = grid, y = Pred_all[[j]][3,], col = "blue", lwd = 2, lty = 2) #0.975
+  polygon( c(grid, rev(grid)),
+           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+           col = ACutils::t_col(mycol[1], percent = 65))
+  points(grid, dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+  lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
+  
+
+  idx_start = idx_end + 1
+    if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+
+```{r}
 # In questo plot sotto colori i pallini secondo il vero cluster.
 idx_start = 1
 idx_end = n_j[1]
