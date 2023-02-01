@@ -894,7 +894,7 @@ suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
 Inizio variando un solo parametro alla volta. Qui, vario $\bar{\text{V}}_\mu$. La variabile di riferimento è $\texttt{varmu}$.
 
-* $\bar{V}_\mu $ variabile
+* $\bar{V}_\mu \text{  variabile}$ 
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
 * $\text{c} = 3$
 * $b_\gamma = 1$
@@ -1232,11 +1232,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varmu_grid
@@ -1261,7 +1261,7 @@ Kest_var_lv2
 Inizio variando un solo parametro alla volta. Qui, vario $\bar{\text{V}}_{\sigma^2}$. La variabile di riferimento è $\texttt{varsig2}$.
 
 * $\bar{V}_\mu = 10$ 
-* $\bar{V}_{\sigma^2} $ variabile
+* $\bar{V}_{\sigma^2} \text{  variabile} $ 
 * $\text{c} = 3$
 * $b_\gamma = 1$
 * $\text{E}[\Lambda] = 3$
@@ -1596,11 +1596,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -1628,7 +1628,7 @@ Inizio variando un solo parametro alla volta. Qui, vario $\text{c}$. La variabil
 
 * $\bar{V}_\mu = 10$ 
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
-* $\text{c} $ variabile
+* $\text{c} \text{  variabile}$ 
 * $b_\gamma = 1$
 * $\text{E}[\Lambda] = 3$
 * $\text{Var}(\Lambda) = 1$
@@ -1963,11 +1963,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2000,7 +2000,7 @@ Faccio variare la media di $\Lambda$
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
 * $\text{c} = 3$
 * $b_\gamma = 1$
-* $\text{E}[\Lambda]$ variabile
+* $\text{E}[\Lambda] \text{  variabile}$ 
 * $\text{Var}(\Lambda) = 1$
 
 ```{r}
@@ -2305,11 +2305,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2339,7 +2339,7 @@ Faccio variare la varianza di $\Lambda$ (secondo me questo è un po' imbrogliare
 * $\text{c} = 3$
 * $b_\gamma = 1$
 * $\text{E}[\Lambda] = 3$ 
-* $\text{Var}(\Lambda) $ variabile
+* $\text{Var}(\Lambda) \text{  variabile} $ 
 
 ```{r}
 # Data generation
@@ -2640,11 +2640,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -2674,7 +2674,7 @@ Ora invece faccio esperimenti al variare dei parametri di $\gamma$.
 * $\bar{V}_\mu = 10$ 
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
 * $\text{c} = 3$
-* $b_\gamma $ variabile
+* $b_\gamma \text{  variabile} $ 
 * $\text{E}[\Lambda] = 3$ 
 * $\text{Var}(\Lambda) = 1$ 
 
@@ -2979,11 +2979,11 @@ Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
 }))
 
 MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[1]
+  x$Kstats_lv2[1]
 }))
 
 Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
-  x$Kstats_lv1[2]
+  x$Kstats_lv2[2]
 }))
 
 
@@ -3013,8 +3013,8 @@ Inizio lo studio congiunto facendo variare $\Lambda$ e $b_\gamma$
 * $\bar{V}_\mu = 10$ 
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
 * $\text{c} = 3$
-* $b_\gamma $ variabile
-* $\text{E}[\Lambda] $ variabile 
+* $b_\gamma \text{  variabile}$ 
+* $\text{E}[\Lambda] \text{  variabile}$  
 * $\text{Var}(\Lambda) = 1$ 
 
 ```{r}
@@ -3380,8 +3380,8 @@ Kvar_lv2_mat
 
 
 * $\bar{V}_\mu = 10$ 
-* $\bar{V}_{\sigma^2}$ variabile
-* $\text{c} $ variabile
+* $\bar{V}_{\sigma^2} \text{  variabile}$ 
+* $\text{c} \text{  variabile} $ 
 * $b_\gamma = 10$
 * $\text{E}[\Lambda] = 3$
 * $\text{Var}(\Lambda) = 1$
@@ -3741,9 +3741,9 @@ Kvar_lv2_mat
 ## 3.9 - Experiment Setup 
 
 
-* $\bar{V}_\mu $ variabile 
+* $\bar{V}_\mu \text{  variabile}$  
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
-* $\text{c} $ variabile
+* $\text{c} \text{  variabile}$ 
 * $b_\gamma = 10$
 * $\text{E}[\Lambda] = 3$
 * $\text{Var}(\Lambda) = 1$
@@ -4104,8 +4104,8 @@ Kvar_lv2_mat
 
 ## 3.10 - Experiment Setup 
 
-* $\bar{V}_\mu $ variabile 
-* $\bar{V}_{\sigma^2}$ variabile
+* $\bar{V}_\mu \text{  variabile}$  
+* $\bar{V}_{\sigma^2}  \text{  variabile}$ 
 * $\text{c} $ 
 * $b_\gamma = 10$
 * $\text{E}[\Lambda] = 3$
@@ -4474,10 +4474,10 @@ Kvar_lv2_mat
 
 ## 3.11 - Experiment Setup 
 
-* $\bar{V}_\mu $ variabile 
+* $\bar{V}_\mu \text{  variabile} $  
 * $\bar{V}_{\sigma^2} = \text{Var}(data)^2$
 * $\text{c} $ 
-* $b_\gamma $ variabile
+* $b_\gamma \text{  variabile}$ 
 * $\text{E}[\Lambda] = 3$
 * $\text{Var}(\Lambda) = 1$
 
