@@ -1049,6 +1049,7 @@ for(jj in 1:N_varmu){
     VI  = arandi(VI_sara$cl,real_partition)
     
     
+    # Coclustering
     CoClust = Compute_coclust_error(real_partition, sim_matrix)
     
     
@@ -1064,11 +1065,29 @@ for(jj in 1:N_varmu){
       Pred_median[[j]] = Pred_all[[j]][2,]
     }
     
+    # L1 error
     L1err = Compute_L1_dist(Pred = Pred_median, 
                              p_mix = prob, mu = mu, sigma = sd,
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -1077,6 +1096,8 @@ for(jj in 1:N_varmu){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -1186,8 +1207,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1198,16 +1223,37 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varmu_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varmu_grid
+
 
 RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
 ```
 
 ## 3.2 - Experiment Setup 
@@ -1389,6 +1435,23 @@ for(jj in 1:N_varsig){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -1397,6 +1460,8 @@ for(jj in 1:N_varsig){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -1506,8 +1571,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1518,16 +1587,38 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varsig2_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varsig2_grid
 
 RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
 ```
 
 
@@ -1711,6 +1802,23 @@ for(jj in 1:N_correction){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -1719,6 +1827,8 @@ for(jj in 1:N_correction){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -1828,8 +1938,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -1840,16 +1954,39 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_correction_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_correction_grid
 
 RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
+
 ```
 
 
@@ -2042,6 +2179,23 @@ for(jj in 1:N_Lambda){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -2050,6 +2204,8 @@ for(jj in 1:N_Lambda){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -2124,8 +2280,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -2136,16 +2296,38 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_meanL_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_meanL_grid
 
 RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
 ```
 
 ## 3.5 - Experiment Setup 
@@ -2332,7 +2514,23 @@ for(jj in 1:N_Lambda){
                              p_mix = prob, mu = mu, sigma = sd,
                              grid = grid)
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
     
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -2341,6 +2539,8 @@ for(jj in 1:N_Lambda){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -2415,8 +2615,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -2427,16 +2631,38 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varL_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_varL_grid
 
 RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
 ```
 
 
@@ -2627,7 +2853,23 @@ for(jj in 1:N_gamma){
                              p_mix = prob, mu = mu, sigma = sd,
                              grid = grid)
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
     
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -2636,6 +2878,8 @@ for(jj in 1:N_gamma){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -2710,8 +2954,12 @@ L1 = unlist(lapply(FinalResults, FUN = function(x){
   x$L1err
 }))
 
-Kest = unlist(lapply(FinalResults, FUN = function(x){
+Kest_VI = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[4]
+}))
+
+Kest_Bin = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats[3]
 }))
 
 MC_Kest = unlist(lapply(FinalResults, FUN = function(x){
@@ -2722,15 +2970,38 @@ Kest_var = unlist(lapply(FinalResults, FUN = function(x){
   x$Kstats[2]
 }))
 
+MC_Kest_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
 
-names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_bgamma_grid
+Kest_var_lv1 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
 
+MC_Kest_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[1]
+}))
+
+Kest_var_lv2 = unlist(lapply(FinalResults, FUN = function(x){
+  x$Kstats_lv1[2]
+}))
+
+
+names(RI_Bin) <- names(RI_VI) <- names(L1) <- names(Kest_VI) <- names(Kest_Bin) <- names(MC_Kest_lv1)<- names(MC_Kest_lv2)<- names(Kest_var_lv1) <- names(Kest_var_lv2) <- names(Kest_var) <- names(MC_Kest) <- names(CoClustering_error) <- nomi_bgamma_grid
+
+
+RI_Bin
 RI_VI
 CoClustering_error
 L1
-Kest
+Kest_VI
+Kest_Bin
 MC_Kest
 Kest_var
+MC_Kest_lv1
+Kest_var_lv1
+MC_Kest_lv2
+Kest_var_lv2
 ```
 
 
@@ -2933,6 +3204,23 @@ for(ii in 1:N_Lambda){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -2941,6 +3229,8 @@ for(ii in 1:N_Lambda){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -3034,8 +3324,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -3046,16 +3340,37 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_meanL_grid
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_bgamma_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
+
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_VI_mat) <- rownames(Kest_Bin_mat) <- rownames(MC_Kest_lv1_mat) <- rownames(MC_Kest_lv2_mat) <- rownames(Kvar_lv1_mat) <- rownames(Kvar_lv2_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_meanL_grid
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_VI_mat) <- colnames(Kest_Bin_mat) <- colnames(MC_Kest_lv1_mat) <- colnames(MC_Kest_lv2_mat) <- colnames(Kvar_lv1_mat) <- colnames(Kvar_lv2_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_bgamma_grid
 
 RI_mat_Bin
 RI_mat_VI
 L1_mat
-Kest_mat
+Kest_VI_mat
+Kest_Bin_mat
 MC_Kest_mat
 Kvar_mat
+MC_Kest_lv1_mat
+Kvar_lv1_mat
+MC_Kest_lv2_mat
+Kvar_lv2_mat
 ```
 
 
@@ -3257,6 +3572,23 @@ for(ii in 1:N_corr){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -3265,6 +3597,8 @@ for(ii in 1:N_corr){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -3353,30 +3687,53 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[1]
 })
 
-
 Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(MC_Kest_mat) <- rownames(Kvar_mat) <- nomi_correction_grid
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(MC_Kest_mat) <- colnames(Kvar_mat) <- nomi_varsig2_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_VI_mat) <- rownames(Kest_Bin_mat) <- rownames(MC_Kest_lv1_mat) <- rownames(MC_Kest_lv2_mat) <- rownames(Kvar_lv1_mat) <- rownames(Kvar_lv2_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_correction_grid
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_VI_mat) <- colnames(Kest_Bin_mat) <- colnames(MC_Kest_lv1_mat) <- colnames(MC_Kest_lv2_mat) <- colnames(Kvar_lv1_mat) <- colnames(Kvar_lv2_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_varsig2_grid
 
 RI_mat_Bin
 RI_mat_VI
 L1_mat
-Kest_mat
+Kest_VI_mat
+Kest_Bin_mat
 MC_Kest_mat
 Kvar_mat
+MC_Kest_lv1_mat
+Kvar_lv1_mat
+MC_Kest_lv2_mat
+Kvar_lv2_mat
 ```
 
 
@@ -3577,6 +3934,23 @@ for(ii in 1:N_corr){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -3585,6 +3959,8 @@ for(ii in 1:N_corr){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -3677,9 +4053,12 @@ RI_mat_VI = apply(FinalResults, c(1,2), FUN = function(x){
 L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
-
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -3690,17 +4069,37 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <-  nomi_correction_grid
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_varmu_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_VI_mat) <- rownames(Kest_Bin_mat) <- rownames(MC_Kest_lv1_mat) <- rownames(MC_Kest_lv2_mat) <- rownames(Kvar_lv1_mat) <- rownames(Kvar_lv2_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_correction_grid
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_VI_mat) <- colnames(Kest_Bin_mat) <- colnames(MC_Kest_lv1_mat) <- colnames(MC_Kest_lv2_mat) <- colnames(Kvar_lv1_mat) <- colnames(Kvar_lv2_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_varmu_grid
 
 RI_mat_Bin
 RI_mat_VI
 L1_mat
-Kest_mat
+Kest_VI_mat
+Kest_Bin_mat
 MC_Kest_mat
 Kvar_mat
+MC_Kest_lv1_mat
+Kvar_lv1_mat
+MC_Kest_lv2_mat
+Kvar_lv2_mat
 ```
 
 ## 3.10 - Experiment Setup 
@@ -3899,6 +4298,23 @@ for(ii in 1:N_varsd){
                              grid = grid)
     
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -3907,6 +4323,8 @@ for(ii in 1:N_varsd){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -4000,8 +4418,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -4012,17 +4434,39 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_varsig2_grid
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_varmu_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_VI_mat) <- rownames(Kest_Bin_mat) <- rownames(MC_Kest_lv1_mat) <- rownames(MC_Kest_lv2_mat) <- rownames(Kvar_lv1_mat) <- rownames(Kvar_lv2_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_varsig2_grid
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_VI_mat) <- colnames(Kest_Bin_mat) <- colnames(MC_Kest_lv1_mat) <- colnames(MC_Kest_lv2_mat) <- colnames(Kvar_lv1_mat) <- colnames(Kvar_lv2_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_varmu_grid
 
 RI_mat_Bin
 RI_mat_VI
 L1_mat
-Kest_mat
+Kest_VI_mat
+Kest_Bin_mat
 MC_Kest_mat
 Kvar_mat
+MC_Kest_lv1_mat
+Kvar_lv1_mat
+MC_Kest_lv2_mat
+Kvar_lv2_mat
+
+
 ```
 
 
@@ -4226,7 +4670,23 @@ for(ii in 1:N_varmu){
                              p_mix = prob, mu = mu, sigma = sd,
                              grid = grid)
     
+    ## Analisi per gruppo
+
+    ### Primo livello
+    part_matrix_lv1 = part_matrix[,1:n_j[1]]
+    Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
     
+    ### Secondo livello
+    part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+    Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+      x = as.factor(x)
+      length(levels(x))
+    })
+    
+    # save
     res = list("P0_hyparam"= c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0),
                "Prior_marginal"=c("mean_marginal"=mean_marginal,"var_marginal"=var_marginal),
                "Post_marg_in_cluster" = c("mean"=mean_marginal_per_cluster, "var" = var_marginal_per_cluster),
@@ -4235,6 +4695,8 @@ for(ii in 1:N_varmu){
                "L1err" = L1err$L1err_average, 
                "Kstats" = c("MCmedian" = median(GDFMM$K), "MCvar" = var(GDFMM$K), 
                             "Binder"=length(table(binder_sara$cl)), "VI"=length(table(VI_sara$cl)) ),
+               "Kstats_lv1" = c("MCmedian" = median(Kest_lv1), "MCvar" = var(Kest_lv1) ),
+               "Kstats_lv2" = c("MCmedian" = median(Kest_lv2), "MCvar" = var(Kest_lv2) ),
                "Lambda" = c("mean" = mean(GDFMM$lambda), "median" = median(GDFMM$lambda), "var" = var(GDFMM$lambda)),
                "gamma" = colMeans(t(GDFMM$gamma))
                )
@@ -4330,8 +4792,12 @@ L1_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$L1err
 })
 
-Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
+Kest_VI_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[4]
+})
+
+Kest_Bin_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats[3]
 })
 
 MC_Kest_mat = apply(FinalResults, c(1,2), FUN = function(x){
@@ -4342,17 +4808,37 @@ Kvar_mat = apply(FinalResults, c(1,2), FUN = function(x){
   x[[1]]$Kstats[2]
 })
 
+MC_Kest_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[1]
+})
 
-rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_varmu_grid
-colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_bgamma_grid
+Kvar_lv1_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv1[2]
+})
 
+MC_Kest_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[1]
+})
+
+Kvar_lv2_mat = apply(FinalResults, c(1,2), FUN = function(x){
+  x[[1]]$Kstats_lv2[2]
+})
+
+
+rownames(RI_mat_Bin) <- rownames(RI_mat_VI) <- rownames(L1_mat) <- rownames(Kest_VI_mat) <- rownames(Kest_Bin_mat) <- rownames(MC_Kest_lv1_mat) <- rownames(MC_Kest_lv2_mat) <- rownames(Kvar_lv1_mat) <- rownames(Kvar_lv2_mat) <- rownames(Kvar_mat) <- rownames(MC_Kest_mat) <- nomi_varmu_grid
+colnames(RI_mat_Bin) <- colnames(RI_mat_VI) <- colnames(L1_mat) <- colnames(Kest_VI_mat) <- colnames(Kest_Bin_mat) <- colnames(MC_Kest_lv1_mat) <- colnames(MC_Kest_lv2_mat) <- colnames(Kvar_lv1_mat) <- colnames(Kvar_lv2_mat) <- colnames(Kvar_mat) <- colnames(MC_Kest_mat) <- nomi_bgamma_grid
 
 RI_mat_Bin
 RI_mat_VI
 L1_mat
-Kest_mat
+Kest_VI_mat
+Kest_Bin_mat
 MC_Kest_mat
 Kvar_mat
+MC_Kest_lv1_mat
+Kvar_lv1_mat
+MC_Kest_lv2_mat
+Kvar_lv2_mat
 ```
 
 

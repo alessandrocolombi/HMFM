@@ -876,11 +876,11 @@ suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 ## Data Generation
 
 ```{r}
-d = 100
+d = 10
 K = 10
 
-set.seed(27121996)
-n_j = rpois(n=d, lambda = 20)
+set.seed(271996)
+n_j = rpois(n=d, lambda = 50)
 mu  = c(-5,-4,-3,-2,0,1,2.5,3,4.5,5)
 sd  = sqrt(c(1,0.25,0.1,0.1,0.5,1.5,0.5,0.5,1.5,1.5))
 K_j = sample(1:K,size = d, replace = T)
@@ -903,7 +903,7 @@ genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, s
 data = genD$data
 real_partition = genD$real_partition
 
-
+#length(table(real_partition))
 ```
 
 ## Data Visualization
@@ -962,8 +962,8 @@ for(j in 1:d){
 
 ```{r}
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
-varsig2 = 100 * var(as.vector(data), na.rm = T)^2 
-P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = varsig2, correction = 100)
+vardata = var(as.vector(data), na.rm = T) 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = vardata^2, correction = 3)
 mu0 = P0_hyparam$mu0
 k0= P0_hyparam$k0
 nu0=P0_hyparam$nu0
@@ -1007,9 +1007,7 @@ Calcolo media e varianza nei cluster
 ```{r}
 counter = 1
 data_per_cluster = vector("list", length = K)
-log_marginal_prior = vector("list", length = d)
 for(j in 1:d){
-  log_marginal_prior[[j]] = vector( length = n_j[j])
   for(i in 1:n_j[j]){
     c_ji = real_partition[counter]
     data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
@@ -1053,19 +1051,24 @@ var_marginal_per_cluster
 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  10000
-burnin <-  1#6000
+niter  <-  20000
+burnin <-  10000
 thin   <-  1
 
 # tau 
-a_gamma <-   1; b_gamma  <- 1
-a_lambda <- 10; b_lambda <- 2
+a_gamma <-   1; b_gamma  <- 10
+mu_lambda  = 5
+var_lambda = 1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
+
 
 option = set_options_marginal(
              "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
-             "gamma0" = 3,"Lambda0" = 10, 
+             "gamma0" = 3,"Lambda0" = mu_lambda, 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
@@ -1141,5 +1144,37 @@ arandi(VI_sara$cl,real_partition)
 
 
 
+```
+
+# Indexes
+
+Co-Clustering
+```{r}
+CoClust = Compute_coclust_error(real_partition, sim_matrix)
+CoClust  
+```
+
+
+$L_1$ per predittiva 
+```{r}
+xrange = c(-10,10)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+```
+
+
+```{r}
+Pred_median = vector("list", length = d)
+for(j in 1:d){
+  Pred_median[[j]] = Pred_all[[j]][2,]
+}
+    
+L1err = Compute_L1_dist(Pred = Pred_median, 
+                        p_mix = mix_probs, mu = mu, sigma = sd,
+                        grid = grid)
+L1err
 ```
 
