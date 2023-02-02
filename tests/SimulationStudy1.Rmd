@@ -144,8 +144,8 @@ for(j in 1:d){
 
 ```{r}
 # Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
-varsig2 = 100 * var(as.vector(data), na.rm = T)^2 
-P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = varsig2, correction = 100)
+vardata = var(as.vector(data), na.rm = T) 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 10, varsig2 = vardata, correction = 50)
 mu0 = P0_hyparam$mu0
 k0= P0_hyparam$k0
 nu0=P0_hyparam$nu0
@@ -159,6 +159,8 @@ var_marginal  = nu0/(nu0-2) * scale^2
 
 mean_marginal
 var_marginal
+
+
 ```
 
 
@@ -860,7 +862,7 @@ barplot(table(Kest_lv2), main = "Hist - K")
 
 ```
 
-# 3 - High Dimensional
+# 3 - High Dimensional (d=10)
 
 
 ```{r}
@@ -877,6 +879,343 @@ suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
 ```{r}
 d = 10
+K = 10
+
+set.seed(271996)
+n_j = rpois(n=d, lambda = 50)
+mu  = c(-5,-4,-3,-2,0,1,2.5,3,4.5,5)
+sd  = sqrt(c(1,0.25,0.1,0.1,0.5,1.5,0.5,0.5,1.5,1.5))
+K_j = sample(1:K,size = d, replace = T)
+components_j = lapply(as.list(K_j),
+                      FUN = function(kj){
+                        sort(sample(1:K, size = kj, replace = F))
+                      })
+
+
+mix_probs = matrix(0,nrow = d, ncol = K)
+for(j in 1:d){
+  gammas = rgamma(n=K_j[j],shape = 0.1, rate = 1)
+  mix_probs[ j,components_j[[j]]  ] = gammas/sum(gammas)
+}
+
+
+seed = 512541
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+#length(table(real_partition))
+```
+
+## Data Visualization
+
+Per prima cosa, voglio visualizzare le $K$ componenti
+
+```{r}
+xrange = c(-10,10)
+yrange = c(0,1.25)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+   
+
+mycol_cluster = hcl.colors(n=K, palette = "Berlin")
+mycol_levels  = hcl.colors(n=d, palette = "Zissou 1")
+```
+
+
+```{r}
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1,ylim = yrange, xlim = xrange, type = "n",
+     main = "True component mixtures")
+grid(lty = 1,lwd = 2,col = "gray90" )
+
+
+for(kk in 1:K){
+  comp_grid = dnorm(x=grid, mean = mu[kk], sd = sd[kk])
+  points(x = grid, y = comp_grid, col = mycol_cluster[kk], 
+       type = "l", lwd = 2)
+}
+
+
+```
+
+```{r}
+
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1,ylim = yrange, xlim = xrange, type = "n",
+     main = "True densities - all levels")
+grid(lty = 1,lwd = 2,col = "gray90" )
+
+for(j in 1:d){
+  
+  mix_grid = GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd)
+  points(x = grid, y = mix_grid, col = mycol_levels[j], 
+       type = "l", lwd = 2)
+
+}
+
+
+
+```
+
+
+## Iperparametri $P_0$
+
+```{r}
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+vardata = var(as.vector(data), na.rm = T) 
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, varsig2 = vardata^2, correction = 10)
+mu0 = P0_hyparam$mu0
+k0= P0_hyparam$k0
+nu0=P0_hyparam$nu0
+sigma0=P0_hyparam$sigma0
+  
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+mean_marginal
+var_marginal
+```
+
+### Marginal density visualization
+
+```{r}
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1,ylim = c(0,0.2), xlim = xrange, type = "n",
+     main = "Marginal data Density")
+grid(lty = 1,lwd = 2,col = "gray90" )
+
+
+points(x = na.omit(as.numeric(data)), y = rep(0, length(na.omit(as.numeric(data)))), pch = 16)
+points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
+  
+
+```
+
+
+### Marginali nei cluster
+
+Fissato il valore degli iperparametri, voglio visualizzare non solo la marginale dei dati ma anche le marginali nei cluster
+
+
+Calcolo media e varianza nei cluster
+```{r}
+counter = 1
+data_per_cluster = vector("list", length = K)
+for(j in 1:d){
+  for(i in 1:n_j[j]){
+    c_ji = real_partition[counter]
+    data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+    counter = counter + 1
+  }
+  
+}
+#data_per_cluster 
+mean_data_per_cluster = unlist(lapply(data_per_cluster, mean))
+mean_data_per_cluster
+var_data_per_cluster  = unlist(lapply(data_per_cluster, var))
+var_data_per_cluster
+
+ndata_per_cluster = unlist(lapply(data_per_cluster, length))
+ndata_per_cluster
+#log_marginal_prior
+
+
+```
+
+```{r}
+dof_post = nu0 + ndata_per_cluster
+k0_post  = k0 + ndata_per_cluster
+location_post = (k0*mu0 + mean_data_per_cluster*ndata_per_cluster)/(k0 + ndata_per_cluster)
+sigma0_post   = 1/dof_post*( (ndata_per_cluster - 1)*var_data_per_cluster + 
+                              nu0*sigma0 + 
+                              (k0*ndata_per_cluster)/(k0 + ndata_per_cluster) * (mu0 - mean_data_per_cluster)^2  
+                           )
+
+scale_post = sqrt( (sigma0_post*(k0_post + 1))/(k0_post)  )
+
+mean_marginal_per_cluster = location_post
+var_marginal_per_cluster = scale_post^2 * (dof_post)/(dof_post - 2)
+
+mean_marginal_per_cluster
+var_marginal_per_cluster
+```
+
+## Run
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  20000
+burnin <-  10000
+thin   <-  1
+
+# tau 
+a_gamma <-   0.5; b_gamma  <- 5
+mu_lambda  = 5
+var_lambda = 1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
+
+
+option = set_options_marginal(
+             "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.001,
+             "gamma0" = 0.1,"Lambda0" = mu_lambda, 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
+             "partition" = real_partition#seq(1,sum(n_j))
+        )
+
+# P0 Hyperparameters:
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+
+
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+
+### Chains
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# K
+par(mfrow = c(1,1), bty = "l")
+plot(GDFMM$K, type = 'l', main = "K")
+
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(GDFMM$K), main = "Hist - K")
+
+# gamma
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+plot(GDFMM$gamma[1,], type = "l")
+plot(GDFMM$gamma[5,], type = "l")
+plot(GDFMM$gamma[10,], type = "l")
+
+# U
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+plot(GDFMM$U[1,], type = "l")
+plot(GDFMM$U[5,], type = "l")
+plot(GDFMM$U[10,], type = "l")
+
+
+# ARI
+
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+ARI = apply( part_matrix, 1, 
+             FUN = function(part_it){
+                      arandi(part_it,real_partition, adjust = T)
+                  }
+            )
+
+par(mfrow = c(1,1), mar = c(2,2,1,1))
+plot(ARI, type = 'l', main = "ARI")
+
+```
+
+### Clustering
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
+arandi(binder_sara$cl,real_partition)
+arandi(VI_sara$cl,real_partition)
+
+
+
+```
+
+# Indexes
+
+Co-Clustering
+```{r}
+CoClust = Compute_coclust_error(real_partition, sim_matrix)
+CoClust  
+```
+
+
+$L_1$ per predittiva 
+```{r}
+xrange = c(-10,10)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+
+# Predictive in all groups
+Pred_all = predictive_marginal_all_groups(grid = grid, fit = GDFMM, burnin = 0, option = option)
+```
+
+
+```{r}
+Pred_median = vector("list", length = d)
+for(j in 1:d){
+  Pred_median[[j]] = Pred_all[[j]][2,]
+}
+    
+L1err = Compute_L1_dist(Pred = Pred_median, 
+                        p_mix = mix_probs, mu = mu, sigma = sd,
+                        grid = grid)
+L1err
+```
+
+
+
+
+
+
+
+# 4 - High Dimensional (d=100)
+
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+```
+
+## Data Generation
+
+```{r}
+d = 100
 K = 10
 
 set.seed(271996)
@@ -1011,7 +1350,6 @@ for(j in 1:d){
   for(i in 1:n_j[j]){
     c_ji = real_partition[counter]
     data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
-    log_marginal_prior[[j]][i] = log(ACutils::dnct(data[j,i], n0 = 10, mu0 = 1, gamma0 = sqrt(2)) )
     counter = counter + 1
   }
   
@@ -1049,15 +1387,20 @@ var_marginal_per_cluster
 
 ## Run
 
+* Il valore di $\gamma$ influisce molto? Vuol dire che le catene non si muovono più di tanto
+* Se FISSO $\gamma = 0.1$, $K$ non varia mai
+* Se FISSO $\gamma = 0.01$, $K$ cresce molto nelle prime iterazioni, fino ad arrivare a valori molto alti $\approx 80$ ma poi iniziava a scendere
+* $\gamma$ non viene MAI accettato. Questo spiega molto sul perché facciamo fatica
+
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  20000
-burnin <-  10000
+niter  <-  20000#0
+burnin <-  10000#0
 thin   <-  1
 
 # tau 
 a_gamma <-   1; b_gamma  <- 10
-mu_lambda  = 5
+mu_lambda  = 10
 var_lambda = 1
 a_lambda = (mu_lambda*mu_lambda)/var_lambda
 b_lambda = mu_lambda/(var_lambda)
@@ -1067,14 +1410,14 @@ b_lambda = mu_lambda/(var_lambda)
 option = set_options_marginal(
              "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
-             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
-             "gamma0" = 3,"Lambda0" = mu_lambda, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=1/1e6,
+             "gamma0" = 0.01,"Lambda0" = 5, 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
              "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
              "UpdateU" = T, "UpdateGamma" = T, "UpdateTau" = T, "UpdateLambda" = T, 
-             "partition" = real_partition#seq(1,sum(n_j))
+             "partition" = NULL#real_partition#seq(1,sum(n_j))
         )
 
 # P0 Hyperparameters:
@@ -1105,16 +1448,30 @@ plot(GDFMM$K, type = 'l', main = "K")
 par(mfrow = c(1,1), bty = "l")
 barplot(table(GDFMM$K), main = "Hist - K")
 
+
+# gamma
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+plot(GDFMM$gamma[1,], type = "l")
+plot(GDFMM$gamma[10,], type = "l")
+plot(GDFMM$gamma[20,], type = "l")
+
+# U
+par(mfrow = c(1,3), mar = c(2,2,1,1))
+plot(GDFMM$U[1,], type = "l")
+plot(GDFMM$U[10,], type = "l")
+plot(GDFMM$U[20,], type = "l")
+
+
 # ARI
 
 part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
-ARI = apply( part_matrix, 1, 
-             FUN = function(part_it){
-                      arandi(part_it,real_partition, adjust = T)
-                  }
-            )
-
-plot(ARI, type = 'l', main = "ARI")
+# ARI = apply( part_matrix, 1, 
+#              FUN = function(part_it){
+#                       arandi(part_it,real_partition, adjust = T)
+#                   }
+#             )
+# 
+# plot(ARI, type = 'l', main = "ARI")
 
 ```
 
@@ -1177,4 +1534,118 @@ L1err = Compute_L1_dist(Pred = Pred_median,
                         grid = grid)
 L1err
 ```
+
+
+
+
+# 5 - CAM
+
+**Dati esperimento:**
+
+* **K = 5**
+* d = 4
+* $n_1 = 50$, $n_2 = 50$, $n_3 = 50$, $n_4=50$, $n_5=50$
+* $\mu_1 = -2$, $\mu_2 = 0$, $\mu_3 = 2$, $\mu_4 = 3$, $\mu_5 = 10$
+* $\sigma_1 = \sigma_2 = \sigma_3 = \sigma_4 = \sqrt{0.6}$, $ \sigma_5 = 1$
+* $\pi_{11} = 0, \pi_{12} = 3/4, \pi_{13} = 0, \pi_{14} = 1/4, \pi_{15} = 0$
+* $\pi_{21} = 0, \pi_{22} = 1/4, \pi_{23} = 0, \pi_{24} = 3/4, \pi_{25} = 0$
+* $\pi_{31} = 1/3, \pi_{32} = 1/3, \pi_{33} = 1/3, \pi_{34} = 0, \pi_{35} = 0$
+* $\pi_{41} = 1/4, \pi_{42} = 1/4, \pi_{43} = 1/4, \pi_{44} = 0, \pi_{45} = 1/4$
+
+## Data Generation
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+```
+
+
+```{r}
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+d = 4                   # number of groups
+K = 5                   # number of global clusters
+mu = c(-2,0,2,3,10)          # vectors of means
+sd = c(rep(sqrt(0.6),4),1)           # vector of sd
+n_j = rep(40,d)      # set cardinality of the groups
+
+mix_probs = matrix(c(0,3/4,0,1/4,0,
+                     0,1/4,0,3/4,0,
+                     1/3,1/3,1/3,0,0,
+                     1/4,1/4,1/4,0,1/4), nrow = d, ncol = K, byrow = T)
+seed = 200532121
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+mycol_cluster = brewer.pal(n=K, name = "Dark2")
+
+```
+
+## Data Visualization
+
+```{r}
+idx_start = 1
+idx_end = n_j[1]
+xrange = c(-6,15)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+           
+
+#par(mfrow = c(1,d), mar = c(2,2,1,1), bty = "l")
+par(mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  #dj = density(data[j,1:n_j[j]])
+  
+  hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j), 
+       xlim = xrange, ylim = c(0,0.5), 
+       nclass = "fd")
+  
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 2)
+  points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+    
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
