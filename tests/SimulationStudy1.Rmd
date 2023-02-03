@@ -1628,7 +1628,401 @@ for(j in 1:d){
 
 
 
+# 6 - Conditional Cremaschi
 
+**Dati esperimento:**
+
+* **K = 3**
+* d = 2
+* $n_1 = 100$, $n_2 = 100$
+* $\mu_1 = -3$, $\mu_2 = 0$, $\mu_3 = 1$
+* $\sigma_1 = \sqrt{0.1}$, $\sigma_2 = \sqrt{0.5}$, $\sigma_3 = \sqrt{1.5}$
+* $\pi_{11} = 2/10, \pi_{12} = 8/10, \pi_{13} = 0$
+* $\pi_{21} =    0, \pi_{22} = 1/10, \pi_{23} = 9/10$
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+```
+
+
+## Data Generation
+```{r}
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+
+d = 2               # number of groups
+K = 3               # number of global clusters
+mu = c(-3,0,1)      # vectors of means
+sd = c(sqrt(0.1), sqrt(0.5), sqrt(1.5) )     # vector of sd
+prob <- matrix(c(0.2,0.8,  0,
+                   0,0.1,0.9),nrow = d, ncol = K, byrow = T)
+  
+n_j = rep(100, d)  # set cardinality of the groups
+seed = 20051131
+
+#genD = generate_data_prob(d=d,p=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+genD = simulate_data(d=d,prob=prob, K=K, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+
+table(real_partition)
+table(real_partition[1:n_j[1]])
+table(real_partition[(n_j[1]+1):(n_j[1] + n_j[2])])
+
+
+mycol_cluster = brewer.pal(n=K, name = "Accent")
+```
+
+
+## Data Visualization
+
+```{r}
+idx_start = 1
+idx_end = n_j[1]
+xrange = c(-6,6)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+           
+
+par(mfrow = c(1,d), mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  #dj = density(data[j,1:n_j[j]])
+  
+  hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j), 
+       xlim = xrange, ylim = c(0,0.5), 
+       nclass = "fd")
+  
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 2)
+  points(grid, GDFMM::dmix(x = grid, w_j = prob[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+    
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+## Iperparametri $P_0$
+
+```{r}
+xrange = c(-6,6)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+
+
+# Calcolo anche la marginale trovata con i valori di Empirical Bayes e la plotto sopra
+vardata = var(as.vector(data), na.rm = T)
+P0_hyparam = empirical_bayes_normalinvgamma(data = data, varmu = 100, correction = 3, varsig2 = vardata  )
+
+mu0 = P0_hyparam$mu0
+k0= P0_hyparam$k0
+nu0=P0_hyparam$nu0
+sigma0=P0_hyparam$sigma0
+  
+  
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  par(mar = c(2,2,1,1), bty = "l")
+  hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j), 
+       xlim = xrange, ylim = c(0,0.5), 
+       nclass = "fd")
+  
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
+  
+    
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+## Run
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  10000
+burnin <-  6000
+thin   <-  1
+
+# tau 
+a_gamma <-   1; b_gamma  <- 10
+mu_lambda  = 2
+var_lambda = 1
+a_lambda = (mu_lambda*mu_lambda)/var_lambda
+b_lambda = mu_lambda/(var_lambda)
+
+
+option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0, 
+                      "Adapt_MH_hyp1" = 0.7,"Adapt_MH_hyp2" = 0.234, "Adapt_MH_power_lim" = 10, "Adapt_MH_var0"=1,
+                      "Lambda0" = mu_lambda, "gamma0" = 0.1, "Mstar0" = 2,
+                      "alpha_gamma" = a_gamma, "beta_gamma" = b_gamma, 
+                      "alpha_lambda" = a_lambda, "beta_lambda" = b_lambda,
+                      "init_mean_cluster" = NULL, 
+                      "init_var_cluster" = NULL,
+                      "partition" = NULL, 
+                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T
+)
+
+
+
+GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+#GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+
+### Chains
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+par(mfrow = c(1,d), mar = c(2,2,1,1))
+for(j in 1:d){
+  acf(GDFMM$gamma[j,], main = paste0("ACF - ",expression(gamma), "_",j))
+}
+
+par(mar = c(2,2,1,1), bty = "l")
+plot(GDFMM$gamma[1,], GDFMM$gamma[2,], pch = 16)
+
+cor(GDFMM$gamma[1,], GDFMM$gamma[2,])
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(bty = "l")
+plot(GDFMM$K, type = 'l', main = "K")
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(GDFMM$K), main = "Hist - K")
+
+# ARI
+
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+ARI = apply( part_matrix, 1, 
+             FUN = function(part_it){
+                      arandi(part_it,real_partition, adjust = T)
+                  }
+            )
+
+plot(ARI, type = 'l', main = "ARI")
+
+```
+
+### Clustering
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
+arandi(binder_sara$cl,real_partition)
+arandi(VI_sara$cl,real_partition)
+
+
+```
+
+
+
+### Density estimation
+```{r}
+xrange = c(-6,6)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+# Predictive in all groups
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+
+#par(mfrow = c(1,d), mar = c(2,2,1,1))
+par(mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  
+  # set colors
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  
+  # frequentist density
+  dj = density(data[j,1:n_j[j]])
+  yrange = range(Pred_all[[j]][3,]) + 0.001*max(Pred_all[[j]][3,])
+  
+  # Trick to add the grid below the plot
+  plot.new()
+  grid(lty = 1,lwd = 2,col = "gray90" )
+  par(new = TRUE)
+  
+  # plot
+  hist(data[j,1:n_j[j]], freq = F, breaks = n_j[j]/5,
+       main = paste0("Level = ",j), 
+       ylim = c(0,0.5), xlim = xrange,
+       ylab = "y-axis", xlab = "x-axis")
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 3)
+  #lines(x = grid, y = Pred_all[[j]][1,], col = "blue", lwd = 2, lty = 2) #0.025
+  #lines(x = grid, y = Pred_all[[j]][3,], col = "blue", lwd = 2, lty = 2) #0.975
+  polygon( c(grid, rev(grid)),
+           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+           col = ACutils::t_col(mycol[1], percent = 45))
+  lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
+  
+  points(grid, GDFMM::dmix(x = grid, w_j = prob[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+
+  idx_start = idx_end + 1
+    if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+
+```
+
+## Indexes
+
+```{r}
+CoClust = Compute_coclust_error(real_partition, sim_matrix)
+CoClust    
+    
+Pred_median = vector("list", length = d)
+for(j in 1:d){
+  Pred_median[[j]] = Pred_all[[j]][2,]
+}
+    
+L1err = Compute_L1_dist(Pred = Pred_median, 
+                        p_mix = prob, mu = mu, sigma = sd,
+                        grid = grid)
+L1err
+```
+
+
+## Analisi per gruppo
+
+### Primo livello
+```{r}
+part_matrix_lv1 = part_matrix[,1:n_j[1]]
+
+# Compute similarity matrix
+sim_matrix_lv1 <- psm(part_matrix_lv1)
+
+Kest_lv1 = apply(part_matrix_lv1, 1, FUN = function(x){
+  x = as.factor(x)
+  length(levels(x))
+})
+#table(Kest_lv1)
+
+
+heatmap(sim_matrix_lv1)
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(Kest_lv1), main = "Hist - K")
+
+
+binder_sara_lv1 = minbinder(sim_matrix_lv1)
+VI_sara_lv1 = minVI(sim_matrix_lv1)
+
+table(binder_sara_lv1$cl)
+table(VI_sara_lv1$cl)
+table(real_partition[1:n_j[1]])
+
+arandi(binder_sara_lv1$cl,real_partition[1:n_j[1]])
+arandi(VI_sara_lv1$cl,real_partition[1:n_j[1]])
+
+
+
+```
+
+### Secondo livello
+```{r}
+part_matrix_lv2 = part_matrix[,(n_j[1]+1):sum(n_j)]
+
+Kest_lv2 = apply(part_matrix_lv2, 1, FUN = function(x){
+  x = as.factor(x)
+  length(levels(x))
+})
+#table(Kest_lv2)
+
+
+# Compute similarity matrix
+sim_matrix_lv2 <- psm(part_matrix_lv2)
+
+
+heatmap(sim_matrix_lv2)
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(Kest_lv2), main = "Hist - K")
+
+binder_sara_lv2 = minbinder(sim_matrix_lv2)
+VI_sara_lv2 = minVI(sim_matrix_lv2)
+
+table(binder_sara_lv2$cl)
+table(VI_sara_lv2$cl)
+table(real_partition[1:n_j[1]])
+
+arandi(binder_sara_lv2$cl,real_partition[(n_j[1]+1):sum(n_j)])
+arandi(VI_sara_lv2$cl,real_partition[(n_j[1]+1):sum(n_j)])
+
+
+
+
+```
 
 
 
