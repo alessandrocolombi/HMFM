@@ -43,6 +43,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
         double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
         unsigned int pow = Rcpp::as<unsigned int>(option["Adapt_MH_power_lim"]);
+        unsigned int proposal_Mstar = Rcpp::as<unsigned int>(option["proposal_Mstar"]);
         double adapt_var0 = Rcpp::as<double>(option["Adapt_MH_var0"]);
         double k0 = Rcpp::as<double>(option["k0"]);
         double a1 = Rcpp::as<double>(option["alpha_gamma"]);
@@ -66,7 +67,7 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
 
         //Initialize Full Conditional Objects
         auto Partition_ptr = std::make_shared<Partition>("Partition", gs_data.d, gs_data.n_j, FixPart);
-        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", FixPart, FixedM);
+        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", proposal_Mstar, FixPart, FixedM);
         auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, gs_data.d, adapt_var0, a1, b1, FixedGamma);
         auto tau_ptr = std::make_shared<FC_tau>("tau", nu0, sigma0, mu0, k0, FixedTau);
         auto U_ptr = std::make_shared<FC_U>("U", FixedU);
@@ -89,9 +90,9 @@ GibbsSampler::GibbsSampler(Eigen::MatrixXd const &data, unsigned int n_it, unsig
         std::vector< std::shared_ptr<FullConditional> > fc{tau_ptr,
                                                             S_ptr,
                                                             lambda_ptr,
-                                                            gamma_ptr,
-                                                            U_ptr,
                                                             Partition_ptr,
+                                                            U_ptr,
+                                                            gamma_ptr,
                                                             Mstar_ptr
                                                             };
         std::swap(FullConditionals, fc);

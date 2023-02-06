@@ -17,6 +17,7 @@ public :
     virtual void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) = 0;
     void print() const;
     bool binary_decision(double p1, const sample::GSL_RNG& engine) const;
+    double log_raising_factorial(const unsigned int& n, const double& a)const;
     virtual ~FullConditional() = default;
 };
 #endif

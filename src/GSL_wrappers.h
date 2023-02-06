@@ -10,7 +10,7 @@
 #include <gsl/gsl_cdf.h> 	 //For cumulative density functions
 #include <gsl/gsl_bspline.h> //For spline operations
 #include <gsl/gsl_linalg.h> //For cholesky decomposition
-#include <gsl/gsl_sf.h>
+#include <gsl/gsl_sf.h>     //For special functions such as factorials
 
 //Load GDFMM traits
 using namespace GDFMM_Traits;

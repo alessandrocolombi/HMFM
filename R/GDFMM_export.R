@@ -359,6 +359,8 @@ arrange_partition = function(partition){
 #' @param Adapt_MH_hyp2 [double] default is 0.234.
 #' @param Adapt_MH_power_lim [double] default is 10.
 #' @param Adapt_MH_var0 [double] default is 1.
+#' @param proposal_Mstar [integer] must be strictly positive. The proposal distribution for Metropolis-Hasting update of Mstar is a discrete uniform
+#'        distribution between \code{-proposal_Mstar} and \code{proposal_Mstar}. 0 value is escluded. 
 #' @param alpha_gamma [double] the shape parameter in the prior of gamma.
 #' @param beta_gamma [double] the rate parameter in the prior of gamma.
 #' @param alpha_lambda [double] the shape parameter in the prior of lambda.
@@ -374,6 +376,7 @@ arrange_partition = function(partition){
 set_options = function( partition = NULL, Mstar0 = 2,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
+                        proposal_Mstar = 1,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         init_mean_cluster = NULL, init_var_cluster = NULL,
                         UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
@@ -381,6 +384,7 @@ set_options = function( partition = NULL, Mstar0 = 2,
 {
   option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
+               "proposal_Mstar" = proposal_Mstar,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
                "init_mean_cluster" = init_mean_cluster, "init_var_cluster" = init_var_cluster,
@@ -446,6 +450,11 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
                                      option$mu0, sqrt(option$init_var_cluster/option$k0))
   if(length(option$init_mean_cluster)!=K_init+option$Mstar0)
     stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0")
+
+  # Check proposal for Mstar
+  option$proposal_Mstar = floor(option$proposal_Mstar)  
+  if(option$proposal_Mstar <= 0)
+    stop("proposal_Mstar must be a strictly positive integer")
 
 
   #if( any(is.na(data)) )

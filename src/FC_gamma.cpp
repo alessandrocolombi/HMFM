@@ -30,11 +30,44 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     double gamma_new;
     double ln_acp;
     double ln_u;
-    double ww_g;
+    double ww_g{ pow(iter + 1,-hyp2) };
     
+
+    double log_gammaj_new{0.0};
+    double gammaj_new{0.0};
     // Rcpp::Rcout<<"iter="<<iter<<std::endl;
     
-    for (unsigned int j=0;j<d;j++){
+    for (unsigned int j=0; j<d; j++){
+        // ---------------------------------------------------
+        // ADAPTIVE MH UPDATE for positive valued random vector
+        // ---------------------------------------------------
+        // Update of gamma_j via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
+        //1) Sample proposed value in log scale
+        log_gammaj_new = rnorm(gs_engine, std::log(gamma[j]), std::sqrt(adapt_var_pop_gamma[j]));
+        gammaj_new = std::exp(log_gammaj_new);
+        
+        //2) Compute acceptance probability in log scale
+        ln_acp = log_full_gamma(gammaj_new, Lambda, K, Mstar, N.row(j)) - 
+                 log_full_gamma(gamma[j],   Lambda, K, Mstar, N.row(j)) +
+                 log_gammaj_new  - std::log( gamma[j] );
+        
+        //3) Acceptance rejection step
+        ln_u = std::log(runif(gs_engine));
+        
+        if (ln_u  < ln_acp)
+            gs_data.gamma[j] = gammaj_new;
+
+        adapt_var_pop_gamma[j] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
+                                                    )  
+                                            );
+
+        if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
+            adapt_var_pop_gamma[j] = 1/pow(10, power);
+        }
+        if(adapt_var_pop_gamma[j] > pow(10,power)){
+            adapt_var_pop_gamma[j] = pow(10,power);
+        }
+        /*
         gamma_old= gamma[j];
         //Rcpp::Rcout<<"Gamma:"<<gamma[j]<<std::endl;
         lmedia = std::log(gamma_old);
@@ -59,17 +92,6 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         //Rcpp::Rcout << "gamma_" << j << gs_data.gamma[j] << update_status << std::endl;
         ww_g = pow(iter + 1, -hyp2);
 
-        /*
-        adapt_var_pop_gamma = adapt_var_pop_gamma *
-                                     std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) -hyp1));
-
-        if (adapt_var_pop_gamma < 1/pow(10, power)){
-            adapt_var_pop_gamma = 1/pow(10, power);
-        }
-        if(adapt_var_pop_gamma > pow(10,power)){
-            adapt_var_pop_gamma = pow(10,power);
-        }
-        */
         adapt_var_pop_gamma[j] *= std::exp(ww_g *(std::exp(std::min(0.0, ln_acp)) - hyp1));
 
         if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
@@ -78,12 +100,13 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         if(adapt_var_pop_gamma[j] > pow(10,power)){
             adapt_var_pop_gamma[j] = pow(10,power);
         }
+        */
 
     }
 }
 
 double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
-                unsigned int M_star,const GDFMM_Traits::MatUnsCol & n_jk){
+                                unsigned int M_star,const GDFMM_Traits::MatUnsCol & n_jk){
 
     // Computation of the output
     double out = l_dgamma(gamma, alpha, beta) + lgamma(gamma * (M_star + k)) - 
@@ -106,5 +129,5 @@ double FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) {
 
 // This is the log of a gamma density with parameters (a,b) evaluated in gamma
 double FC_gamma::l_dgamma(double gamma, double a, double b){
-    return a*std::log(b) + (a-1)*std::log(gamma) - b*gamma - std::lgamma(a);
+    return a*std::log(b) + (a-1.0)*std::log(gamma) - b*gamma - std::lgamma(a);
 }
