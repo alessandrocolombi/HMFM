@@ -11,7 +11,7 @@ predictive_marginal(idx_group, grid, fit, option, burnin = 0)
 
 \item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
 
-\item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
+\item{fit}{\link{list} the output of a conditional sampler, \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}}
 
 \item{option}{\link{list} the output of \code{\link{set_options_marginal}} function used to fit \code{\link{GDFMM_marginal_sampler}}.}
 

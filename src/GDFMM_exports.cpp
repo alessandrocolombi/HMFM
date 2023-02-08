@@ -11,12 +11,16 @@
 #include "GSL_wrappers.h"
 #include "GibbsSampler.h"
 #include "GibbsSamplerMarginal.h"
+#include "ConditionalSampler.h"
+
+
+# include "Individual.h"
 
 //' GDFMM sampler
 // [[Rcpp::export]]
 Rcpp::List GDFMM_sampler_c( Eigen::MatrixXd const & dat, unsigned int n_iter, unsigned int burn_in,
-			 					unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
-								bool FixPart, Rcpp::List option){
+			 				unsigned int thin , unsigned int seed, Rcpp::String P0_prior_name, 
+							bool FixPart, Rcpp::List option){
 	
 	// Note that there is not the //' @export command. The user can not call this function.
 	// I am afraid that Rcpp can take only Column major matrices. (not sure)
@@ -109,6 +113,161 @@ Rcpp::List GDFMM_marginal_sampler_c( Eigen::MatrixXd const & dat, unsigned int n
 								Rcpp::Named("Partition") = Gibbs.out.Partition,
 								Rcpp::Named("log_q") = Gibbs.out.log_q
 							);
+    
+}
+
+
+//' Test new data
+//' @export
+// [[Rcpp::export]]
+void Test_data(const Rcpp::List& data_list ){
+	
+	unsigned int n = Rcpp::as<unsigned int>(data_list["n"]);
+	unsigned int d = Rcpp::as<unsigned int>(data_list["d"]);
+	std::vector<unsigned int> n_j{ Rcpp::as<std::vector<unsigned int>>(data_list["n_j"]) };
+	std::vector<std::string> ID_i{ Rcpp::as<std::vector<std::string>>(data_list["ID_i"]) };
+	std::vector<unsigned int> s_i{ Rcpp::as<std::vector<unsigned int>>(data_list["s_i"]) };
+	Rcpp::IntegerMatrix N_ji    = Rcpp::as<Rcpp::IntegerMatrix>(data_list["N_ji"]);
+	Rcpp::NumericMatrix mean_ji = Rcpp::as<Rcpp::NumericMatrix>(data_list["mean_ji"]);
+	Rcpp::NumericMatrix var_ji  = Rcpp::as<Rcpp::NumericMatrix>(data_list["var_ji"]);
+
+
+	/*
+	Rcpp::Rcout<<"n = "<<n<<std::endl;
+	Rcpp::Rcout<<"d = "<<d<<std::endl;
+	Rcpp::Rcout<<"Stampo n_j: ";		
+	for(auto __v : n_j)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	Rcpp::Rcout<<"Stampo ID_i: ";		
+	for(auto __v : ID_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	Rcpp::Rcout<<"Stampo s_i: ";		
+	for(auto __v : s_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	Rcpp::Rcout<<"N_ji is a "<< N_ji.nrow() <<" x "<< N_ji.ncol()<<" matrix "<<std::endl;
+	Rcpp::Rcout<<"mean_ji is a "<< mean_ji.nrow() <<" x "<< mean_ji.ncol()<<" matrix "<<std::endl;
+	Rcpp::Rcout<<"var_ji is a "<< var_ji.nrow() <<" x "<< var_ji.ncol()<<" matrix "<<std::endl;
+	
+
+	Rcpp::Rcout<<"Stampo N_ji: "<<std::endl;
+	for (int i = 0; i < N_ji.nrow(); i++) {
+  		for (int j = 0; j < N_ji.ncol(); j++) {
+    		Rcpp::Rcout << N_ji(i, j) << " ";
+  		}
+  		Rcpp::Rcout << std::endl;
+	}
+	Rcpp::Rcout<<"Stampo mean_ji: "<<std::endl;
+	for (int i = 0; i < mean_ji.nrow(); ++i) {
+  		for (int j = 0; j < mean_ji.ncol(); ++j) {
+    		Rcpp::Rcout << mean_ji(i, j) << " ";
+  		}
+  		Rcpp::Rcout << std::endl;
+	}
+	Rcpp::Rcout<<"Stampo var_ji: "<<std::endl;
+	for (int i = 0; i < var_ji.nrow(); ++i) {
+  		for (int j = 0; j < var_ji.ncol(); ++j) {
+    		Rcpp::Rcout << var_ji(i, j) << " ";
+  		}
+  		Rcpp::Rcout << std::endl;
+	}
+	*/
+
+	std::vector<std::vector<Individual>> data;
+	data.resize(d);
+	for(size_t j = 0; j < d; j++)
+		data[j].reserve(n_j[j]);
+
+	//Individual Adamo( ID_i[0], (unsigned int)N_ji(0,0), mean_ji(0,0), var_ji(0,0) );
+	//Rcpp::Rcout<<"Adamo name = "<<Adamo.ID<<std::endl;
+	//Rcpp::Rcout<<"Adamo n_ji = "<<Adamo.n_ji<<std::endl;
+	//Rcpp::Rcout<<"Adamo mean_ji = "<<Adamo.mean_ji<<std::endl;
+	//Rcpp::Rcout<<"Adamo var_ji = "<<Adamo.var_ji<<std::endl;
+
+	Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
+	for(size_t j = 0; j < d; j++){
+		for(size_t i = 0; i < n; i++){
+			//Rcpp::Rcout<<j<<" , "<<i<<std::endl;
+			if(N_ji(j,i) > 0){
+				Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i) );
+				data[j].push_back(data_ji);
+			}
+		}
+		Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
+	}
+	//Rcpp::Rcout<<"data[3][0] name = "<<data[3][0].ID<<std::endl;
+	//Rcpp::Rcout<<"data[3][0] n_ji = "<<data[3][0].n_ji<<std::endl;
+	//Rcpp::Rcout<<"data[3][0] mean_ji = "<<data[3][0].mean_ji<<std::endl;
+	//Rcpp::Rcout<<"data[3][0] var_ji = "<<data[3][0].var_ji<<std::endl;
+	//Rcpp::Rcout<<"--------------------------"<<std::endl;
+	//Rcpp::Rcout<<"data[3][1] name = "<<data[3][1].ID<<std::endl;
+	//Rcpp::Rcout<<"data[3][1] n_ji = "<<data[3][1].n_ji<<std::endl;
+	//Rcpp::Rcout<<"data[3][1] mean_ji = "<<data[3][1].mean_ji<<std::endl;
+	//Rcpp::Rcout<<"data[3][1] var_ji = "<<data[3][1].var_ji<<std::endl;
+}
+
+//' MCMC_conditional_c
+// [[Rcpp::export]]
+Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list, 
+							   unsigned int n_iter, unsigned int burn_in, unsigned int thin , 
+							   unsigned int seed, Rcpp::String P0_prior_name, 
+							   bool FixPart, Rcpp::List option){
+	Rcpp::Rcout<<"Dentro conditional sampler"<<std::endl;
+    // Create object ConditionalSampler and sample
+	ConditionalSampler Gibbs(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
+    Gibbs.sample();
+
+	// Take output data from the sample
+	Rcpp::NumericMatrix gamma( Gibbs.d, n_iter, Gibbs.out.gamma.begin() );
+	Rcpp::NumericMatrix U( Gibbs.d, n_iter, Gibbs.out.U.begin() );
+	if(FixPart){
+		
+		return Rcpp::List::create( Rcpp::Named("K") = Gibbs.out.K,
+									Rcpp::Named("Mstar") = Gibbs.out.Mstar,
+									Rcpp::Named("mu") = Gibbs.out.mu,
+                                  	Rcpp::Named("sigma") = Gibbs.out.sigma,
+									Rcpp::Named("S") =  Gibbs.out.S,  
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = Gibbs.out.lambda,
+									Rcpp::Named("U") = U,
+									Rcpp::Named("log_sum") = Gibbs.out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
+									);
+	}
+	else{
+		const std::vector<std::vector< std::vector<unsigned int>>>& C = Gibbs.out.Ctilde;
+
+			//we need a better structure for C--> we save it as a vector instead of a matrix
+		std::vector<unsigned int> fprowvec; //final partition rowvec
+		
+		// store total number of data (i.e. cardinality{y_ji})
+		unsigned int n_data = std::accumulate(Gibbs.n_j.begin(), Gibbs.n_j.end(), 0);
+		Rcpp::NumericMatrix fpmatr(n_iter, n_data );  //final partition matrix
+
+		for (unsigned it = 0; it < n_iter; it++){
+			fprowvec.clear();
+			
+			for(unsigned j=0; j<Gibbs.d; j++){
+				fprowvec.insert(fprowvec.end(), C[it][j].begin(), C[it][j].end());
+			}
+			
+			fpmatr(it, Rcpp::_) = Rcpp::NumericMatrix( 1, n_data, fprowvec.begin() ); //fpmatr[it,:] in R notation
+		}
+
+		return Rcpp::List::create( Rcpp::Named("K") = Gibbs.out.K,
+									Rcpp::Named("Mstar") = Gibbs.out.Mstar,
+									Rcpp::Named("Partition") = fpmatr,
+									Rcpp::Named("mu") = Gibbs.out.mu,
+                                  	Rcpp::Named("sigma") = Gibbs.out.sigma,
+									Rcpp::Named("gamma") = gamma,
+									Rcpp::Named("lambda") = Gibbs.out.lambda,
+									Rcpp::Named("U") = U,
+									Rcpp::Named("S") =  Gibbs.out.S, 
+									Rcpp::Named("log_sum") = Gibbs.out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
+									);
+	}
     
 }
 

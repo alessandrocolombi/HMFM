@@ -1,7 +1,7 @@
-#include "Partition.h"
+#include "FC_Partition_mv.h"
 // Constructor 
-Partition::Partition(std::string na, const unsigned int d, const std::vector<unsigned int> & n_j,
-                    bool FixPart) : FullConditional(na,FixPart), Partition_fixed(FixPart){
+Partition_mv::Partition_mv(std::string na, const unsigned int d, const std::vector<unsigned int> & n_j, bool FixPart) : FullConditional(na,FixPart), Partition_fixed(FixPart)
+{
     //name = na;
     C.clear();
     for(size_t j = 0; j < d; j++){
@@ -11,7 +11,7 @@ Partition::Partition(std::string na, const unsigned int d, const std::vector<uns
 }
 
 // update method
-void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
+void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     if(Partition_fixed){
         // Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
     }
@@ -22,12 +22,12 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         unsigned int d = gs_data.d; // number of group
         unsigned int M = gs_data.M; // number of components
         
-        //GDFMM_Traits::MatRow& S = gs_data.S; // MODIFIED, PUT IT CONST AGAIN
         const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
         const std::vector<double>& mu = gs_data.mu; // Vector of means
         const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
-        
+        const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data;
+
         //Rcpp::Rcout<<"Stampo mu: ";        
         //for(auto __v : mu)
             //Rcpp::Rcout<<__v<<", ";
@@ -38,8 +38,7 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<__v<<", ";
         //Rcpp::Rcout<<std::endl;
         
-        // Define data taken from gs_data
-        const std::vector<std::vector<double>>& data = gs_data.data;
+ 
         // Create vector to store probabilities for the M components
         GDFMM_Traits::VecRow probs_vec(M);
         // Initialization of probs_max
@@ -52,7 +51,9 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                 // compute "probability" each m component for y_ji 
                 for(unsigned int m=0; m<M; m++){
 
-                    probs_vec(m) = log(S(j,m)) + log_norm(data[j][i], mu[m], sigma[m]);
+                    //Rcpp::Rcout<<"log_dmvnorm(mv_data["<<j<<"]["<<i<<"],mu["<<m<<"],sigma["<<m<<"]) = "<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
+                    probs_vec(m) = log(S(j,m)) + log_dmvnorm(mv_data[j][i],mu[m],sigma[m]);
+                
                 }
                 // get the maximum "probability"
                 probs_max = probs_vec.maxCoeff();
@@ -106,11 +107,11 @@ void Partition::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 }
 
 // support method
-double Partition::log_norm(double x, double u, double s) const {
-    //const double ONE_OVER_SQRT_2PI = 0.39894228040143267793994605993438;
-    //return log((ONE_OVER_SQRT_2PI/std::sqrt(s))*std::exp(-0.5*(x-u)*(x-u)/s));
+double Partition_mv::log_dmvnorm(const Individual& data_ji, const double& mu, const double& var) const {
     double two_pi = 2.0 * M_PI;
-    return(  -0.5*std::log(two_pi*s) - 
-            (0.5/s) * (x - u)*(x - u) 
+    return(  -0.5*data_ji.n_ji*std::log(two_pi*var) - 
+            (0.5/var) * ( (double)(data_ji.n_ji - 1)*data_ji.var_ji + 
+                          (double)data_ji.n_ji * (data_ji.mean_ji - mu)*(data_ji.mean_ji - mu) 
+                        )  
           );
 }

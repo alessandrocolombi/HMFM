@@ -920,10 +920,10 @@ pred_uninorm <- function(idx_group, grid, fit){
 
 #' predictive
 #'
-#' This function computes the predictive distribution for group \code{idx_group} generated from the \code{\link{GDFMM_sampler}}.
+#' This function computes the predictive distribution for group \code{idx_group} generated from the \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}
 #' @param idx_group [integer] the index of the group of interest.
 #' @param grid [vector] a grid where the normal kernel is evaluated.
-#' @param fit [list] the output of \code{\link{GDFMM_sampler}}
+#' @param fit [list] the output of a conditional sampler, \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}
 #' @param burnin [integer] the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.
 #'
 #' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
@@ -1576,3 +1576,137 @@ Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
 }
 
 
+#' Handle input
+#'
+#' This function gets a tibble with three columns containing the data in long form. Data are handled and a list is returned.
+#' @param tb [tibble] a tibble with three columns. First column contains the ID of the data, 
+#' second column contains the level membership of each data. Finally, the third column contains the numerical value of the variabile
+#' @export
+input_handle = function(tb){
+  
+  # set names
+  names(tb) = c("ID","level","value")
+  tb = tb %>% ungroup()
+  IDs  = tb %>% distinct(ID) %>% pull(ID)
+  # compute number of individuals in each level
+  n_j = tb %>% distinct(ID,level) %>% 
+               group_by(level) %>% 
+               summarise(count = n()) %>% 
+               pull(count)
+  
+  # compute number of levels
+  d = length(n_j)
+  
+  # compute number of individuals
+  n = tb %>% group_by(ID) %>% 
+             summarise(n()) %>% 
+             nrow()
+  
+  # compute quantities for each individual i in level j
+  N_ji = matrix(0,nrow = d, ncol = n)
+  mean_ji = matrix(0,nrow = d, ncol = n)
+  var_ji  = matrix(0,nrow = d, ncol = n)
+  s_i  = rep(0,n)
+  for(i in 1:n) {
+    temp_i = tb %>% filter(ID == IDs[i]) %>% group_by(level) %>% 
+      summarise(count = n(), mean = mean(value), var = var(value)) %>% 
+      select(count, mean, var,level) %>% mutate(level = as.integer(level)) %>% as.matrix()
+    
+    temp_i[is.na(temp_i[,3]),3] = 0
+    s_i[i] = nrow(temp_i)
+    
+    # save
+    N_ji[as.numeric(temp_i[,4]),i]    = as.numeric(temp_i[,1])
+    mean_ji[as.numeric(temp_i[,4]),i] = as.numeric(temp_i[,2])
+    var_ji[as.numeric(temp_i[,4]),i]  = as.numeric(temp_i[,3])
+    
+  }
+  
+  return( list("n"=n,
+               "d"=d,
+               "n_j"=n_j,
+               "ID_i" = as.character(IDs),
+               "s_i"=s_i,
+               "N_ji"=N_ji,
+               "mean_ji"=mean_ji,
+               "var_ji"=var_ji)
+        )
+  
+}
+
+
+#' Conditional Sampler: function to run the GDFMM model. There is the possibility to fix
+#'                      the partition, passing TRUE to FixPartition and specifying the
+#'                      partion in the option. Default prior for P0 is an inverse gamma
+#'
+#' @param data [tibble], the input data. This must be the return object of \code{\link{handle_input}}
+#' @param niter [integer], the number of iterations
+#' @param burnin [integer], the burnin period
+#' @param thin [integer], the thinning value
+#' @param seed [integer], the seed for GSL random engine (0 ==> random seed)
+#' @param P0.prior [string] with the prior to be used as P0
+#' @param FixPartition TRUE if we want to fix the partition
+#' @param option [list] the output of \code{\link{set_options}} function
+#' @export
+ConditionalSampler <- function(data, niter, burnin, thin, seed,
+                               P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
+
+  # check input data
+  names_data_input = c("n","d","n_j","ID_i","s_i","N_ji","mean_ji","var_ji")
+  if(length(data) != length(names_data_input))
+    stop("data input is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
+  if(!all(names(data) == names_data_input ))
+    stop("data input parameter is malformed. The names are not the expected ones. Use set_options() function to set them correctely.")
+
+  #get number of data points
+  n = data$n
+
+  #Check option to be in the correct form
+  option_temp = set_options(partition = NULL)
+  if(is.null(option)) # no option, set default
+    option = option_temp
+
+  if(length(option) != length(option_temp))
+    stop("option parameter is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
+  if(!all(names(option) == names(option_temp) ))
+    stop("option parameter is malformed. The names are not the expected ones. Use set_options() function to set them correctely.")
+
+  #Check partiton
+  if(is.null(option$partition)){ # set empty partition
+    if(FixPartition)
+        stop("If FixPartition is selected, a partition must be provided in option$partition")
+    option$partition = rep(0,n)
+  }else{
+    cat("\n Check that provided partition is well formed. It must start from 0 and all values must be contiguous \n")
+    option$partition = arrange_partition(option$partition)
+
+    # check that partiton and data are coherent
+    if(n != length(option$partition))
+      stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
+  }
+
+  # Check initial values for tau
+  K_init = length(table(option$partition)) # compute initial number of clusters
+  if(is.null(option$init_var_cluster))
+    option$init_var_cluster = rgamma(n=K_init+option$Mstar0,
+                                     shape = option$nu0/2,
+                                     rate  = option$nu0*option$sigma0/2 )
+  if(length(option$init_var_cluster)!=K_init+option$Mstar0)
+    stop("The length of option$init_var_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0 ")
+  if(is.null(option$init_mean_cluster))
+    option$init_mean_cluster = rnorm(n=K_init+option$Mstar0,
+                                     option$mu0, sqrt(option$init_var_cluster/option$k0))
+  if(length(option$init_mean_cluster)!=K_init+option$Mstar0)
+    stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0")
+
+  # Check proposal for Mstar
+  option$proposal_Mstar = floor(option$proposal_Mstar)  
+  if(option$proposal_Mstar <= 0)
+    stop("proposal_Mstar must be a strictly positive integer")
+
+
+  #if( any(is.na(data)) )
+    #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
+
+  return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
+}

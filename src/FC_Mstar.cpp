@@ -25,7 +25,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const double& log_sum = gs_data.log_sum;
         const GDFMM_Traits::MatUnsCol& N = gs_data.N; // dxK matrix; 
         
-        if(d == 0){
+        if(d < 50){
 
 
             // Random sampler for the Poisson Distribution is created

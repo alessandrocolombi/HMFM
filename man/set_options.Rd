@@ -15,6 +15,7 @@ set_options(
   Adapt_MH_hyp2 = 0.234,
   Adapt_MH_power_lim = 10,
   Adapt_MH_var0 = 1,
+  proposal_Mstar = 1,
   k0 = 1/10,
   nu0 = 10,
   alpha_gamma = 1,
@@ -51,6 +52,9 @@ set_options(
 \item{Adapt_MH_power_lim}{\link{double} default is 10.}
 
 \item{Adapt_MH_var0}{\link{double} default is 1.}
+
+\item{proposal_Mstar}{\link{integer} must be strictly positive. The proposal distribution for Metropolis-Hasting update of Mstar is a discrete uniform
+distribution between \code{-proposal_Mstar} and \code{proposal_Mstar}. 0 value is escluded.}
 
 \item{k0}{\link{double} the parameter in the prior of mu.}
 

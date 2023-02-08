@@ -87,6 +87,64 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
 }
 
 
+GS_data::GS_data(   const std::vector<std::vector<Individual>>& _dat, 
+                    const std::vector<unsigned int>& _n_j, const unsigned int _d,
+                    const sample::GSL_RNG& gs_engine, 
+                    unsigned int _Mstar0, double _Lambda0, double _mu0,
+                    double _nu0, double _sigma0, double _gamma0, 
+                    const std::vector<double>& _init_mean_clus, const std::vector<double>& _init_var_clus, 
+                    std::string P0_prior_name, const std::vector<unsigned int>& _part_vec) : mv_data(_dat), n_j(_n_j), d(_d),
+                    lambda(_Lambda0),Mstar(_Mstar0), prior(P0_prior_name){
+
+    iterations = 0;
+    
+    // set dimensions for log_prob_marginal_data 
+    log_prob_marginal_data.resize(d); // set external dimension of log_prob_marginal_data
+    for (unsigned int j = 0; j < d; ++j) 
+        log_prob_marginal_data[j].resize(n_j[j]); // set inner dimension of log_prob_marginal_data
+
+    // Initialization of partition data structures
+    if( _part_vec.empty() ){
+        // Code should never arrive here
+        K = 1;
+        Mstar = _Mstar0;
+        M = K + Mstar;
+        initialize_Partition();
+        throw std::runtime_error("part_vec was found empty. This should no longer happen, why here? ");
+    }
+    else{
+        initialize_Partition(_part_vec); // this function initialize (K, M, Ctilde, N, N_k)
+    }
+    
+    // Initialization of gamma and U vector
+    gamma = std::vector<double>(d, _gamma0);
+    // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
+    U = std::vector<double>(d, 1.0);
+
+    //Initialize log_sum
+    update_log_sum();
+
+    // Random Initialization of S and tau form the prior
+    initialize_S(M, gs_engine); // inutile nel caso marginale ma non fa danni. NON va molto bene in ottica tener fisso S ad un valore iniziale!
+    // Rcpp::Rcout << "S matrix Initialized "<< std::endl;
+    initialize_tau(M, _init_mean_clus, _init_var_clus, _nu0, _mu0, _sigma0, gs_engine);
+        //Rcpp::Rcout << "tau Initialized "<< std::endl;
+        //Rcpp::Rcout << "mu: "<<std::endl;     
+        //for(auto __v : mu)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+        //Rcpp::Rcout << "sigma: "<<std::endl;     
+        //for(auto __v : sigma)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+
+    //set dimensions of vectors to compute mean and variance in clusters. They are not filled because their are not used in conditinal sampler
+    sum_cluster_elements.resize(K);
+    squared_sum_cluster_elements.resize(K);
+
+
+}
+
 void GS_data::update_log_sum(){
     log_sum = 0.0;
     //double psi_S = 0.0; //just for testing
@@ -251,6 +309,8 @@ void GS_data::update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
 
 void GS_data::initialize_sums_in_clusters()
 {
+    if(mv_data.size()!=0)
+        throw std::runtime_error("Error in initialize_sums_in_clusters. size of mv_data is not zero. What is going on? ");
     // For each cluster, compute the same of its elements and the squared sum of its elements
     for(unsigned int j = 0; j < d; j++){
         for(unsigned int i = 0; i < n_j[j]; i++){
@@ -280,6 +340,9 @@ void GS_data::compute_log_prob_marginal_data(double nu_0, double sigma_0, double
     const double mu0{mu_0};
     const double gamma0{std::sqrt(sigma_0*(k_0 + 1.0)/(k_0))};
 
+    if(mv_data.size()!=0)
+        throw std::runtime_error("Error in compute_log_prob_marginal_data. size of mv_data is not zero but this function is only for the one dimensional case. ");
+    
     for(unsigned int j=0; j<d; j++){
         for(unsigned int i=0; i<n_j[j]; i++){
             log_prob_marginal_data[j][i] =  std::lgamma( (n0+1.0)/2.0 ) - 

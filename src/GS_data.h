@@ -4,6 +4,7 @@
 #include "include_headers.h"
 #include "recurrent_traits.h"
 #include "GSL_wrappers.h"
+#include "Individual.h"
 
 struct GS_data{
     /* DATA */
@@ -20,6 +21,7 @@ struct GS_data{
     
     // vectors
     std::vector<std::vector<double>> data; // our data, y_ji
+    std::vector<std::vector<Individual>> mv_data; // our multivariate data, now each y_ji is a generic individual whose values are defined in a specific class
     std::vector< std::vector<unsigned int>> Ctilde; //output partition
     std::vector<unsigned int> n_j; // number of elements in  each group (dimension: d)
     std::vector<unsigned int> N_k; // number of elements in each cluster
@@ -57,6 +59,15 @@ struct GS_data{
                 double nu0, double sigma0, double _gamma0, 
                 std::vector<double> _init_mean_clus, std::vector<double> _init_var_clus, 
                 std::string P0_prior_name, std::vector<unsigned int> _part_vec);
+
+    // Constructor for multivariate data
+    GS_data(    const std::vector<std::vector<Individual>>& _dat, 
+                const std::vector<unsigned int>& _n_j, const unsigned int _d,
+                const sample::GSL_RNG& gs_engine, 
+                unsigned int _Mstar0, double _Lambda0, double _mu0,
+                double _nu0, double _sigma0, double _gamma0, 
+                const std::vector<double>& _init_mean_clus, const std::vector<double>& _init_var_clus, 
+                std::string P0_prior_name, const std::vector<unsigned int>& _part_vec);
 
     GS_data(){};
     ~GS_data(){};

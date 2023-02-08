@@ -9,7 +9,7 @@ predictive_new_group(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 \arguments{
 \item{grid}{\link{vector} a grid where the normal kernel is evaluated.}
 
-\item{fit}{\link{list} the output of \code{\link{GDFMM_sampler}}}
+\item{fit}{\link{list} the output of a conditional sampler, \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}}
 
 \item{burnin}{\link{integer} the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.}
 

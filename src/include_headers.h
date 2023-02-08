@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
+#include <tuple>
 
 //Generic
 #define _USE_MATH_DEFINES
