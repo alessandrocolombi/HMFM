@@ -2236,10 +2236,10 @@ burnin <-  10000
 thin   <-  1
 
 # gamma
-a_gamma <-   1; b_gamma  <- 100
+a_gamma <-   1; b_gamma  <- 20
 
 # lambda
-mu_lambda  = 10
+mu_lambda  = 20
 var_lambda =  2
 a_lambda = (mu_lambda*mu_lambda)/var_lambda
 b_lambda = mu_lambda/(var_lambda)
@@ -2370,6 +2370,54 @@ L1err = Compute_L1_dist(Pred = Pred_median,
 L1err
 ```
 
+```{r}
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+par(mfrow = c(4,5), mar = c(2,2,1,1))
+#par(mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  
+  # set colors
+  mycol_cluster = hcl.colors(n=K, palette = "Tropic")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  
+  # frequentist density
+  dj = density(data[j,1:n_j[j]])
+  yrange = range(Pred_all[[j]][3,]) + 0.001*max(Pred_all[[j]][3,])
+  
+  # Trick to add the grid below the plot
+  plot.new()
+  grid(lty = 1,lwd = 2,col = "gray90" )
+  par(new = TRUE)
+  
+  # plot
+  hist(data[j,1:n_j[j]], freq = F, breaks = n_j[j]/5,
+       main = paste0("Level = ",j), 
+       ylim = c(0,0.75), xlim = xrange,
+       ylab = "y-axis", xlab = "x-axis")
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 3)
+  #lines(x = grid, y = Pred_all[[j]][1,], col = "blue", lwd = 2, lty = 2) #0.025
+  #lines(x = grid, y = Pred_all[[j]][3,], col = "blue", lwd = 2, lty = 2) #0.975
+  polygon( c(grid, rev(grid)),
+           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+           col = ACutils::t_col(mycol[1], percent = 45))
+  lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
+  
+  points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+
+  idx_start = idx_end + 1
+    if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
 
 
 

@@ -187,7 +187,7 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
         sum_pi += data_ji.n_ji;
         mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.var_ji;
         sum_piX2 += data_ji.n_ji * data_ji.mean_ji * data_ji.mean_ji;
-        W += data_ji.mean_ji;
+        W += data_ji.n_ji*data_ji.mean_ji;
 
     }
     W = W/(double)sum_pi;

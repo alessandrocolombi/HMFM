@@ -25,7 +25,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const double& log_sum = gs_data.log_sum;
         const GDFMM_Traits::MatUnsCol& N = gs_data.N; // dxK matrix; 
         
-        if(d < 50){
+        if(d == 0){
 
 
             // Random sampler for the Poisson Distribution is created
@@ -50,7 +50,31 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             gs_data.M = k + gs_data.Mstar;
         }
         else{
+            /*
+            sample::sample_index sample_index;
+            sample::runif runif;
 
+            GDFMM_Traits::VecRow log_probs(11);
+            GDFMM_Traits::VecRow probs(11);
+
+            for(size_t m = 0; m <= 10; m++){
+                log_probs(m) = log_full_cond_Mstar(m, k, lambda, gamma, N);
+            }
+            double probs_max = log_probs.maxCoeff();
+
+            // scale values of probs_vec
+            for(size_t m = 0; m <= 10; m++){
+                probs(m) = exp(log_probs(m) - probs_max);
+             //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
+                if(std::isnan(probs(m)))
+                    throw std::runtime_error("Error in FC_Mstar.cpp, get a nan in log_probs ");
+            }
+             //Rcpp::Rcout<<std::endl;
+            // Assign y_ji to a component sampling from a multinomial
+            gs_data.Mstar = sample_index(gs_engine, probs);
+            gs_data.M = k + gs_data.Mstar;
+            */
+            // ORIGNAL VERSION
             //get sample index from GSL wrappers
             sample::sample_index sample_index;
             sample::runif runif;
@@ -93,6 +117,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
             // Update M in the Gibbs Sampler
             gs_data.M = k + gs_data.Mstar;
+            
         }    
 
 
