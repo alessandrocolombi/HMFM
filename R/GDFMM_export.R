@@ -1607,8 +1607,13 @@ input_handle = function(tb){
   mean_ji = matrix(0,nrow = d, ncol = n)
   var_ji  = matrix(0,nrow = d, ncol = n)
   s_i  = rep(0,n)
+  data = vector("list", length = d)
+  data = lapply(1:d, FUN = function(s){data[[s]] = vector("list", length = n) })
   for(i in 1:n) {
-    temp_i = tb %>% filter(ID == IDs[i]) %>% group_by(level) %>% 
+    filter_i = tb %>% filter(ID == IDs[i]) # filter for i-th individual
+    
+    # compute mean-var-number of observations for i-th individual in all d levels
+    temp_i = filter_i %>% group_by(level) %>% 
       summarise(count = n(), mean = mean(value), var = var(value)) %>% 
       select(count, mean, var,level) %>% mutate(level = as.integer(level)) %>% as.matrix()
     
@@ -1620,12 +1625,17 @@ input_handle = function(tb){
     mean_ji[as.numeric(temp_i[,4]),i] = as.numeric(temp_i[,2])
     var_ji[as.numeric(temp_i[,4]),i]  = as.numeric(temp_i[,3])
     
-  }
+    # fill data structure with all observation for individual i in all d levels
+    for(s in 1:d){
+      data[[s]][[i]] = filter_i %>% filter(level == s) %>% pull(value)
+    }  
   
+  }
   return( list("n"=n,
                "d"=d,
                "n_j"=n_j,
                "ID_i" = as.character(IDs),
+               "observations"=data,
                "s_i"=s_i,
                "N_ji"=N_ji,
                "mean_ji"=mean_ji,
@@ -1708,5 +1718,5 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   #if( any(is.na(data)) )
     #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
 
-  return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option))
+  return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )
 }

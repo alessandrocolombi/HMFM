@@ -130,6 +130,7 @@ void Test_data(const Rcpp::List& data_list ){
 	Rcpp::IntegerMatrix N_ji    = Rcpp::as<Rcpp::IntegerMatrix>(data_list["N_ji"]);
 	Rcpp::NumericMatrix mean_ji = Rcpp::as<Rcpp::NumericMatrix>(data_list["mean_ji"]);
 	Rcpp::NumericMatrix var_ji  = Rcpp::as<Rcpp::NumericMatrix>(data_list["var_ji"]);
+	Rcpp::List obs = Rcpp::as<Rcpp::List>(data_list["observations"]);
 
 
 	/*
@@ -181,6 +182,7 @@ void Test_data(const Rcpp::List& data_list ){
 	for(size_t j = 0; j < d; j++)
 		data[j].reserve(n_j[j]);
 
+
 	//Individual Adamo( ID_i[0], (unsigned int)N_ji(0,0), mean_ji(0,0), var_ji(0,0) );
 	//Rcpp::Rcout<<"Adamo name = "<<Adamo.ID<<std::endl;
 	//Rcpp::Rcout<<"Adamo n_ji = "<<Adamo.n_ji<<std::endl;
@@ -189,10 +191,21 @@ void Test_data(const Rcpp::List& data_list ){
 
 	Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
 	for(size_t j = 0; j < d; j++){
+		Rcpp::List obs_j = obs[j];
 		for(size_t i = 0; i < n; i++){
 			//Rcpp::Rcout<<j<<" , "<<i<<std::endl;
 			if(N_ji(j,i) > 0){
-				Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i) );
+
+				std::vector<double> obs_ji = Rcpp::as<std::vector<double>>(obs_j[i]);
+				Rcpp::Rcout<<"Stampo obs_"<<j<<i<<std::endl;
+
+				Rcpp::Rcout<<"Stampo obs_ji: ";        
+				for(auto __v : obs_ji)
+				    Rcpp::Rcout<<__v<<", ";
+				Rcpp::Rcout<<std::endl;
+
+				
+				Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji );
 				data[j].push_back(data_ji);
 			}
 		}
@@ -275,7 +288,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 //' Test
 //' @export
 // [[Rcpp::export]]
-void Test_Rcpp(){
+void Test_Rcpp(const Rcpp::List& data_list){
 
 	std::vector<double> vec_c(5);
 	std::iota(vec_c.begin(), vec_c.end(), 1.0);
@@ -315,7 +328,23 @@ void Test_Rcpp(){
 	for(auto __v : vec_rcpp_temp)
 		Rcpp::Rcout<<__v<<", ";
 	Rcpp::Rcout<<std::endl;
-	
+
+	// Leggo lista difficile
+	Rcpp::Rcout<<"Leggo lista di liste di vettori"<<std::endl;
+	unsigned int n = Rcpp::as<unsigned int>(data_list["n"]);
+	Rcpp::Rcout<<"Letto n"<<std::endl;
+    unsigned int d = Rcpp::as<unsigned int>(data_list["d"]);
+    Rcpp::Rcout<<"Letto d"<<std::endl;
+	Rcpp::List obs = Rcpp::as<Rcpp::List>(data_list["observations"]);
+	Rcpp::Rcout<<"Letto obs"<<std::endl;
+	for(size_t j = 0; j < d; j++){
+		Rcpp::List obs_j = obs[j];
+		Rcpp::Rcout<<"Letto obs_j"<<std::endl;
+	    for(size_t i = 0; i < n; i++){
+	        Rcpp::NumericVector obs_ji = obs_j[i];
+	    }
+	    //Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
+	}
 	
 } 
 

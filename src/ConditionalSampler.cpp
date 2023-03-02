@@ -35,8 +35,8 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
         Rcpp::IntegerMatrix N_ji    = Rcpp::as<Rcpp::IntegerMatrix>(_data_list["N_ji"]);
         Rcpp::NumericMatrix mean_ji = Rcpp::as<Rcpp::NumericMatrix>(_data_list["mean_ji"]);
         Rcpp::NumericMatrix var_ji  = Rcpp::as<Rcpp::NumericMatrix>(_data_list["var_ji"]);
+        Rcpp::List obs = Rcpp::as<Rcpp::List>(_data_list["observations"]);
 
-        // create data structure
         std::vector<std::vector<Individual>> data;
         data.resize(d);
         for(size_t j = 0; j < d; j++)
@@ -44,10 +44,11 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
 
         //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
         for(size_t j = 0; j < d; j++){
+            Rcpp::List obs_j = obs[j];
             for(size_t i = 0; i < n; i++){
-                
                 if(N_ji(j,i) > 0){
-                    Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i) );
+                    std::vector<double> obs_ji = Rcpp::as<std::vector<double>>(obs_j[i]);
+                    Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji );
                     data[j].push_back(data_ji);
                 }
             }

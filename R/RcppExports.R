@@ -24,8 +24,8 @@ MCMC_conditional_c <- function(data_list, n_iter, burn_in, thin, seed, P0_prior_
 
 #' Test
 #' @export
-Test_Rcpp <- function() {
-    invisible(.Call(`_GDFMM_Test_Rcpp`))
+Test_Rcpp <- function(data_list) {
+    invisible(.Call(`_GDFMM_Test_Rcpp`, data_list))
 }
 
 #' Falling Factorial - Raf

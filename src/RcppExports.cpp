@@ -77,11 +77,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // Test_Rcpp
-void Test_Rcpp();
-RcppExport SEXP _GDFMM_Test_Rcpp() {
+void Test_Rcpp(const Rcpp::List& data_list);
+RcppExport SEXP _GDFMM_Test_Rcpp(SEXP data_listSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Test_Rcpp();
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type data_list(data_listSEXP);
+    Test_Rcpp(data_list);
     return R_NilValue;
 END_RCPP
 }
@@ -648,7 +649,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_marginal_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_marginal_sampler_c, 8},
     {"_GDFMM_Test_data", (DL_FUNC) &_GDFMM_Test_data, 1},
     {"_GDFMM_MCMC_conditional_c", (DL_FUNC) &_GDFMM_MCMC_conditional_c, 8},
-    {"_GDFMM_Test_Rcpp", (DL_FUNC) &_GDFMM_Test_Rcpp, 0},
+    {"_GDFMM_Test_Rcpp", (DL_FUNC) &_GDFMM_Test_Rcpp, 1},
     {"_GDFMM_falling_factorial", (DL_FUNC) &_GDFMM_falling_factorial, 2},
     {"_GDFMM_calcola_stirling", (DL_FUNC) &_GDFMM_calcola_stirling, 3},
     {"_GDFMM_calcola_stirling_ricor", (DL_FUNC) &_GDFMM_calcola_stirling_ricor, 3},
