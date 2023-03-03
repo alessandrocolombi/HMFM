@@ -77,12 +77,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // Test_Rcpp
-void Test_Rcpp(const Rcpp::List& data_list);
-RcppExport SEXP _GDFMM_Test_Rcpp(SEXP data_listSEXP) {
+void Test_Rcpp(const Rcpp::NumericMatrix& X);
+RcppExport SEXP _GDFMM_Test_Rcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type data_list(data_listSEXP);
-    Test_Rcpp(data_list);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type X(XSEXP);
+    Test_Rcpp(X);
     return R_NilValue;
 END_RCPP
 }

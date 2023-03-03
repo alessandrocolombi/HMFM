@@ -21,6 +21,7 @@ struct out_data{
   std::vector< Rcpp::NumericVector > mu; 
   std::vector< Rcpp::NumericVector > sigma;
   std::vector< GDFMM_Traits::MatRow > S;
+  std::vector< GDFMM_Traits::MatRow > beta;
   // if partition is fixed estimated weights for the components are stored in w_jk
   std::vector<GDFMM_Traits::MatRow> w_jk; //POSSO TOGLIERE COMPLETAMENTE IL CALCOLO DEI w_jk??
 

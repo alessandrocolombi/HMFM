@@ -18,7 +18,8 @@ class FC_tau_mv: public FullConditional {
         std::tuple<double,double,double,unsigned int> 
         compute_cluster_summaries(  const std::vector<unsigned int>& ind_i, 
                                     const std::vector<unsigned int>& ind_j, 
-                                    const std::vector<std::vector<Individual>>& data)const;
+                                    const std::vector<std::vector<Individual>>& data,
+                                    const GDFMM_Traits::MatRow& beta )const;
         FC_tau_mv(bool _keepfixed) : FullConditional("tau", _keepfixed){};
         FC_tau_mv(std::string na, double nu0, double sigma0, double mu0, double k0, bool _keepfixed):FullConditional(na,_keepfixed),
                     nu_0(nu0), sigma_0(sigma0), mu_0(mu0), k_0(k0) {};

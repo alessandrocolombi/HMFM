@@ -243,6 +243,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 									Rcpp::Named("mu") = Gibbs.out.mu,
                                   	Rcpp::Named("sigma") = Gibbs.out.sigma,
 									Rcpp::Named("S") =  Gibbs.out.S,  
+									Rcpp::Named("beta") =  Gibbs.out.beta,  
 									Rcpp::Named("gamma") = gamma,
 									Rcpp::Named("lambda") = Gibbs.out.lambda,
 									Rcpp::Named("U") = U,
@@ -278,6 +279,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 									Rcpp::Named("lambda") = Gibbs.out.lambda,
 									Rcpp::Named("U") = U,
 									Rcpp::Named("S") =  Gibbs.out.S, 
+									Rcpp::Named("beta") =  Gibbs.out.beta,  
 									Rcpp::Named("log_sum") = Gibbs.out.log_prod_psiU //il parametro della Poisson di Mstar è lambda*exp(-log_sum)
 									);
 	}
@@ -285,10 +287,11 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 }
 
 
+
 //' Test
 //' @export
 // [[Rcpp::export]]
-void Test_Rcpp(const Rcpp::List& data_list){
+void Test_Rcpp(const Rcpp::NumericMatrix& X){
 
 	std::vector<double> vec_c(5);
 	std::iota(vec_c.begin(), vec_c.end(), 1.0);
@@ -329,23 +332,10 @@ void Test_Rcpp(const Rcpp::List& data_list){
 		Rcpp::Rcout<<__v<<", ";
 	Rcpp::Rcout<<std::endl;
 
-	// Leggo lista difficile
-	Rcpp::Rcout<<"Leggo lista di liste di vettori"<<std::endl;
-	unsigned int n = Rcpp::as<unsigned int>(data_list["n"]);
-	Rcpp::Rcout<<"Letto n"<<std::endl;
-    unsigned int d = Rcpp::as<unsigned int>(data_list["d"]);
-    Rcpp::Rcout<<"Letto d"<<std::endl;
-	Rcpp::List obs = Rcpp::as<Rcpp::List>(data_list["observations"]);
-	Rcpp::Rcout<<"Letto obs"<<std::endl;
-	for(size_t j = 0; j < d; j++){
-		Rcpp::List obs_j = obs[j];
-		Rcpp::Rcout<<"Letto obs_j"<<std::endl;
-	    for(size_t i = 0; i < n; i++){
-	        Rcpp::NumericVector obs_ji = obs_j[i];
-	    }
-	    //Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
-	}
-	
+	Rcpp::Rcout<<"test matrice"<<std::endl;
+    Eigen::Map<Eigen::MatrixXd> X_eig(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(X));
+    Rcpp::Rcout<<"X_eig:"<<std::endl<<X_eig<<std::endl;
+
 } 
 
 #endif

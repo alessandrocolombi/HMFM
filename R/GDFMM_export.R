@@ -355,6 +355,9 @@ arrange_partition = function(partition){
 #' @param k0 [double] the parameter in the prior of mu.
 #' @param sigma0 [double] the rate parameter in the prior of sigma.
 #' @param nu0 [double] the shape parameter in the prior of sigma.
+#' @param beta0 [double] the prior mean for the regression coefficients.
+#' @param Sigma0 [double] the prior covariance matrix for the regression coefficients.
+#' @param IncludeCovariates [bool] set \code{TRUE} if covariates are provided.
 #' @param Adapt_MH_hyp1 [double] default is 0.7.
 #' @param Adapt_MH_hyp2 [double] default is 0.234.
 #' @param Adapt_MH_power_lim [double] default is 10.
@@ -371,25 +374,29 @@ arrange_partition = function(partition){
 #' @param UpdateS [bool] set \code{TRUE} if S must be updated. Set \code{FALSE} to fix it to a common value.
 #' @param UpdateTau [bool] set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.
 #' @param UpdateLambda [bool] set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.
+#' @param UpdateBeta [bool] set \code{TRUE} if Beta must be updated. Set \code{FALSE} to fix it to a common value.
 #'
 #' @export
 set_options = function( partition = NULL, Mstar0 = 2,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        beta0 = c(0,0), Sigma0 = 10*diag(2),
+                        IncludeCovariates = FALSE,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
                         proposal_Mstar = 1,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
                         init_mean_cluster = NULL, init_var_cluster = NULL,
-                        UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T
+                        UpdateU = T, UpdateM = T, UpdateGamma = T, UpdateS = T, UpdateTau = T, UpdateLambda = T, UpdateBeta = F
 )
 {
   option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+                "beta0" = beta0, "Sigma0" = Sigma0, "IncludeCovariates" = IncludeCovariates,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
                "proposal_Mstar" = proposal_Mstar,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,
                "beta_gamma"=beta_gamma, "alpha_lambda"=alpha_lambda, "beta_lambda"=beta_lambda,
                "init_mean_cluster" = init_mean_cluster, "init_var_cluster" = init_var_cluster,
                "UpdateU" = UpdateU, "UpdateM" = UpdateM, "UpdateGamma" = UpdateGamma, "UpdateS" = UpdateS,
-               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "partition" = partition
+               "UpdateTau" = UpdateTau, "UpdateLambda" = UpdateLambda, "UpdateBeta" = UpdateBeta, "partition" = partition
   )
   return (option)
 }
@@ -1585,7 +1592,11 @@ Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
 input_handle = function(tb){
   
   # set names
-  names(tb) = c("ID","level","value")
+  ncol_tb = ncol(tb)
+  r = ncol_tb - 3 # number of covariates
+  names(tb)[1:3] = c("ID","level","value")
+  cov_names = names(tb)[4:ncol_tb]
+
   tb = tb %>% ungroup()
   IDs  = tb %>% distinct(ID) %>% pull(ID)
   # compute number of individuals in each level
@@ -1603,40 +1614,75 @@ input_handle = function(tb){
              nrow()
   
   # compute quantities for each individual i in level j
-  N_ji = matrix(0,nrow = d, ncol = n)
-  mean_ji = matrix(0,nrow = d, ncol = n)
-  var_ji  = matrix(0,nrow = d, ncol = n)
-  s_i  = rep(0,n)
-  data = vector("list", length = d)
+  N_ji = matrix(0,nrow = d, ncol = n) # number of observations for individual i in level j
+  mean_ji = matrix(0,nrow = d, ncol = n) # mean of observations for individual i in level j
+  var_ji  = matrix(0,nrow = d, ncol = n) # variance of observations for individual i in level j
+  #s_i  = rep(0,n) # number of levels in which individual i apprears
+
+  data = vector("list", length = d) # list containing all observed values, for each level and for each individual
   data = lapply(1:d, FUN = function(s){data[[s]] = vector("list", length = n) })
+
+  cov_list = vector("list", length = d) # list containing all covariates, for each level and for each individual
+  cov_list = lapply(1:d, FUN = function(s){cov_list[[s]] = vector("list", length = n) })
+
+  if(r > 0)
+    formula <- as.formula( paste("value ~ ", paste(cov_names, collapse = "+")) )
+  
   for(i in 1:n) {
     filter_i = tb %>% filter(ID == IDs[i]) # filter for i-th individual
     
-    # compute mean-var-number of observations for i-th individual in all d levels
-    temp_i = filter_i %>% group_by(level) %>% 
-      summarise(count = n(), mean = mean(value), var = var(value)) %>% 
-      select(count, mean, var,level) %>% mutate(level = as.integer(level)) %>% as.matrix()
+              ### compute mean-var-number of observations for i-th individual in all d levels
+              ##temp_i = filter_i %>% group_by(level) %>% 
+                ##summarise(count = n(), mean = mean(value), var = var(value)) %>% 
+                ##select(count, mean, var,level) %>% mutate(level = as.integer(level)) %>% as.matrix()
+          ##    
+              ##temp_i[is.na(temp_i[,3]),3] = 0
+              ##s_i[i] = nrow(temp_i)
+          ##    
+              ### save
+              ##N_ji[as.numeric(temp_i[,4]),i]    = as.numeric(temp_i[,1])
+              ##mean_ji[as.numeric(temp_i[,4]),i] = as.numeric(temp_i[,2])
+              ##var_ji[as.numeric(temp_i[,4]),i]  = as.numeric(temp_i[,3])
     
-    temp_i[is.na(temp_i[,3]),3] = 0
-    s_i[i] = nrow(temp_i)
-    
-    # save
-    N_ji[as.numeric(temp_i[,4]),i]    = as.numeric(temp_i[,1])
-    mean_ji[as.numeric(temp_i[,4]),i] = as.numeric(temp_i[,2])
-    var_ji[as.numeric(temp_i[,4]),i]  = as.numeric(temp_i[,3])
-    
-    # fill data structure with all observation for individual i in all d levels
-    for(s in 1:d){
-      data[[s]][[i]] = filter_i %>% filter(level == s) %>% pull(value)
+    # fill data structure 
+    for(j in 1:d){
+      temp_ji = filter_i %>% filter(level == j)
+      data_ji = temp_ji %>% pull(value) # get all observation for individual i in all d levels
+      data[[j]][[i]] = data_ji
+      N_ji[j,i] = length(data_ji) # compute number of observations
+
+      if(N_ji[j,i] > 0)
+        mean_ji[j,i] = mean(data_ji) # compute mean
+      
+      # compute variance, if not defined set 0
+      if(N_ji[j,i] > 1)
+        var_ji[j,i] = var(data_ji)
+
+      # get design matrix for observation i in level j
+      if(r > 0){
+        if(N_ji[j,i] == 0){
+          cov_list[[j]][[i]] = NA
+        }else if(N_ji[j,i] == 1){
+          covariates = model.matrix( formula, data = temp_ji )[,-1]
+          cov_list[[j]][[i]] = matrix(covariates, nrow = 1, ncol = r)
+        }else{
+          cov_list[[j]][[i]] = model.matrix( formula, data = temp_ji )[,-1]
+        }
+      }
+      
+      
     }  
   
   }
+  if(r == 0)
+    cov_list = NULL
   return( list("n"=n,
                "d"=d,
+               "r"=r,
                "n_j"=n_j,
                "ID_i" = as.character(IDs),
-               "observations"=data,
-               "s_i"=s_i,
+               "observations"=data,#"s_i"=s_i,
+               "covariates" = cov_list,
                "N_ji"=N_ji,
                "mean_ji"=mean_ji,
                "var_ji"=var_ji)
@@ -1662,7 +1708,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
                                P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
 
   # check input data
-  names_data_input = c("n","d","n_j","ID_i","s_i","N_ji","mean_ji","var_ji")
+  names_data_input = c("n","d","r","n_j","ID_i","observations","covariates","N_ji","mean_ji","var_ji")
   if(length(data) != length(names_data_input))
     stop("data input is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
   if(!all(names(data) == names_data_input ))
@@ -1714,9 +1760,15 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   if(option$proposal_Mstar <= 0)
     stop("proposal_Mstar must be a strictly positive integer")
 
-
-  #if( any(is.na(data)) )
-    #stop("There are nan in data") --> per come sto passando i dati non posso fare questo controllo. malissimo in ottica missing data
-
+  # check covariates
+  if(option$IncludeCovariates)
+  {
+    r = data$r
+    if(length(option$beta0)!= r || nrow(option$Sigma0) != r || ncol(option$Sigma0) != r  )
+      stop("The number of covariates r that is defined in data is not coherent with the size of beta0 or Sigma0 provided in options.")  
+    if(  min(eigen(option$Sigma0)$values) <= 1e-14  )
+      stop("Sigma0 is not positive definite or it is very ill conditioned.")
+  }
+  
   return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )
 }

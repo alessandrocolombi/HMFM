@@ -19,6 +19,7 @@
 #include "FC_Mstar.h"
 #include "FC_gamma.h"
 #include "FC_Partition_mv.h"
+#include "FC_beta_mv.h"
 #include "GS_data.h"
 #include "out_data.h"
 #include "Individual.h"
@@ -35,6 +36,7 @@ public:
     // data parameters
     unsigned int n;
     unsigned int d;
+    unsigned int r;
     std::vector<unsigned int> n_j;
     std::vector<std::string> ID_i;
     std::vector<unsigned int> s_i;

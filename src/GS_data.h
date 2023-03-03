@@ -11,6 +11,7 @@ struct GS_data{
 
     // single values
     unsigned int d; // number of levels
+    unsigned int r; // number of covariates
     unsigned int iterations;
     unsigned int K; // number of allocated component ==> number of clusters
     unsigned int Mstar; // number of NON-allocated component
@@ -18,7 +19,7 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     //double nu; // S_jm ~ gamma(gamma_j, nu), da togliere
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
-    
+
     // vectors
     std::vector<std::vector<double>> data; // our data, y_ji
     std::vector<std::vector<Individual>> mv_data; // our multivariate data, now each y_ji is a generic individual whose values are defined in a specific class
@@ -38,6 +39,7 @@ struct GS_data{
     
     // matrix or vector of vectors
     GDFMM_Traits::MatRow S; // dxM matrix; allocated and NON-alloc together
+    GDFMM_Traits::MatRow beta; // dxr matrix; regression coefficients
     GDFMM_Traits::MatUnsCol N; // dxK matrix; only allocated components have n_jk>0
 
     //-----------------------------------------------------------//
@@ -62,10 +64,11 @@ struct GS_data{
 
     // Constructor for multivariate data
     GS_data(    const std::vector<std::vector<Individual>>& _dat, 
-                const std::vector<unsigned int>& _n_j, const unsigned int _d,
+                const std::vector<unsigned int>& _n_j, const unsigned int _d, const unsigned int _r,
                 const sample::GSL_RNG& gs_engine, 
                 unsigned int _Mstar0, double _Lambda0, double _mu0,
                 double _nu0, double _sigma0, double _gamma0, 
+                const GDFMM_Traits::VecCol& _beta0, const GDFMM_Traits::MatCol& _Sigma0,
                 const std::vector<double>& _init_mean_clus, const std::vector<double>& _init_var_clus, 
                 std::string P0_prior_name, const std::vector<unsigned int>& _part_vec);
 

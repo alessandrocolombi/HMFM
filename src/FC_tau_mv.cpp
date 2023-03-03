@@ -12,7 +12,8 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of partition
     const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; //matrix of data we don't copy it since data can be big but we use a pointer
     const std::string& prior = gs_data.prior; // identifier of the prior adopted for the model - togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
-    
+    const GDFMM_Traits::MatRow& beta = gs_data.beta; // dxr matrix of regression coefficients
+
     // Initialize ind_i, ind_j
     std::vector<unsigned int> ind_i; // i index of C elements
     std::vector<unsigned int> ind_j;// j index of C elements
@@ -102,7 +103,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<std::endl;
 
 
-            std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data);
+            std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data,beta);
             //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
             //Rcpp::Rcout<<"data_var_term:"<<std::endl<<data_var_term<<std::endl;
             //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
@@ -169,7 +170,8 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 std::tuple<double,double,double,unsigned int>  
 FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i, 
                                        const std::vector<unsigned int>& ind_j, 
-                                       const std::vector<std::vector<Individual>>& data)const
+                                       const std::vector<std::vector<Individual>>& data,
+                                       const GDFMM_Traits::MatRow& beta )const
 {
     // get number of elements in the cluster
     //unsigned int N_m{ind_i.size()};
@@ -185,9 +187,9 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
 
         const Individual& data_ji = data.at(ind_j[ii]).at(ind_i[ii]);
         sum_pi += data_ji.n_ji;
-        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.var_ji;
-        sum_piX2 += data_ji.n_ji * data_ji.mean_ji * data_ji.mean_ji;
-        W += data_ji.n_ji*data_ji.mean_ji;
+        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Ybar_star_ji;
+        sum_piX2 += data_ji.n_ji * data_ji.Ybar_star_ji * data_ji.Ybar_star_ji;
+        W += data_ji.n_ji*data_ji.mean_ji - data_ji.z_ji.dot( beta.row(ind_j[ii]) );
 
     }
     W = W/(double)sum_pi;

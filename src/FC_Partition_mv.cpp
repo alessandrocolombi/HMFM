@@ -110,8 +110,8 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 double Partition_mv::log_dmvnorm(const Individual& data_ji, const double& mu, const double& var) const {
     double two_pi = 2.0 * M_PI;
     return(  -0.5*data_ji.n_ji*std::log(two_pi*var) - 
-            (0.5/var) * ( (double)(data_ji.n_ji - 1)*data_ji.var_ji + 
-                          (double)data_ji.n_ji * (data_ji.mean_ji - mu)*(data_ji.mean_ji - mu) 
+            (0.5/var) * ( (double)(data_ji.n_ji - 1)*data_ji.Vstar_ji + 
+                          (double)data_ji.n_ji * (data_ji.Ybar_star_ji - mu)*(data_ji.Ybar_star_ji - mu) 
                         )  
           );
 }
