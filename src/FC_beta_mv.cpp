@@ -3,6 +3,7 @@
 
 void FC_beta_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
+	
 	//Retrive all data needed from gs_data
 	const unsigned int& d = gs_data.d; // number of groups
 	const unsigned int& r = gs_data.r; //number of covariates
@@ -43,19 +44,16 @@ void FC_beta_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 		GDFMM_Traits::MatCol prec_post = invSigma0 + invSigma1 ; // compute the posterior precision matrix
 		GDFMM_Traits::MatCol cov_post = prec_post.llt().solve(I) ; // invert the posterior precision matrix to obtain the posterior covariance matrix
 		GDFMM_Traits::VecCol post_mean = cov_post * (invSigma0beta0 + beta1); // compute the posterior mean
-		
 		beta.row(j) = rmv(gs_engine, post_mean, cov_post); // sample and update beta_j
 
 	}
-
 	update_data_summary_statistics(gs_data);
-
 }
 
 void FC_beta_mv::update_data_summary_statistics(GS_data& gs_data){
+
 	//Retrive all data needed from gs_data
 	const unsigned int& d = gs_data.d; // number of groups
-	const unsigned int& r = gs_data.r; //number of covariates
 	const std::vector<unsigned int>& n_j = gs_data.n_j; // number of observations per group
 	std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; //matrix of data we don't copy it since data can be big but we use a pointer
 	GDFMM_Traits::MatRow& beta = gs_data.beta; // dxr matrix of regression coefficients

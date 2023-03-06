@@ -125,6 +125,7 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
         auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
         auto beta_ptr = std::make_shared<FC_beta_mv>("beta", beta0, Sigma0, FixedBeta);
 
+
         //Full Conditional vector that we will loop
         std::vector< std::shared_ptr<FullConditional> > fc_nocov{tau_ptr,
                                                             S_ptr,
@@ -159,6 +160,7 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
         // Initialize beta return structure - only if needed
         if(IncludeCovariates)  
             out.beta.reserve(n_iter);
+
     }
     else{
         throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
@@ -199,7 +201,7 @@ void ConditionalSampler::GS_Step() {
          //Rcpp::Rcout<<"gs_data.K:"<<std::endl<<gs_data.K<<std::endl;
          //Rcpp::Rcout<<"gs_data.M:"<<std::endl<<gs_data.M<<std::endl;
          //Rcpp::Rcout<< "Update Step : " << full_cond->name <<std::endl;
-
+        
         // starting timer to measure updating time
         // auto t_start = std::chrono::high_resolution_clock::now();
         if(!full_cond->keep_fixed){

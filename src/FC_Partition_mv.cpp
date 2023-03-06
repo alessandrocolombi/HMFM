@@ -104,6 +104,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             throw std::runtime_error("Execution stopped by the user");
         }
     }
+
 }
 
 // support method
