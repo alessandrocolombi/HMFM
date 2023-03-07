@@ -10,7 +10,7 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
     // Extract hyper_parameter and initialization values from option
     if(_P0_prior_name == "Normal-InvGamma"){
 
-        Rcpp::Rcout<<"ConditionalSampler.cpp - Initialization"<<std::endl;
+        //Rcpp::Rcout<<"ConditionalSampler.cpp - Initialization"<<std::endl;
 
         // Manage cases if Partition is fixed
         std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(_option["partition"]) }; 
@@ -24,7 +24,6 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
 //        
         //Rcpp::Rcout<<std::endl;
         //partition_vec = Rcpp::as<std::vector<unsigned int>>(_option["partition"]);
-
         // Read data passed with _data_list
         n = Rcpp::as<unsigned int>(_data_list["n"]);
         d = Rcpp::as<unsigned int>(_data_list["d"]);
@@ -39,7 +38,6 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
         Rcpp::List obs = Rcpp::as<Rcpp::List>(_data_list["observations"]);
         Rcpp::List covariates = Rcpp::as<Rcpp::List>(_data_list["covariates"]);
         bool IncludeCovariates = Rcpp::as<bool>(_option["IncludeCovariates"]);
-
         std::vector<std::vector<Individual>> data;
         data.resize(d);
         for(size_t j = 0; j < d; j++)
@@ -107,7 +105,6 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
         bool FixedTau = !Rcpp::as<bool>(_option["UpdateTau"]);
         bool FixedLambda = !Rcpp::as<bool>(_option["UpdateLambda"]);
         bool FixedBeta = !Rcpp::as<bool>(_option["UpdateBeta"]);
-
         // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
         gs_data = GS_data(  data, n_j, d, r, random_engine, 
                             Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, 

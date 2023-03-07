@@ -1768,6 +1768,9 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
       stop("The number of covariates r that is defined in data is not coherent with the size of beta0 or Sigma0 provided in options.")  
     if(  min(eigen(option$Sigma0)$values) <= 1e-14  )
       stop("Sigma0 is not positive definite or it is very ill conditioned.")
+  }else{
+    if(data$r != 0 )
+      warning(" option$IncludeCovariates is set to FALSE but r > 0 ")
   }
   
   return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )

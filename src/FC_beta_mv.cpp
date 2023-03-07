@@ -37,7 +37,7 @@ void FC_beta_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 				beta1 += 1.0/sigma[C_ji] * data_ji.X_ji * temp; // update beta1
 			}
 			else
-				throw std::runtime_error("Error in FC_beta_mv. è possibile che arrivi qui? Ho mv_data[j][i].n_ji == 0 ");
+				throw std::runtime_error("Error in FC_beta_mv. It should not be possible that mv_data[j][i].n_ji == 0 ");
 		}
 
 		GDFMM_Traits::MatCol I( GDFMM_Traits::MatCol::Identity(r,r) );

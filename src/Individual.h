@@ -13,7 +13,8 @@ public :
         Ybar_star_ji = mean_ji;
         Vstar_ji    = var_ji;
         z_ji = GDFMM_Traits::VecCol::Zero(1);
-        Rcpp::Rcout<<"Caso senza covariate, avevo un bug qua. è stato sistemato?"<<std::endl;
+        //Rcpp::Rcout<<"Caso senza covariate, avevo un bug qua. è stato sistemato?"<<std::endl;
+        
     };
     Individual(const std::string& _id, unsigned int _n, double _mean, double _var, 
                 const std::vector<double>& _obs_ji, const Rcpp::NumericMatrix& _X_ji ) : ID(_id), n_ji(_n), mean_ji(_mean), var_ji(_var), obs_ji(_obs_ji){

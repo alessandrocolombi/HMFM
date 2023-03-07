@@ -9,6 +9,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Retrive all data needed from gs_data
     const unsigned int& M = gs_data.M; // number of components
     const unsigned int& d = gs_data.d; // number of groups
+    const unsigned int& r= gs_data.r; // number of regression coefficients
     const unsigned int& K = gs_data.K; //number of clusters
     const std::vector<unsigned int>& n_j = gs_data.n_j; // number of observations per group
     const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of partition
@@ -105,7 +106,11 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<std::endl;
 
 
-            std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data,beta);
+            if(r > 0)
+                std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data,beta);
+            else
+                std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data);
+
             //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
             //Rcpp::Rcout<<"data_var_term:"<<std::endl<<data_var_term<<std::endl;
             //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
@@ -212,7 +217,47 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
 
 }
 
+std::tuple<double,double,double,unsigned int>  
+FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i, 
+                                       const std::vector<unsigned int>& ind_j, 
+                                       const std::vector<std::vector<Individual>>& data )const
+{
+    // get number of elements in the cluster
+    //unsigned int N_m{ind_i.size()};
+    //Rcpp::Rcout<<"Dentro compute_cluster_summaries"<<std::endl;
+    // initialize return objects
+    double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
+    double mean_of_vars{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
+    double sum_piX2{0.0}; // sum_{i=1}^{N_m}( pi*Xbari^2 )
+    unsigned int sum_pi{0}; // sum(pi)
 
+    // for each element in the cluster
+
+    //  questa funzione non va bene se NON ho le covariate. il problema è l'ultimo termine, quello con beta e z.
+    //  devo differenziare il calcolo di z in base a r=0 e r>0
+    for(size_t ii = 0; ii <ind_i.size() ; ii++){
+
+        const Individual& data_ji = data.at(ind_j[ii]).at(ind_i[ii]);
+        
+        //Rcpp::Rcout<<"data_ji.n_ji:"<<std::endl<<data_ji.n_ji<<std::endl;
+        //Rcpp::Rcout<<"data_ji.Ybar_star_ji:"<<std::endl<<data_ji.Ybar_star_ji<<std::endl;
+        //Rcpp::Rcout<<"data_ji.mean_ji:"<<std::endl<<data_ji.mean_ji<<std::endl;
+        sum_pi += data_ji.n_ji;
+        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Ybar_star_ji;
+        sum_piX2 += data_ji.n_ji * data_ji.Ybar_star_ji * data_ji.Ybar_star_ji;
+        W += data_ji.n_ji*data_ji.mean_ji;
+
+    }
+    W = W/(double)sum_pi;
+
+    //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
+    //Rcpp::Rcout<<"mean_of_vars:"<<std::endl<<mean_of_vars<<std::endl;
+    //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
+    //Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
+    
+    return( std::tie(W,mean_of_vars,sum_piX2,sum_pi) );
+
+}
 /*
 // Function to compute the mean of the data (y_mean) for a group
 double FC_tau_mv::mean (const std::vector<unsigned int>& ind_i, const std::vector<unsigned int>& ind_j,
