@@ -14,16 +14,18 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     sample::rgamma Gamma;
 
     // Update routine
-    // Rcpp::Rcout << "S: ";
+    //Rcpp::Rcout<<"Dentro FC_S.update.cpp"<<std::endl;
 
     //Initialize S according to new M
     gs_data.allocate_S(gs_data.M);
 
     for (unsigned j=0; j<d; j++) { //per ogni livello
         //S ALLOCATE
-        // Rcpp::Rcout << "[";
+        //Rcpp::Rcout<<"Allocate: K = "<<K<<std::endl;
         for (unsigned k=0; k < K; k++) {//per ogni comp allocata
-
+                    //Rcpp::Rcout<<"N("<<j<<","<<k<<") = "<<N(j,k)<<std::endl;
+                    //Rcpp::Rcout<<"gamma["<<j<<"] = "<<gamma[j]<<std::endl;
+                    //Rcpp::Rcout<<"U["<<j<<"] = "<<U[j]<<std::endl;
             S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
             /*
             NO ERRORE! LE U SALVATE SONO LE U', quindi questa estrazione è proprio sbagliata. 
@@ -36,7 +38,6 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //S NON ALLOCATE
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
-
                 S(j, K + mstar) = Gamma(gs_engine, gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
                 /*
                 Vecchio ordine

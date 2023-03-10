@@ -128,6 +128,8 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<"k0_post:"<<std::endl<<k0_post<<std::endl;
             //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
             //Rcpp::Rcout<<"sigma02_post:"<<std::endl<<sigma02_post<<std::endl;
+            //Rcpp::Rcout<<"sigma2_m posterior mean = "<< 0.5*(nu0_post*sigma02_post)/( 0.5*nu0_post - 1.0 ) <<std::endl;
+            
 
             //Campionamento
             sigma2_m = 1.0 / Gamma(gs_engine, nu0_post / 2.0, 2.0 / (nu0_post*sigma02_post) );
@@ -180,7 +182,7 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
 {
     // get number of elements in the cluster
     //unsigned int N_m{ind_i.size()};
-    //Rcpp::Rcout<<"Dentro compute_cluster_summaries"<<std::endl;
+    //Rcpp::Rcout<<"Dentro FC_tau_mv::compute_cluster_summaries.cpp - con COVARIATE"<<std::endl;
     // initialize return objects
     double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
     double mean_of_vars{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
@@ -197,11 +199,12 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
         
         //Rcpp::Rcout<<"data_ji.n_ji:"<<std::endl<<data_ji.n_ji<<std::endl;
         //Rcpp::Rcout<<"data_ji.Ybar_star_ji:"<<std::endl<<data_ji.Ybar_star_ji<<std::endl;
+        //Rcpp::Rcout<<"data_ji.Vstar_ji:"<<std::endl<<data_ji.Vstar_ji<<std::endl;
         //Rcpp::Rcout<<"data_ji.mean_ji:"<<std::endl<<data_ji.mean_ji<<std::endl;
         //Rcpp::Rcout<<"data_ji.z_ji:"<<std::endl<<data_ji.z_ji<<std::endl;
 
         sum_pi += data_ji.n_ji;
-        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Ybar_star_ji;
+        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Vstar_ji;
         sum_piX2 += data_ji.n_ji * data_ji.Ybar_star_ji * data_ji.Ybar_star_ji;
         W += data_ji.n_ji*data_ji.mean_ji - data_ji.z_ji.dot( beta.row(ind_j[ii]) );
 
@@ -224,7 +227,7 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
 {
     // get number of elements in the cluster
     //unsigned int N_m{ind_i.size()};
-    //Rcpp::Rcout<<"Dentro compute_cluster_summaries"<<std::endl;
+    //Rcpp::Rcout<<"Dentro FC_tau_mv::compute_cluster_summaries.cpp - SENZA convariate"<<std::endl;
     // initialize return objects
     double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
     double mean_of_vars{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
@@ -243,9 +246,9 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
         //Rcpp::Rcout<<"data_ji.Ybar_star_ji:"<<std::endl<<data_ji.Ybar_star_ji<<std::endl;
         //Rcpp::Rcout<<"data_ji.mean_ji:"<<std::endl<<data_ji.mean_ji<<std::endl;
         sum_pi += data_ji.n_ji;
-        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Ybar_star_ji;
-        sum_piX2 += data_ji.n_ji * data_ji.Ybar_star_ji * data_ji.Ybar_star_ji;
-        W += data_ji.n_ji*data_ji.mean_ji;
+        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.var_ji;
+        sum_piX2 += data_ji.n_ji * data_ji.mean_ji * data_ji.mean_ji;
+        W += data_ji.n_ji * data_ji.mean_ji;
 
     }
     W = W/(double)sum_pi;

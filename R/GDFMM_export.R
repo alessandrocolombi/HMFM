@@ -1714,7 +1714,10 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   if(!all(names(data) == names_data_input ))
     stop("data input parameter is malformed. The names are not the expected ones. Use set_options() function to set them correctely.")
 
-  #get number of data points
+  # get number of observations that will be clustered
+  nobs = sum(data$n_j)
+
+  #get number of individuals
   n = data$n
 
   #Check option to be in the correct form
@@ -1737,16 +1740,16 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
     option$partition = arrange_partition(option$partition)
 
     # check that partiton and data are coherent
-    if(n != length(option$partition))
+    if(nobs != length(option$partition))
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
 
   # Check initial values for tau
   K_init = length(table(option$partition)) # compute initial number of clusters
   if(is.null(option$init_var_cluster))
-    option$init_var_cluster = rgamma(n=K_init+option$Mstar0,
-                                     shape = option$nu0/2,
-                                     rate  = option$nu0*option$sigma0/2 )
+    option$init_var_cluster = 1/rgamma(n=K_init+option$Mstar0,
+                                       shape = option$nu0/2,
+                                       rate  = option$nu0*option$sigma0/2 )
   if(length(option$init_var_cluster)!=K_init+option$Mstar0)
     stop("The length of option$init_var_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0 ")
   if(is.null(option$init_mean_cluster))

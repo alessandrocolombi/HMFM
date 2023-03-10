@@ -69,10 +69,12 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
             //Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
         }
 
-        //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
-        //for(size_t j = 0; j < d; j++)
-            //for(size_t i = 0; i < data[j].size(); i++)
-                //Rcpp::Rcout<<"data["<<j<<","<<i<<"] = "<<data[j][i].mean_ji<<std::endl;
+                //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
+                //for(size_t j = 0; j < d; j++)
+                    //for(size_t i = 0; i < data[j].size(); i++)
+                        //Rcpp::Rcout<<"data["<<j<<","<<i<<"] = "<<data[j][i].mean_ji<<std::endl;
+
+
         // Read all hyper-parameters passed with _option
         double Lambda0 = Rcpp::as<double>(_option["Lambda0"]);
         double mu0 = Rcpp::as<double>(_option["mu0"]);

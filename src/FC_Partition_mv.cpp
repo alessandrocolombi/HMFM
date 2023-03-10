@@ -62,8 +62,15 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                 for(unsigned int m=0; m<M; m++){
                     probs_vec(m) = exp(probs_vec(m) - probs_max);
                  //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
-                    if(std::isnan(probs_vec(m)))
+                    if(std::isnan(probs_vec(m))){
+                        Rcpp::Rcout<<"M = "<<M<<std::endl;
+                        Rcpp::Rcout<<"nan m is m = "<<m<<std::endl;
+                        Rcpp::Rcout<<"S("<<j<<","<<m<<") = "<<S(j,m)<<std::endl;
+                        Rcpp::Rcout<<"mu["<<m<<"] = "<<mu[m]<<std::endl;
+                        Rcpp::Rcout<<"sigma["<<m<<"] = "<<sigma[m]<<std::endl;
+                        Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]) = "<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
                         throw std::runtime_error("Error in Partition.cpp, get a nan in probs_vec ");
+                    }
                 }
                  //Rcpp::Rcout<<std::endl;
                 // Assign y_ji to a component sampling from a multinomial

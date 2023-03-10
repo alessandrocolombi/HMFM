@@ -19,6 +19,14 @@ void FC_U::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) {
     sample::rgamma Gamma;
     //Rcpp::Rcout<<T(0)<<std::endl;
 
+    //Rcpp::Rcout<<"Dentro a FC_U.update.cpp"<<std::endl;
+    //Rcpp::Rcout<<"Stampo n_j: ";        
+    //for(auto __v : n_j)
+        //Rcpp::Rcout<<__v<<", ";
+    //Rcpp::Rcout<<std::endl;
+//
+    //Rcpp::Rcout<<"T:"<<std::endl<<T<<std::endl;
+
     // Rcpp::Rcout << "T = ";
     for (unsigned j=0; j<d; j++) { // for loop per livelli
         gs_data.U[j]= Gamma(gs_engine, n_j[j], 1.0/T(j)); //This is U'

@@ -179,9 +179,14 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     const auto max_it = std::max_element(partition_vec.cbegin(), partition_vec.cend()); //get the maximum 
     K =  *max_it + 1;
     M = K + Mstar;
-    //Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
+    Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
+            //Rcpp::Rcout<<"Stampo partition_vec: ";        
+            //for(auto __v : partition_vec)
+                //Rcpp::Rcout<<__v<<", ";
+            //Rcpp::Rcout<<std::endl;
+
     // Allocate Ctilde, N, N_k 
     Ctilde.clear();
     for(size_t j = 0; j < d; j++){
@@ -207,6 +212,27 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
             i = 0;
         }
     }
+
+            //Rcpp::Rcout<<"Stampo n_j: ";        
+            //for(auto __v : n_j)
+                //Rcpp::Rcout<<__v<<", ";
+            //Rcpp::Rcout<<std::endl;
+        //
+            //Rcpp::Rcout<<"Stampo N_k: ";        
+            //for(auto __v : N_k)
+                //Rcpp::Rcout<<__v<<", ";
+            //Rcpp::Rcout<<std::endl;
+        //
+            //Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+        //
+            //Rcpp::Rcout<<"Stampo Ctilde"<<std::endl;
+            //for(int __a=0; __a < Ctilde.size(); __a++){
+                //for(int __b=0; __b <Ctilde[__a].size(); __b++ ){
+                    //Rcpp::Rcout<<Ctilde[__a][__b]<<", ";
+                //}
+                //Rcpp::Rcout<<std::endl;
+            //}
+
 }
 
 // Initialize partition (Ctilde, N, N_k) when part_vect is empty
