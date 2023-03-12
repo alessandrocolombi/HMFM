@@ -4,11 +4,13 @@
 \alias{input_handle}
 \title{Handle input}
 \usage{
-input_handle(tb)
+input_handle(tb, intercept = FALSE)
 }
 \arguments{
 \item{tb}{\link{tibble} a tibble with three columns. First column contains the ID of the data,
 second column contains the level membership of each data. Finally, the third column contains the numerical value of the variabile}
+
+\item{intercept}{\link{boolen} set \code{TRUE} to include the intercept in the regression model}
 }
 \description{
 This function gets a tibble with three columns containing the data in long form. Data are handled and a list is returned.

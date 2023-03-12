@@ -4,7 +4,7 @@
 \alias{Test_Rcpp}
 \title{Test}
 \usage{
-Test_Rcpp()
+Test_Rcpp(X)
 }
 \description{
 Test

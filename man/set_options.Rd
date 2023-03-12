@@ -11,6 +11,9 @@ set_options(
   mu0 = 0,
   sigma0 = 1,
   gamma0 = 1,
+  beta0 = c(0, 0),
+  Sigma0 = 10 * diag(2),
+  IncludeCovariates = FALSE,
   Adapt_MH_hyp1 = 0.7,
   Adapt_MH_hyp2 = 0.234,
   Adapt_MH_power_lim = 10,
@@ -29,7 +32,8 @@ set_options(
   UpdateGamma = T,
   UpdateS = T,
   UpdateTau = T,
-  UpdateLambda = T
+  UpdateLambda = T,
+  UpdateBeta = F
 )
 }
 \arguments{
@@ -44,6 +48,12 @@ set_options(
 \item{sigma0}{\link{double} the rate parameter in the prior of sigma.}
 
 \item{gamma0}{\link{double} the initial value for the gamma parameters.}
+
+\item{beta0}{\link{double} the prior mean for the regression coefficients.}
+
+\item{Sigma0}{\link{double} the prior covariance matrix for the regression coefficients.}
+
+\item{IncludeCovariates}{\link{bool} set \code{TRUE} if covariates are provided.}
 
 \item{Adapt_MH_hyp1}{\link{double} default is 0.7.}
 
@@ -79,6 +89,8 @@ distribution between \code{-proposal_Mstar} and \code{proposal_Mstar}. 0 value i
 \item{UpdateTau}{\link{bool} set \code{TRUE} if tau must be updated. Set \code{FALSE} to fix it to a common value.}
 
 \item{UpdateLambda}{\link{bool} set \code{TRUE} if Lambda must be updated. Set \code{FALSE} to fix it to a common value.}
+
+\item{UpdateBeta}{\link{bool} set \code{TRUE} if Beta must be updated. Set \code{FALSE} to fix it to a common value.}
 }
 \description{
 Use this function to set up the options for the conditional Gibbs sampler.

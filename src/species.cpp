@@ -1806,6 +1806,14 @@ Rcpp::List Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericV
 			first_moment += k*prob;
 			second_moment += k*k*prob;
 			k++;
+			//Check for User Interruption
+			try{
+			    Rcpp::checkUserInterrupt();
+			}
+			catch(Rcpp::internal::InterruptedException e){ 
+			    //Print error and return
+			    throw std::runtime_error("Execution stopped by the user");
+			}
 		}
 	}
 	else if(type == "shared"){ // shared case

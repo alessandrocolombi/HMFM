@@ -1588,8 +1588,9 @@ Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
 #' This function gets a tibble with three columns containing the data in long form. Data are handled and a list is returned.
 #' @param tb [tibble] a tibble with three columns. First column contains the ID of the data, 
 #' second column contains the level membership of each data. Finally, the third column contains the numerical value of the variabile
+#' @param intercept [boolen] set \code{TRUE} to include the intercept in the regression model
 #' @export
-input_handle = function(tb){
+input_handle = function(tb, intercept = FALSE){
   
   # set names
   ncol_tb = ncol(tb)
@@ -1627,7 +1628,8 @@ input_handle = function(tb){
 
   if(r > 0)
     formula <- as.formula( paste("value ~ ", paste(cov_names, collapse = "+")) )
-  
+  if(intercept)
+    r = r+1
   for(i in 1:n) {
     filter_i = tb %>% filter(ID == IDs[i]) # filter for i-th individual
     
@@ -1662,12 +1664,17 @@ input_handle = function(tb){
       if(r > 0){
         if(N_ji[j,i] == 0){
           cov_list[[j]][[i]] = NA
-        }else if(N_ji[j,i] == 1){
-          covariates = model.matrix( formula, data = temp_ji )[,-1]
-          cov_list[[j]][[i]] = matrix(covariates, nrow = 1, ncol = r)
         }else{
-          cov_list[[j]][[i]] = model.matrix( formula, data = temp_ji )[,-1]
+          if(intercept)
+            covariates = model.matrix( formula, data = temp_ji )
+          else  
+            covariates = model.matrix( formula, data = temp_ji )[,-1]
+
+          cov_list[[j]][[i]] = matrix(covariates, nrow = N_ji[j,i], ncol = r)
         }
+        #else{
+          #cov_list[[j]][[i]] = model.matrix( formula, data = temp_ji )[,-1]
+        #}
       }
       
       
@@ -1777,4 +1784,87 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   }
   
   return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )
+}
+
+
+
+#' @export
+predictive_players = function(idx_player, dt, fit, burnin = 1){
+  
+  n_iter <- length(fit$mu) #number of iterations
+  d_i = length( dt$N_ji[,20] != 0 ) 
+  #res = vector( "list", length = d_i )
+  #res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
+  res = c()
+  for(idx_group in 1:d_i){
+    
+    Nsi = dt$N_ji[idx_group, idx_player]
+    Xsi = dt$covariates[[idx_group]][[idx_player]]
+    MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
+    
+    counter = 1
+    for(it in burnin:n_iter){
+      # Get sampled values
+      M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
+      S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+      beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+      
+      # chose from the component to sampler from
+      m = sample(1:M_it, size = 1, prob = S_it)
+      
+      # draw from multivariate gaussian
+      mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
+      ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
+      
+      # save
+      MIX[counter, ] = ypred_it
+      
+      # update row counter
+      counter = counter + 1
+    }
+    #res[[idx_group]] = apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975))
+    res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
+  }
+  return(res)
+}
+
+#' @export
+compute_LMPL = function(dt, fit, burnin = 1){
+  
+  n_iter <- length(fit$mu) #number of iterations
+  res = 0
+  for(s in 1:dt$d){
+    for(i in 1:dt$n){
+      
+      Nsi = dt$N_ji[s,i]
+      if(Nsi == 0)
+        break
+      Xsi = dt$covariates[[s]][[i]]
+      Ysi = dt$observations[[s]][[i]]
+      
+      counter = 1
+      a = rep(0,length(burnin:niter))
+      for(it in burnin:n_iter){
+        # Get sampled values
+        M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
+        S_it = fit$S[[it]][s,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+        T_it = sum(S_it)
+        beta_it = fit$beta[[it]][s,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+        mu_it = fit$mu[[it]]
+        sigma_it = fit$sigma[[it]]
+        
+        log_f_it = 0
+        for(m in 1:M_it){
+          mean = mu_it[m]*rep(1,Nsi) + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
+          log_f_it = log(S_it[m]/T_it) + mvtnorm::dmvnorm( x = Ysi, mean = mean, sigma = sigma_it[m]*diag(Nsi), log = TRUE )
+        }
+        a[counter] = -log_f_it
+        counter = counter + 1
+      }
+      
+      res = res - log_stable_sum(a,is_log = TRUE)
+      
+    }
+  }
+  res + sum(dt$n_j)*log(niter-burnin)
 }
