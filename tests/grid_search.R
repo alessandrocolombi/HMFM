@@ -36,7 +36,7 @@ n = nrow(data_aligned %>% distinct(ID))
 
 #Seleziono solo pochi dati e solo un numero ristretto di stagioni
 #L'atleta con ID 76011 è quello che nella stagione 3 ha fatto un punteggio ridicolo (1.48). Però ha comunque giocato molte partite e molte stagioni, posso decidere se togliere solo quella stagione (però poi ho un buco) oppure togliere lui completamente
-selectIDs = c(1:10,800:810)#
+selectIDs = 1:n#c(1:10,800:810)#
 IDs  = data_aligned %>% distinct(ID) %>% pull(ID)
 data_longform_input = data_aligned %>%
                       filter(ID %in% IDs[selectIDs]) %>%
@@ -136,9 +136,9 @@ grid(lty = 1,lwd = 2,col = "gray90" )
 
 
 ## Run
-Kobj = 4
-niter  <-  200#00#0
-burnin <-  100#00#0
+#Kobj = 4
+niter  <-  20000#0
+burnin <-  10000#0
 thin   <-       1
 
 mu_gamma  =  0.1
@@ -201,7 +201,8 @@ obj.fun <- makeSingleObjectiveFunction(
     sim_matrix <- psm(part_matrix)
     VI_sara = minVI(sim_matrix)
     Nclus = length(table(VI_sara$cl))
-    return( abs(Nclus - Kobj))
+    #return( abs(Nclus - Kobj))
+    Nclus
   },
 
   # define if the objective function has to be minimized or maximized (i.e., accuracy must be maximized)
@@ -210,7 +211,7 @@ obj.fun <- makeSingleObjectiveFunction(
   # define the search space
   par.set = makeParamSet(
     makeNumericParam( "Lambda", lower=0.05, upper=10 ),
-    makeNumericVectorParam("gamma",4,lower = 0.00001,upper = 2)
+    makeNumericVectorParam("gamma",4,lower = 0.0001,upper = 1)
   )
 
 )
@@ -221,7 +222,7 @@ set.seed(123452)
 des = generateDesign( n=100, getParamSet(obj.fun), fun=lhs::randomLHS )
 des$y = apply( des, 1, obj.fun )
 
-
+des$y
 #
 # # STEP 3: define the Probabilistic Surrogate Model
 #
