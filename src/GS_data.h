@@ -67,7 +67,7 @@ struct GS_data{
                 const std::vector<unsigned int>& _n_j, const unsigned int _d, const unsigned int _r,
                 const sample::GSL_RNG& gs_engine, 
                 unsigned int _Mstar0, double _Lambda0, double _mu0,
-                double _nu0, double _sigma0, double _gamma0, 
+                double _nu0, double _sigma0, const std::vector<double>& _gamma0, 
                 const GDFMM_Traits::VecCol& _beta0, const GDFMM_Traits::MatCol& _Sigma0,
                 const std::vector<double>& _init_mean_clus, const std::vector<double>& _init_var_clus, 
                 std::string P0_prior_name, const std::vector<unsigned int>& _part_vec);

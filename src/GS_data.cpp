@@ -91,7 +91,7 @@ GS_data::GS_data(   const std::vector<std::vector<Individual>>& _dat,
                     const std::vector<unsigned int>& _n_j, const unsigned int _d,  const unsigned int _r,
                     const sample::GSL_RNG& gs_engine, 
                     unsigned int _Mstar0, double _Lambda0, double _mu0,
-                    double _nu0, double _sigma0, double _gamma0, 
+                    double _nu0, double _sigma0, const std::vector<double>& _gamma0, 
                     const GDFMM_Traits::VecCol& _beta0, const GDFMM_Traits::MatCol& _Sigma0,
                     const std::vector<double>& _init_mean_clus, const std::vector<double>& _init_var_clus, 
                     std::string P0_prior_name, const std::vector<unsigned int>& _part_vec) : mv_data(_dat), n_j(_n_j), d(_d), r(_r),
@@ -118,7 +118,13 @@ GS_data::GS_data(   const std::vector<std::vector<Individual>>& _dat,
     }
     
     // Initialization of gamma and U vector
-    gamma = std::vector<double>(d, _gamma0);
+    //gamma = std::vector<double>(d, _gamma0);
+    gamma = _gamma0;
+    Rcpp::Rcout<<"Ho letto gamma0, deve essere un vettore di lunghezza d e entrate tutte strettamente positive"<<std::endl;
+    Rcpp::Rcout<<"Stampo gamma: ";        
+    for(auto __v : gamma)
+        Rcpp::Rcout<<__v<<", ";
+    Rcpp::Rcout<<std::endl;
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 1.0);
 

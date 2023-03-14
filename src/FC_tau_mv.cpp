@@ -13,7 +13,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const unsigned int& K = gs_data.K; //number of clusters
     const std::vector<unsigned int>& n_j = gs_data.n_j; // number of observations per group
     const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of partition
-    const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; //matrix of data we don't copy it since data can be big but we use a pointer
+    std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; //matrix of data we don't copy it since data can be big but we use a pointer
     const std::string& prior = gs_data.prior; // identifier of the prior adopted for the model - togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     const GDFMM_Traits::MatRow& beta = gs_data.beta; // dxr matrix of regression coefficients
 
@@ -30,10 +30,11 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     //Rcpp::Rcout<<"gs_data.sigma.size():"<<std::endl<<gs_data.sigma.size()<<std::endl;
 
 
-    //Initialize tau according to new M
-    gs_data.allocate_tau(gs_data.M);
+
 
     if (prior == "Normal-InvGamma") {
+        //Initialize tau according to new M
+        gs_data.allocate_tau(gs_data.M);
 
         sample::rgamma Gamma;
         sample::rnorm rnorm;
@@ -171,6 +172,122 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             //Rcpp::Rcout<<__v<<", ";
         //Rcpp::Rcout<<std::endl;
     }
+    else if( prior == "Normal"){
+        //Rcpp::Rcout<<"Normal prior case"<<std::endl;
+
+        sample::rgamma Gamma;
+        sample::rnorm rnorm;
+
+        //1) I first draw sigma 
+        double sigma{1.0};
+        // First of all, I must know the cluster membership of each data point
+        
+
+        // compute shape - scale posterior parameters
+        //Rcpp::Rcout<<"--------------------------------------------"<<std::endl;
+        double scale_post{nu_0 * sigma_0};
+        double shape_post{nu_0/2.0};
+        for (unsigned int j = 0; j <d ; ++j) {
+            for (unsigned int i = 0; i < n_j[j] ; ++i) {
+                //Rcpp::Rcout<<"j = "<<j<<"; i = "<<i<<std::endl;
+                const unsigned int& C_ji = Ctilde[j][i]; //C_ji is the component mixture that defines mean for obseration ji
+                Individual& data_ji = mv_data[j][i]; // shortcut, just for notation
+                Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
+                GDFMM_Traits::VecCol cl_means( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, gs_data.mu[C_ji]) ); // define a vector where each element is equal to mu_ji
+                GDFMM_Traits::VecCol vector_ji( eigen_data - cl_means ); // compute the difference
+                //Rcpp::Rcout<<"gs_data.mu["<<C_ji<<"] = "<<gs_data.mu[C_ji]<<std::endl;
+                //Rcpp::Rcout<<"data_ji.n_ji = "<<data_ji.n_ji<<std::endl;
+                //Rcpp::Rcout<<"vector_ji:"<<std::endl<<vector_ji<<std::endl;
+                if(r > 0){
+                    //Rcpp::Rcout<<"Qua voglio un vettore di lunghezza "<<data_ji.n_ji<<std::endl;
+                    //Rcpp::Rcout<<"data_ji.X_ji.transpose()*beta.row(j):"<<std::endl<<data_ji.X_ji.transpose()*beta.row(j)<<std::endl;
+                    vector_ji -= data_ji.X_ji.transpose()*beta.row(j);
+                    //Rcpp::Rcout<<"vector_ji:"<<std::endl<<vector_ji<<std::endl;
+                }
+                scale_post += vector_ji.dot(vector_ji);
+                shape_post += data_ji.n_ji; 
+            }
+        }
+        // NOTE: questa parte può essere nettamente migliorata. Shape a posteriori è precomputable e anche il Rate ho fatto dei conti 
+        // mettendo in luce cosa può essere precomputabile, in modo da dover sommare solo scalari e non vettori
+        
+        scale_post = scale_post/2.0;
+        double sigma_post_mean = scale_post/(shape_post - 1.0);
+        double sigma_post_var  = (sigma_post_mean*sigma_post_mean)/(shape_post - 2.0);
+        //Rcpp::Rcout<<"sigma_post_mean = "<<sigma_post_mean<<std::endl;
+        //Rcpp::Rcout<<"sigma_post_var  = "<<sigma_post_var<<std::endl;
+        sigma = 1.0 / Gamma(gs_engine, shape_post, 1.0/scale_post );
+        //Rcpp::Rcout<<"sigma = "<<sigma<<std::endl;
+        
+
+        //2) Now, the trick is to maintain tau made of mean and variance but this time all variance components will be equal to a single value sigma
+        
+        //2.1) Initialize tau according to new M, set all M values for mean equal to 0 and for variance equal to 1
+        gs_data.allocate_tau(gs_data.M);
+        
+        //2.2) Draw non allocated components
+        for (unsigned int m = K; m < M; ++m){
+             //Rcpp::Rcout<<"In marginal sampler case, the code should never reach this part"<<std::endl;
+             double mu_na = rnorm(gs_engine, mu_0, std::sqrt(sigma / k_0)); // Non allocated Components' mean, use sigma for the variance
+             gs_data.mu[m] = mu_na;
+             gs_data.sigma[m] = sigma;
+             //Rcpp::Rcout << "Non Allocate: mu[" << m << "] = " << mu_na << std::endl;
+             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_na << std::endl;
+        }
+
+        //2.3) Allocated tau
+        double k0_post{0.0};
+        double mu0_post{0.0};
+        double mu_m{0.0};
+        for (unsigned int m = 0; m < K; ++m){
+
+            // Find data in each cluster
+            ind_i.clear();
+            ind_j.clear();
+            for (unsigned int j = 0; j <d ; ++j) {
+                for (unsigned int i = 0; i < n_j[j] ; ++i) {
+                    //Rcpp::Rcout<<"Ctilde["<<j<<"]["<<i<<"]: "<<std::endl<<Ctilde[j][i]<<std::endl;
+                    if(Ctilde[j][i] == m){
+                        ind_i.push_back(i);
+                        ind_j.push_back(j);
+                    }
+                }
+            }
+            double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
+            double data_var_term{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
+            double sum_piX2{0.0}; // sum_{i=1}^{N_m}( pi*Xbari^2 )
+            unsigned int sum_pi{0}; // sum(pi)
+
+            // Here i only need to compute W, but for the moment I keep the old functions that compute everything
+            if(r > 0)
+                std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data,beta);
+            else
+                std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data);
+
+            k0_post = k_0 + (double)sum_pi;
+            mu0_post = (k_0 * mu_0 + (double)sum_pi * W) / k0_post;
+            //Rcpp::Rcout<<"k0_post:"<<std::endl<<k0_post<<std::endl;
+            //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
+            mu_m = rnorm(gs_engine, mu0_post, sqrt(sigma / k0_post));
+            gs_data.mu[m] = mu_m;
+            gs_data.sigma[m] = sigma;
+            //Rcpp::Rcout << "Allocate: mu[" << m << "] = " << mu_m << std::endl;
+            //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_m << std::endl;
+        }
+
+        //Rcpp::Rcout<<"Finito update tau"<<std::endl;
+        //Rcpp::Rcout<<"Stampo gs_data.mu: ";        
+        //for(auto __v : gs_data.mu)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+
+        //Rcpp::Rcout<<"Stampo gs_data.sigma: ";        
+        //for(auto __v : gs_data.sigma)
+            //Rcpp::Rcout<<__v<<", ";
+        //Rcpp::Rcout<<std::endl;
+    }
+    else
+        throw std::runtime_error("Error in FC_tau_mv::update, only possible priors are Normal-InvGamma and Normal. No other cases have been implemented. ");
 
 }
 
@@ -261,6 +378,9 @@ FC_tau_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
     return( std::tie(W,mean_of_vars,sum_piX2,sum_pi) );
 
 }
+
+
+
 /*
 // Function to compute the mean of the data (y_mean) for a group
 double FC_tau_mv::mean (const std::vector<unsigned int>& ind_i, const std::vector<unsigned int>& ind_j,

@@ -378,7 +378,7 @@ arrange_partition = function(partition){
 #'
 #' @export
 set_options = function( partition = NULL, Mstar0 = 2,
-                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = NULL,
                         beta0 = c(0,0), Sigma0 = 10*diag(2),
                         IncludeCovariates = FALSE,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
@@ -1750,6 +1750,15 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
     if(nobs != length(option$partition))
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
+  
+  # Check initial values for gamma0
+  if(is.null(option$gamma0))
+    option$gamma0 = rep(1,data$d)
+  if(length(option$gamma0) != data$d)
+    stop("option$gamma0 must be a vector of length d")
+  if(any(option$gamma0 <= 0 ))
+    stop("All elements of option$gamma0 must be strictly positive")
+      
 
   # Check initial values for tau
   K_init = length(table(option$partition)) # compute initial number of clusters

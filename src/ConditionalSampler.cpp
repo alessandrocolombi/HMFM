@@ -8,162 +8,166 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                                         unsigned int _seed, std::string _P0_prior_name, bool _FixPart, 
                                         const Rcpp::List& _option) : random_engine(_seed), Partition_fixed(_FixPart), n_iter(_n_it),burn_in(_b_in),thin(_thn){
     // Extract hyper_parameter and initialization values from option
-    if(_P0_prior_name == "Normal-InvGamma"){
+    
 
-        //Rcpp::Rcout<<"ConditionalSampler.cpp - Initialization"<<std::endl;
+    //if(_P0_prior_name == "Normal-InvGamma"){
 
-        // Manage cases if Partition is fixed
-        std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(_option["partition"]) }; 
-        unsigned int Mstar0{Rcpp::as<unsigned int>(_option["Mstar0"])}; 
+    //Rcpp::Rcout<<"ConditionalSampler.cpp - Initialization"<<std::endl;
+
+    // Manage cases if Partition is fixed
+    std::vector<unsigned int> partition_vec{ Rcpp::as<std::vector<unsigned int>>(_option["partition"]) }; 
+    unsigned int Mstar0{Rcpp::as<unsigned int>(_option["Mstar0"])}; 
         
-        // Stampe
-        //Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
-        //Rcpp::Rcout<<"Partition: "<<std::endl;
-        //for(unsigned int i = 0; i<partition_vec.size(); i++)
-            //Rcpp::Rcout<<partition_vec[i]<<"; ";
+    // Stampe
+    //Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
+    //Rcpp::Rcout<<"Partition: "<<std::endl;
+    //for(unsigned int i = 0; i<partition_vec.size(); i++)
+        //Rcpp::Rcout<<partition_vec[i]<<"; ";
 //        
-        //Rcpp::Rcout<<std::endl;
-        //partition_vec = Rcpp::as<std::vector<unsigned int>>(_option["partition"]);
-        // Read data passed with _data_list
-        n = Rcpp::as<unsigned int>(_data_list["n"]);
-        d = Rcpp::as<unsigned int>(_data_list["d"]);
-        r = Rcpp::as<unsigned int>(_data_list["r"]);
-        n_j =  Rcpp::as<std::vector<unsigned int>>(_data_list["n_j"]);
-        ID_i = Rcpp::as<std::vector<std::string>>(_data_list["ID_i"]);
-        //s_i =  Rcpp::as<std::vector<unsigned int>>(_data_list["s_i"]);
+    //Rcpp::Rcout<<std::endl;
+    //partition_vec = Rcpp::as<std::vector<unsigned int>>(_option["partition"]);
+    // Read data passed with _data_list
+    n = Rcpp::as<unsigned int>(_data_list["n"]);
+    d = Rcpp::as<unsigned int>(_data_list["d"]);
+    r = Rcpp::as<unsigned int>(_data_list["r"]);
+    n_j =  Rcpp::as<std::vector<unsigned int>>(_data_list["n_j"]);
+    ID_i = Rcpp::as<std::vector<std::string>>(_data_list["ID_i"]);
+    //s_i =  Rcpp::as<std::vector<unsigned int>>(_data_list["s_i"]);
         
-        Rcpp::IntegerMatrix N_ji    = Rcpp::as<Rcpp::IntegerMatrix>(_data_list["N_ji"]);
-        Rcpp::NumericMatrix mean_ji = Rcpp::as<Rcpp::NumericMatrix>(_data_list["mean_ji"]);
-        Rcpp::NumericMatrix var_ji  = Rcpp::as<Rcpp::NumericMatrix>(_data_list["var_ji"]);
-        Rcpp::List obs = Rcpp::as<Rcpp::List>(_data_list["observations"]);
-        Rcpp::List covariates = Rcpp::as<Rcpp::List>(_data_list["covariates"]);
-        bool IncludeCovariates = Rcpp::as<bool>(_option["IncludeCovariates"]);
-        std::vector<std::vector<Individual>> data;
-        data.resize(d);
-        for(size_t j = 0; j < d; j++)
-            data[j].reserve(n_j[j]);
+    Rcpp::IntegerMatrix N_ji    = Rcpp::as<Rcpp::IntegerMatrix>(_data_list["N_ji"]);
+    Rcpp::NumericMatrix mean_ji = Rcpp::as<Rcpp::NumericMatrix>(_data_list["mean_ji"]);
+    Rcpp::NumericMatrix var_ji  = Rcpp::as<Rcpp::NumericMatrix>(_data_list["var_ji"]);
+    Rcpp::List obs = Rcpp::as<Rcpp::List>(_data_list["observations"]);
+    Rcpp::List covariates = Rcpp::as<Rcpp::List>(_data_list["covariates"]);
+    bool IncludeCovariates = Rcpp::as<bool>(_option["IncludeCovariates"]);
+    std::vector<std::vector<Individual>> data;
+    data.resize(d);
+    for(size_t j = 0; j < d; j++)
+        data[j].reserve(n_j[j]);
 
-        //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
-        for(size_t j = 0; j < d; j++){
-            Rcpp::List obs_j = obs[j]; // get list of all individualus at level j
-            Rcpp::List X_j;   
-            if(IncludeCovariates)
-                X_j = covariates[j]; // get list of all individualus at level j
-            for(size_t i = 0; i < n; i++){
-                if(N_ji(j,i) > 0){ // add only individuals who have at least one observation
-                            //Rcpp::Rcout<<"-----------------------------------"<<std::endl;
-                            //Rcpp::Rcout<<"Creo livello "<<j<<", individuo "<<i<<std::endl;
-                    std::vector<double> obs_ji = Rcpp::as<std::vector<double>>(obs_j[i]); // get data for individual i in level j
-                    if(IncludeCovariates){
-                        Rcpp::NumericMatrix X_ji = Rcpp::as<Rcpp::NumericMatrix>(X_j[i]); // get design matrix for individual i in level j
-                        Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji, X_ji );
-                        data[j].push_back(data_ji); // add individual to the list
-                    }
-                    else{
-                        Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji ); // get design matrix for individual i in level j
-                        data[j].push_back(data_ji);   // add individual to the list
-                    }
+    //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
+    for(size_t j = 0; j < d; j++){
+        Rcpp::List obs_j = obs[j]; // get list of all individualus at level j
+        Rcpp::List X_j;   
+        if(IncludeCovariates)
+            X_j = covariates[j]; // get list of all individualus at level j
+        for(size_t i = 0; i < n; i++){
+            if(N_ji(j,i) > 0){ // add only individuals who have at least one observation
+                        //Rcpp::Rcout<<"-----------------------------------"<<std::endl;
+                        //Rcpp::Rcout<<"Creo livello "<<j<<", individuo "<<i<<std::endl;
+                std::vector<double> obs_ji = Rcpp::as<std::vector<double>>(obs_j[i]); // get data for individual i in level j
+                if(IncludeCovariates){
+                    Rcpp::NumericMatrix X_ji = Rcpp::as<Rcpp::NumericMatrix>(X_j[i]); // get design matrix for individual i in level j
+                    Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji, X_ji );
+                    data[j].push_back(data_ji); // add individual to the list
                 }
-
+                else{
+                    Individual data_ji( ID_i[i], (unsigned int)N_ji(j,i), mean_ji(j,i), var_ji(j,i), obs_ji ); // get design matrix for individual i in level j
+                    data[j].push_back(data_ji);   // add individual to the list
+                }
             }
-            //Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
+
         }
+        //Rcpp::Rcout<<"data["<<j<<"].size() = "<<data[j].size()<<std::endl;
+    }
 
-                //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
-                //for(size_t j = 0; j < d; j++)
-                    //for(size_t i = 0; i < data[j].size(); i++)
-                        //Rcpp::Rcout<<"data["<<j<<","<<i<<"] = "<<data[j][i].mean_ji<<std::endl;
-
-
-        // Read all hyper-parameters passed with _option
-        double Lambda0 = Rcpp::as<double>(_option["Lambda0"]);
-        double mu0 = Rcpp::as<double>(_option["mu0"]);
-        double nu0 = Rcpp::as<double>(_option["nu0"]);
-        double sigma0 = Rcpp::as<double>(_option["sigma0"]);
-        double gamma0 = Rcpp::as<double>(_option["gamma0"]);
-
-        // Read Rcpp objects and transform them in Eigen objects
-        Eigen::Map<GDFMM_Traits::MatCol> Sigma0_temp = Rcpp::as<Eigen::Map<GDFMM_Traits::MatCol>>( Rcpp::as<Rcpp::NumericMatrix>(_option["Sigma0"]) ); 
-        Eigen::Map<GDFMM_Traits::VecCol> beta0_temp  = Rcpp::as<Eigen::Map<GDFMM_Traits::VecCol>>( Rcpp::as<Rcpp::NumericVector>(_option["beta0"]) ); 
-        GDFMM_Traits::VecCol beta0 = beta0_temp; 
-        GDFMM_Traits::MatCol Sigma0 = Sigma0_temp; 
-
-        double h1 = Rcpp::as<double>(_option["Adapt_MH_hyp1"]);
-        double h2 = Rcpp::as<double>(_option["Adapt_MH_hyp2"]);
-        unsigned int pow = Rcpp::as<unsigned int>(_option["Adapt_MH_power_lim"]);
-        unsigned int proposal_Mstar = Rcpp::as<unsigned int>(_option["proposal_Mstar"]);
-        double adapt_var0 = Rcpp::as<double>(_option["Adapt_MH_var0"]);
-        double k0 = Rcpp::as<double>(_option["k0"]);
-        double a1 = Rcpp::as<double>(_option["alpha_gamma"]);
-        double b1 = Rcpp::as<double>(_option["beta_gamma"]);
-        double a2 = Rcpp::as<double>(_option["alpha_lambda"]);
-        double b2 = Rcpp::as<double>(_option["beta_lambda"]);
-        std::vector<double> init_mean_clus{ Rcpp::as<std::vector<double>>(_option["init_mean_cluster"]) };
-        std::vector<double> init_var_clus{ Rcpp::as<std::vector<double>>(_option["init_var_cluster"]) };
-        bool FixedU = !Rcpp::as<bool>(_option["UpdateU"]);
-        bool FixedM = !Rcpp::as<bool>(_option["UpdateM"]);
-        bool FixedGamma = !Rcpp::as<bool>(_option["UpdateGamma"]);
-        bool FixedS = !Rcpp::as<bool>(_option["UpdateS"]);
-        bool FixedTau = !Rcpp::as<bool>(_option["UpdateTau"]);
-        bool FixedLambda = !Rcpp::as<bool>(_option["UpdateLambda"]);
-        bool FixedBeta = !Rcpp::as<bool>(_option["UpdateBeta"]);
-        // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
-        gs_data = GS_data(  data, n_j, d, r, random_engine, 
-                            Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, 
-                            beta0, Sigma0, 
-                            init_mean_clus, init_var_clus, _P0_prior_name, 
-                            partition_vec  );
-
-        //Initialize Full Conditional Objects
-        auto Partition_ptr = std::make_shared<Partition_mv>("Partition", d, n_j, _FixPart);
-        auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", proposal_Mstar, _FixPart, FixedM);
-        auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, d, adapt_var0, a1, b1, FixedGamma);
-        auto tau_ptr = std::make_shared<FC_tau_mv>("tau", nu0, sigma0, mu0, k0, FixedTau);
-        auto U_ptr = std::make_shared<FC_U>("U", FixedU);
-        auto S_ptr = std::make_shared<FC_S>("S", FixedS);
-        auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
-        auto beta_ptr = std::make_shared<FC_beta_mv>("beta", beta0, Sigma0, FixedBeta);
+            //Rcpp::Rcout<<"data.size() = "<<data.size()<<std::endl;
+            //for(size_t j = 0; j < d; j++)
+                //for(size_t i = 0; i < data[j].size(); i++)
+                    //Rcpp::Rcout<<"data["<<j<<","<<i<<"] = "<<data[j][i].mean_ji<<std::endl;
 
 
-        //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc_nocov{tau_ptr,
+    // Read all hyper-parameters passed with _option
+    double Lambda0 = Rcpp::as<double>(_option["Lambda0"]);
+    double mu0 = Rcpp::as<double>(_option["mu0"]);
+    double nu0 = Rcpp::as<double>(_option["nu0"]);
+    double sigma0 = Rcpp::as<double>(_option["sigma0"]);
+    std::vector<double> gamma0{ Rcpp::as<std::vector<double>>(_option["gamma0"]) };
+    //double gamma0 = Rcpp::as<double>(_option["gamma0"]);
+    
+
+    // Read Rcpp objects and transform them in Eigen objects
+    Eigen::Map<GDFMM_Traits::MatCol> Sigma0_temp = Rcpp::as<Eigen::Map<GDFMM_Traits::MatCol>>( Rcpp::as<Rcpp::NumericMatrix>(_option["Sigma0"]) ); 
+    Eigen::Map<GDFMM_Traits::VecCol> beta0_temp  = Rcpp::as<Eigen::Map<GDFMM_Traits::VecCol>>( Rcpp::as<Rcpp::NumericVector>(_option["beta0"]) ); 
+    GDFMM_Traits::VecCol beta0 = beta0_temp; 
+    GDFMM_Traits::MatCol Sigma0 = Sigma0_temp; 
+
+    double h1 = Rcpp::as<double>(_option["Adapt_MH_hyp1"]);
+    double h2 = Rcpp::as<double>(_option["Adapt_MH_hyp2"]);
+    unsigned int pow = Rcpp::as<unsigned int>(_option["Adapt_MH_power_lim"]);
+    unsigned int proposal_Mstar = Rcpp::as<unsigned int>(_option["proposal_Mstar"]);
+    double adapt_var0 = Rcpp::as<double>(_option["Adapt_MH_var0"]);
+    double k0 = Rcpp::as<double>(_option["k0"]);
+    double a1 = Rcpp::as<double>(_option["alpha_gamma"]);
+    double b1 = Rcpp::as<double>(_option["beta_gamma"]);
+    double a2 = Rcpp::as<double>(_option["alpha_lambda"]);
+    double b2 = Rcpp::as<double>(_option["beta_lambda"]);
+    std::vector<double> init_mean_clus{ Rcpp::as<std::vector<double>>(_option["init_mean_cluster"]) };
+    std::vector<double> init_var_clus{ Rcpp::as<std::vector<double>>(_option["init_var_cluster"]) };
+    bool FixedU = !Rcpp::as<bool>(_option["UpdateU"]);
+    bool FixedM = !Rcpp::as<bool>(_option["UpdateM"]);
+    bool FixedGamma = !Rcpp::as<bool>(_option["UpdateGamma"]);
+    bool FixedS = !Rcpp::as<bool>(_option["UpdateS"]);
+    bool FixedTau = !Rcpp::as<bool>(_option["UpdateTau"]);
+    bool FixedLambda = !Rcpp::as<bool>(_option["UpdateLambda"]);
+    bool FixedBeta = !Rcpp::as<bool>(_option["UpdateBeta"]);
+    // Initialize gs_data with correct random seed, given Mstar and all data assigned to same cluster
+    gs_data = GS_data(  data, n_j, d, r, random_engine, 
+                        Mstar0, Lambda0, mu0, nu0, sigma0, gamma0, 
+                        beta0, Sigma0, 
+                        init_mean_clus, init_var_clus, _P0_prior_name, 
+                        partition_vec  );
+
+    //Initialize Full Conditional Objects
+    auto Partition_ptr = std::make_shared<Partition_mv>("Partition", d, n_j, _FixPart);
+    auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", proposal_Mstar, _FixPart, FixedM);
+    auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, d, adapt_var0, a1, b1, FixedGamma);
+    auto tau_ptr = std::make_shared<FC_tau_mv>("tau", nu0, sigma0, mu0, k0, FixedTau);
+    auto U_ptr = std::make_shared<FC_U>("U", FixedU);
+    auto S_ptr = std::make_shared<FC_S>("S", FixedS);
+    auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
+    auto beta_ptr = std::make_shared<FC_beta_mv>("beta", beta0, Sigma0, FixedBeta);
+
+
+    //Full Conditional vector that we will loop
+    std::vector< std::shared_ptr<FullConditional> > fc_nocov{tau_ptr,
+                                                        S_ptr,
+                                                        lambda_ptr,
+                                                        Partition_ptr,
+                                                        U_ptr,
+                                                        gamma_ptr,
+                                                        Mstar_ptr
+                                                        };
+
+    //Full Conditional vector that we will loop
+    std::vector< std::shared_ptr<FullConditional> > fc_cov{beta_ptr,
+                                                            tau_ptr,
                                                             S_ptr,
                                                             lambda_ptr,
                                                             Partition_ptr,
                                                             U_ptr,
                                                             gamma_ptr,
                                                             Mstar_ptr
-                                                            };
+                                                        }; 
 
-        //Full Conditional vector that we will loop
-        std::vector< std::shared_ptr<FullConditional> > fc_cov{beta_ptr,
-                                                                tau_ptr,
-                                                                S_ptr,
-                                                                lambda_ptr,
-                                                                Partition_ptr,
-                                                                U_ptr,
-                                                                gamma_ptr,
-                                                                Mstar_ptr
-                                                            }; 
+    if(IncludeCovariates)            
+        std::swap(FullConditionals, fc_cov);
+    else
+        std::swap(FullConditionals, fc_nocov);    
 
-        if(IncludeCovariates)            
-            std::swap(FullConditionals, fc_cov);
-        else
-            std::swap(FullConditionals, fc_nocov);    
+    // Initialize return structure 
+    out.S.reserve(n_iter);
+    out.mu.reserve(n_iter);
+    out.sigma.reserve(n_iter);
+    
+    // Initialize beta return structure - only if needed
+    if(IncludeCovariates)  
+        out.beta.reserve(n_iter);
 
-        // Initialize return structure 
-        out.S.reserve(n_iter);
-        out.mu.reserve(n_iter);
-        out.sigma.reserve(n_iter);
-        
-        // Initialize beta return structure - only if needed
-        if(IncludeCovariates)  
-            out.beta.reserve(n_iter);
-
-    }
-    else{
-        throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
-    }
+    //}
+    //else{
+    //    throw std::runtime_error("Error, P0_prior_name must be equal to Normal-InvGamma. No other cases have been implemented.");
+    //}
 }
 
 void ConditionalSampler::sample() {
