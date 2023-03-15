@@ -1,9 +1,15 @@
 #include "FC_gamma.h"
 
 
-FC_gamma::FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, int a, int b, double _s_p, bool _keepfixed) : 
+FC_gamma::FC_gamma(std::string na, double h1, double h2, double pow, unsigned int d, double adapt_var0, double a, double b, double _s_p, bool _keepfixed) : 
                     FullConditional(na,_keepfixed), hyp1(h1), hyp2(h2), power(pow), alpha(a), beta(b), s_p(_s_p)
             {
+                        //Rcpp::Rcout<<"Dentro al constructor di FC_gamma"<<std::endl;
+                        //Rcpp::Rcout<<"a = "<<a<<std::endl;
+                        //Rcpp::Rcout<<"b = "<<b<<std::endl;
+                        //Rcpp::Rcout<<"alpha = "<<alpha<<std::endl;
+                        //Rcpp::Rcout<<"beta = "<<beta<<std::endl;
+
                 adapt_var_pop_gamma.resize(d);
                 std::fill(adapt_var_pop_gamma.begin(), adapt_var_pop_gamma.end(), adapt_var0);
             };
@@ -36,8 +42,15 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     double log_gammaj_new{0.0};
     double gammaj_new{0.0};
     // Rcpp::Rcout<<"iter="<<iter<<std::endl;
-    
+
+
     for (unsigned int j=0; j<d; j++){
+                //Rcpp::Rcout<<"----------------------------------"<<std::endl;
+                //Rcpp::Rcout<<"Dentro Adaptive for gamma, j = "<<j<<std::endl;
+                //Rcpp::Rcout<<"alpha = "<<alpha<<std::endl;
+                //Rcpp::Rcout<<"beta = "<<beta<<std::endl;
+                //Rcpp::Rcout<<"gamma[j] = "<<gamma[j]<<std::endl;
+
         // ---------------------------------------------------
         // ADAPTIVE MH UPDATE for positive valued random vector
         // ---------------------------------------------------
@@ -45,21 +58,29 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         //1) Sample proposed value in log scale
         log_gammaj_new = rnorm(gs_engine, std::log(gamma[j]), std::sqrt(adapt_var_pop_gamma[j]));
         gammaj_new = std::exp(log_gammaj_new);
-        
+                //Rcpp::Rcout<<"log_gammaj_new = "<<log_gammaj_new<<std::endl;
+                //Rcpp::Rcout<<"gammaj_new = "<<gammaj_new<<std::endl;
+
         //2) Compute acceptance probability in log scale
         ln_acp = log_full_gamma(gammaj_new, Lambda, K, Mstar, N.row(j)) - 
                  log_full_gamma(gamma[j],   Lambda, K, Mstar, N.row(j)) +
                  log_gammaj_new  - std::log( gamma[j] );
-        
+                //Rcpp::Rcout<<"log_full new = "<<log_full_gamma(gammaj_new, Lambda, K, Mstar, N.row(j))<<std::endl;
+                //Rcpp::Rcout<<"log_full old = "<<log_full_gamma(gamma[j], Lambda, K, Mstar, N.row(j))<<std::endl;
+                //Rcpp::Rcout<<"log gamma new - log gamma old = "<<log_gammaj_new  - std::log( gamma[j] )<<std::endl;
+                //Rcpp::Rcout<<"Prob accettazione = "<<std::exp(ln_acp)<<std::endl;
         //3) Acceptance rejection step
         ln_u = std::log(runif(gs_engine));
         
-        if (ln_u  < ln_acp)
+        if (ln_u  < ln_acp){
+                    //Rcpp::Rcout<<"Accetto"<<std::endl;
             gs_data.gamma[j] = gammaj_new;
+        }
 
         adapt_var_pop_gamma[j] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
                                                     )  
                                             );
+                //Rcpp::Rcout<<"adapt_var_pop_gamma[j]:"<<std::endl<<adapt_var_pop_gamma[j]<<std::endl;
 
         if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
             adapt_var_pop_gamma[j] = 1/pow(10, power);
@@ -109,10 +130,23 @@ double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
                                 unsigned int M_star,const GDFMM_Traits::MatUnsCol & n_jk){
 
     // Computation of the output
+            //Rcpp::Rcout<<"********** Dentro log_full_gamma **********"<<std::endl;
+            //Rcpp::Rcout<<"gamma = "<<gamma<<std::endl;
+            //Rcpp::Rcout<<"Lambda = "<<Lambda<<std::endl;
+            //Rcpp::Rcout<<"k = "<<k<<std::endl;
+            //Rcpp::Rcout<<"M_star = "<<M_star<<std::endl;
+            //Rcpp::Rcout<<"n_jk:"<<std::endl<<n_jk<<std::endl;
+            //Rcpp::Rcout<<"l_dgamma("<<gamma<<","<<alpha<<", "<<beta<<" ) :"<<std::endl<<l_dgamma(gamma, alpha, beta)<<std::endl;
+            //Rcpp::Rcout<<"lgamma(gamma * (M_star + k)):"<<std::endl<<lgamma(gamma * (M_star + k))<<std::endl;
+            //Rcpp::Rcout<<"lgamma(gamma *(M_star + k) + n_jk.sum()):"<<std::endl<<lgamma(gamma *(M_star + k) + n_jk.sum())<<std::endl;
+            //Rcpp::Rcout<<"(k * lgamma(gamma)):"<<std::endl<<(k * lgamma(gamma))<<std::endl;
+            //Rcpp::Rcout<<"sumlgamma(gamma, n_jk):"<<std::endl<<sumlgamma(gamma, n_jk)<<std::endl;
+
     double out = l_dgamma(gamma, alpha, beta) + lgamma(gamma * (M_star + k)) - 
-                      lgamma(gamma *(M_star + k) + n_jk.sum()) -(k * lgamma(gamma)) + sumlgamma(gamma, n_jk);
+                      lgamma(gamma *(M_star + k) + n_jk.sum()) - (k * lgamma(gamma)) + sumlgamma(gamma, n_jk);
     //Rcpp::Rcout<<"std::log(pdfgamma(x,alpha,beta))"<< std::log(pdfgamma(x,alpha,beta));
     //Rcpp::Rcout<<"sumlgamma"<<sumlgamma(x, n_jk);
+    //Rcpp::Rcout<<"********** Esco da log_full_gamma **********"<<std::endl;
     return out;
     }
 
@@ -129,5 +163,11 @@ double FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) {
 
 // This is the log of a gamma density with parameters (a,b) evaluated in gamma
 double FC_gamma::l_dgamma(double gamma, double a, double b){
+            //Rcpp::Rcout<<"++++++++ Dentro l_dgamma ++++++++"<<std::endl;
+            //Rcpp::Rcout<<"a*std::log(b) = "<<a*std::log(b)<<std::endl;
+            //Rcpp::Rcout<<"(a-1.0)*std::log(gamma) = "<<(a-1.0)*std::log(gamma)<<std::endl;
+            //Rcpp::Rcout<<"b*gamma = "<<b*gamma<<std::endl;
+            //Rcpp::Rcout<<"std::lgamma(a) = "<<std::lgamma(a)<<std::endl;
+            //Rcpp::Rcout<<"++++++++ Fuori l_dgamma ++++++++"<<std::endl;
     return a*std::log(b) + (a-1.0)*std::log(gamma) - b*gamma - std::lgamma(a);
 }

@@ -1596,6 +1596,9 @@ input_handle = function(tb, intercept = FALSE){
   ncol_tb = ncol(tb)
   r = ncol_tb - 3 # number of covariates
   names(tb)[1:3] = c("ID","level","value")
+  tb$level <- factor(tb$level, levels = unique(tb$level))
+  levels(tb$level) <- as.character(1:length(unique(tb$level)))
+
   cov_names = names(tb)[4:ncol_tb]
 
   tb = tb %>% ungroup()
