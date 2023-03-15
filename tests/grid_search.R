@@ -182,8 +182,8 @@ obj.fun <- makeSingleObjectiveFunction(
                           "init_var_cluster" = NULL,
                           "partition" = rep(0,sum(n_j)),#NULL, #seq(1:sum(n_j)),
                           "IncludeCovariates" = TRUE,
-                          "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T,
-                          "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T,
+                          "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = F,
+                          "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = F,
                           "UpdateBeta" = T )
 
     prior = "Normal"
