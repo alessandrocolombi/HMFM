@@ -16,7 +16,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
     }
     else{
-        //Rcpp::Rcout<<"Dentro Partition"<<std::endl;
+        //Rcpp::Rcout<<" ----------  Dentro Partition  ----------"<<std::endl;
         // From gs_data all needed variable are retrived
         unsigned int k = gs_data.K; // number of cluster
         unsigned int d = gs_data.d; // number of group
@@ -28,12 +28,13 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
         const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data;
 
+        //Rcpp::Rcout<<"(k,Mstar,M) = "<<gs_data.K<<", "<<gs_data.Mstar<<", "<<gs_data.M<<std::endl;
+//
         //Rcpp::Rcout<<"Stampo mu: ";        
         //for(auto __v : mu)
             //Rcpp::Rcout<<__v<<", ";
         //Rcpp::Rcout<<std::endl;
-
-        //Rcpp::Rcout<<"Stampo sigma: ";        
+       //Rcpp::Rcout<<"Stampo sigma: ";        
         //for(auto __v : sigma)
             //Rcpp::Rcout<<__v<<", ";
         //Rcpp::Rcout<<std::endl;
@@ -50,8 +51,28 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             for(unsigned int i=0; i<n_j[j]; i++){
                 // compute "probability" each m component for y_ji 
                 for(unsigned int m=0; m<M; m++){
+                    //Rcpp::Rcout<<"S("<<j<<","<<m<<") = "<<S(j,m)<<std::endl;
+                    //Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]):"<<std::endl<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
+                    //if(m>=K)
+                        //Rcpp::Rcout<<"NON allocate: "<<std::endl;
+                    
+                    double likelihood_term{0.0};
+                    if(gs_data.r > 0){
+                        likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],mv_data[j][i].X_ji.transpose()*gs_data.beta.row(j), sigma[m]);
+                    }
+                    else
+                        likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],sigma[m]);
 
-                    //Rcpp::Rcout<<"log_dmvnorm(mv_data["<<j<<"]["<<i<<"],mu["<<m<<"],sigma["<<m<<"]) = "<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
+                    if( std::abs(log_dmvnorm(mv_data[j][i],mu[m],sigma[m]) - likelihood_term) > 1e-6  ){
+                        Rcpp::Rcout<<"i = "<<i<<std::endl;
+                        Rcpp::Rcout<<"j = "<<j<<std::endl;
+                        Rcpp::Rcout<<"mu[m]"<<mu[m]<<std::endl;
+                        Rcpp::Rcout<<"sigma[m]"<<sigma[m]<<std::endl;
+                        Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]):"<<std::endl<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
+                        Rcpp::Rcout<<"likelihood_term:"<<std::endl<<likelihood_term<<std::endl;
+                        throw std::runtime_error("Error  in FC_Partition_mv, strano il termine di likelihood");
+                    }
+                    
                     probs_vec(m) = log(S(j,m)) + log_dmvnorm(mv_data[j][i],mu[m],sigma[m]);
                 
                 }
@@ -61,6 +82,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                 // scale values of probs_vec
                 for(unsigned int m=0; m<M; m++){
                     probs_vec(m) = exp(probs_vec(m) - probs_max);
+                    //Rcpp::Rcout<<"probs_vec:"<<std::endl<<probs_vec<<std::endl;
                  //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
                     if(std::isnan(probs_vec(m))){
                         Rcpp::Rcout<<"M = "<<M<<std::endl;
@@ -113,6 +135,32 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     }
 
 }
+
+
+// density of N_{n_ji}(Y_ji; mu * ones(n_ji), var * diag(n_ji))
+double Partition_mv::log_dmvnorm2(Individual data_ji, const double& mu, const double& var) const {
+    double two_pi = 2.0 * M_PI;
+    Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
+    GDFMM_Traits::VecCol mu_term( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, mu) ); // define a vector where each element is equal to mu
+    GDFMM_Traits::VecCol mean( eigen_data - mu_term ); // compute the difference
+    return(  -0.5*data_ji.n_ji*std::log(two_pi*var) - 
+             (0.5/var) * mean.dot(mean) 
+          );
+}
+
+
+// density of N_{n_ji}(Y_ji; mu * ones(n_ji) + X_ji*beta_j, var * diag(n_ji))
+double Partition_mv::log_dmvnorm2(Individual data_ji, const double& mu,const GDFMM_Traits::VecCol& cov_term, const double& var) const {
+    double two_pi = 2.0 * M_PI;
+    Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
+    GDFMM_Traits::VecCol mu_term( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, mu) ); // define a vector where each element is equal to mu
+    GDFMM_Traits::VecCol mean( eigen_data - mu_term - cov_term ); // compute the difference
+    return(  -0.5*data_ji.n_ji*std::log(two_pi*var) - 
+             (0.5/var) * mean.dot(mean) 
+          );
+}
+
+
 
 // support method
 double Partition_mv::log_dmvnorm(const Individual& data_ji, const double& mu, const double& var) const {

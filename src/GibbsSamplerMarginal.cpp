@@ -39,7 +39,8 @@ GibbsSamplerMarginal::GibbsSamplerMarginal( Eigen::MatrixXd const &data, unsigne
         double mu0 = Rcpp::as<double>(option["mu0"]);
         double nu0 = Rcpp::as<double>(option["nu0"]);
         double sigma0 = Rcpp::as<double>(option["sigma0"]);
-        double gamma0 = Rcpp::as<double>(option["gamma0"]);
+        //double gamma0 = Rcpp::as<double>(option["gamma0"]);
+        std::vector<double> gamma0{ Rcpp::as<std::vector<double>>(option["gamma0"]) };
         double h1 = Rcpp::as<double>(option["Adapt_MH_hyp1"]);
         double h2 = Rcpp::as<double>(option["Adapt_MH_hyp2"]);
         double s_p_U = Rcpp::as<double>(option["sp_mala_U"]);

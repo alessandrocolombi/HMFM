@@ -2231,12 +2231,16 @@ var_marginal_per_cluster
 
 ```{r}
 # Run  --------------------------------------------------------------------
-niter  <-  20000
-burnin <-  10000
+niter  <-  2000#0
+burnin <-  1000#0
 thin   <-  1
 
 # gamma
-a_gamma <-   1; b_gamma  <- 20
+mu_gamma  =  1/sum(n_j)
+var_gamma =  10
+a_gamma = (mu_gamma*mu_gamma)/var_gamma
+b_gamma = mu_gamma/(var_gamma)
+#a_gamma <- 2 ; b_gamma  <- 0.005
 
 # lambda
 mu_lambda  = 20
@@ -2244,18 +2248,23 @@ var_lambda =  2
 a_lambda = (mu_lambda*mu_lambda)/var_lambda
 b_lambda = mu_lambda/(var_lambda)
 
+#initial values
+Lambda0 = mu_lambda
+gamma0 = rep(0.1,d)
+Mstar0 = 50
 
 
 option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0, 
-                      "Adapt_MH_var0"=0.05,
+                      "Adapt_MH_var0"=0.001,
                       "proposal_Mstar" = 1,
-                      "Lambda0" = mu_lambda, "gamma0" = 0.1, "Mstar0" = 10,
+                      "Lambda0" = Lambda0, "gamma0" = gamma0, "Mstar0" = Mstar0,
                       "alpha_gamma" = a_gamma, "beta_gamma" = b_gamma, 
                       "alpha_lambda" = a_lambda, "beta_lambda" = b_lambda,
                       "init_mean_cluster" = NULL,#mean_data_per_cluster, 
                       "init_var_cluster" =  NULL,#var_data_per_cluster,
                       "partition" = real_partition, 
-                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T
+                      "UpdateU" = T, "UpdateM" = F, "UpdateGamma" = T, 
+                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T
 )
 
 
@@ -2277,8 +2286,8 @@ plot(GDFMM$Mstar, type = 'l', main = "Mstar")
 #acf(GDFMM$Mstar)
 
 # gamma
-par(mfrow = c(1,3))
-for(j in 4:6){
+#par(mfrow = c(1,3))
+for(j in 1:d){
   plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
 }
 
@@ -2289,8 +2298,8 @@ for(j in 4:6){
 
 
 # U
-par(mfrow = c(1,3))
-for(j in 1:3){
+
+for(j in 1:d){
   plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
 }
 

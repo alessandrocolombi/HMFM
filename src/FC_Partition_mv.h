@@ -22,6 +22,8 @@ public:
     ~Partition_mv(){};
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
     double log_dmvnorm(const Individual& data_ji, const double& mu, const double& var) const;
+    double log_dmvnorm2(Individual data_ji, const double& mu, const double& var) const;
+    double log_dmvnorm2(Individual data_ji, const double& mu, const GDFMM_Traits::VecCol& cov_term, const double& var) const;
 };
 
 #endif

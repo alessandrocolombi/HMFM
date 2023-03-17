@@ -83,6 +83,7 @@ mean_data_per_cluster
 var_data_per_cluster  = lapply(data_per_cluster, var)
 var_data_per_cluster
 #log_marginal_prior
+
 ```
 
 
@@ -278,14 +279,17 @@ thin   <- 1
 
 # tau 
 #P0_hyparam = empirical_bayes_normalinvgamma(data = data)
-a_gamma <- 1; b_gamma <- 1
+a_gamma <- 0.5;   b_gamma <- 2
 a_lambda <- 10; b_lambda <- 2
+
+gamma0  = c(1,1,1)#optK$par[1]
+Lambda0 = 10#optK$par[2]
 
 option = set_options_marginal(
              "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "sp_mala_U" = 0.01, "sp_mala_gamma"=0.01,
-             "gamma0" = optK$par[1],"Lambda0" = optK$par[2], 
+             "gamma0" = gamma0,"Lambda0" = Lambda0, 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 

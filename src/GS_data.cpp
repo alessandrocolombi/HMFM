@@ -4,7 +4,7 @@
 
 GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int burnin, unsigned int thin,
                 const sample::GSL_RNG& gs_engine, unsigned int Mstar0, double Lambda0, double mu0,
-                double nu0, double sigma0, double gamma0, 
+                double nu0, double sigma0, const std::vector<double>& _gamma0, 
                 std::vector<double> _init_mean_clus, std::vector<double> _init_var_clus,
                 std::string P0_prior_name, std::vector<unsigned int> part_vec) :
                 prior(P0_prior_name) {
@@ -60,7 +60,13 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     }
     
     // Initialization of gamma and U vector
-    gamma = std::vector<double>(d, gamma0);
+    //gamma = std::vector<double>(d, gamma0);
+    gamma = _gamma0;
+    Rcpp::Rcout<<"Ho letto gamma0, deve essere un vettore di lunghezza d e entrate tutte strettamente positive"<<std::endl;
+    Rcpp::Rcout<<"Stampo gamma: ";        
+    for(auto __v : gamma)
+        Rcpp::Rcout<<__v<<", ";
+    Rcpp::Rcout<<std::endl;
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 1.0);
 

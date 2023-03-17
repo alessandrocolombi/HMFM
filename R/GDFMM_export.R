@@ -350,7 +350,7 @@ arrange_partition = function(partition){
 #' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
 #' @param Mstar0 [integer] the initial value of non-allocated components
 #' @param Lambda0 [double] the initial value for Lambda.
-#' @param gamma0 [double] the initial value for the gamma parameters.
+#' @param gamma0 [vector] vector of initial values for the gamma parameters.
 #' @param mu0 [double] the mean parameter in the prior of mu.
 #' @param k0 [double] the parameter in the prior of mu.
 #' @param sigma0 [double] the rate parameter in the prior of sigma.
@@ -363,7 +363,7 @@ arrange_partition = function(partition){
 #' @param Adapt_MH_power_lim [double] default is 10.
 #' @param Adapt_MH_var0 [double] default is 1.
 #' @param proposal_Mstar [integer] must be strictly positive. The proposal distribution for Metropolis-Hasting update of Mstar is a discrete uniform
-#'        distribution between \code{-proposal_Mstar} and \code{proposal_Mstar}. 0 value is escluded. 
+#'        distribution between \code{-proposal_Mstar} and \code{proposal_Mstar}. 0 value is escluded.
 #' @param alpha_gamma [double] the shape parameter in the prior of gamma.
 #' @param beta_gamma [double] the rate parameter in the prior of gamma.
 #' @param alpha_lambda [double] the shape parameter in the prior of lambda.
@@ -419,7 +419,7 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
                             P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
 
   n = ncol(data)*nrow(data) - sum(is.na(data)) #get number of data points
-
+  d = nrow(data)
   #Check option to be in the correct form
   option_temp = set_options(partition = NULL)
   if(is.null(option)) # no option, set default
@@ -444,6 +444,14 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
 
+  # Check initial values for gamma0
+  if(is.null(option$gamma0))
+    option$gamma0 = rep(1,d)
+  if(length(option$gamma0) != d)
+    stop("option$gamma0 must be a vector of length d")
+  if(any(option$gamma0 <= 0 ))
+    stop("All elements of option$gamma0 must be strictly positive")
+
   # Check initial values for tau
   K_init = length(table(option$partition)) # compute initial number of clusters
   if(is.null(option$init_var_cluster))
@@ -459,7 +467,7 @@ GDFMM_sampler <- function(data, niter, burnin, thin, seed,
     stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0")
 
   # Check proposal for Mstar
-  option$proposal_Mstar = floor(option$proposal_Mstar)  
+  option$proposal_Mstar = floor(option$proposal_Mstar)
   if(option$proposal_Mstar <= 0)
     stop("proposal_Mstar must be a strictly positive integer")
 
@@ -1197,7 +1205,7 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' Use this function to set up the options for the conditional Gibbs sampler.
 #' @param partition [vector] of length equal to the number of data. If \code{NULL}, all data points are put in the same cluster.
 #' @param Lambda0 [double] the initial value for Lambda.
-#' @param gamma0 [double] the initial value for the gamma parameters.
+#' @param gamma0 [vector] of initial values for the gamma parameters.
 #' @param mu0 [double] the mean parameter in the prior of mu.
 #' @param k0 [double] the parameter in the prior of mu.
 #' @param sigma0 [double] the rate parameter in the prior of sigma.
@@ -1215,7 +1223,7 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #'
 #' @export
 set_options_marginal = function( partition = NULL,
-                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = 1,
+                        Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = NULL,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
                         sp_mala_U = 0.01, sp_mala_gamma=0.01,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
@@ -1256,6 +1264,7 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 {
 
   n = ncol(data)*nrow(data) - sum(is.na(data)) #get number of data points
+  d = nrow(data)
 
   #Check option to be in the correct form
   option_temp = set_options_marginal(partition = NULL)
@@ -1280,6 +1289,13 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
     if(n != length(option$partition))
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
+  # Check initial values for gamma0
+  if(is.null(option$gamma0))
+    option$gamma0 = rep(1,d)
+  if(length(option$gamma0) != d)
+    stop("option$gamma0 must be a vector of length d")
+  if(any(option$gamma0 <= 0 ))
+    stop("All elements of option$gamma0 must be strictly positive")
 
   # Check initial values for tau
   K_init = length(table(option$partition)) # compute initial number of clusters
@@ -1586,12 +1602,12 @@ Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
 #' Handle input
 #'
 #' This function gets a tibble with three columns containing the data in long form. Data are handled and a list is returned.
-#' @param tb [tibble] a tibble with three columns. First column contains the ID of the data, 
+#' @param tb [tibble] a tibble with three columns. First column contains the ID of the data,
 #' second column contains the level membership of each data. Finally, the third column contains the numerical value of the variabile
 #' @param intercept [boolen] set \code{TRUE} to include the intercept in the regression model
 #' @export
 input_handle = function(tb, intercept = FALSE){
-  
+
   # set names
   ncol_tb = ncol(tb)
   r = ncol_tb - 3 # number of covariates
@@ -1604,19 +1620,19 @@ input_handle = function(tb, intercept = FALSE){
   tb = tb %>% ungroup()
   IDs  = tb %>% distinct(ID) %>% pull(ID)
   # compute number of individuals in each level
-  n_j = tb %>% distinct(ID,level) %>% 
-               group_by(level) %>% 
-               summarise(count = n()) %>% 
+  n_j = tb %>% distinct(ID,level) %>%
+               group_by(level) %>%
+               summarise(count = n()) %>%
                pull(count)
-  
+
   # compute number of levels
   d = length(n_j)
-  
+
   # compute number of individuals
-  n = tb %>% group_by(ID) %>% 
-             summarise(n()) %>% 
+  n = tb %>% group_by(ID) %>%
+             summarise(n()) %>%
              nrow()
-  
+
   # compute quantities for each individual i in level j
   N_ji = matrix(0,nrow = d, ncol = n) # number of observations for individual i in level j
   mean_ji = matrix(0,nrow = d, ncol = n) # mean of observations for individual i in level j
@@ -1635,21 +1651,21 @@ input_handle = function(tb, intercept = FALSE){
     r = r+1
   for(i in 1:n) {
     filter_i = tb %>% filter(ID == IDs[i]) # filter for i-th individual
-    
+
               ### compute mean-var-number of observations for i-th individual in all d levels
-              ##temp_i = filter_i %>% group_by(level) %>% 
-                ##summarise(count = n(), mean = mean(value), var = var(value)) %>% 
+              ##temp_i = filter_i %>% group_by(level) %>%
+                ##summarise(count = n(), mean = mean(value), var = var(value)) %>%
                 ##select(count, mean, var,level) %>% mutate(level = as.integer(level)) %>% as.matrix()
-          ##    
+          ##
               ##temp_i[is.na(temp_i[,3]),3] = 0
               ##s_i[i] = nrow(temp_i)
-          ##    
+          ##
               ### save
               ##N_ji[as.numeric(temp_i[,4]),i]    = as.numeric(temp_i[,1])
               ##mean_ji[as.numeric(temp_i[,4]),i] = as.numeric(temp_i[,2])
               ##var_ji[as.numeric(temp_i[,4]),i]  = as.numeric(temp_i[,3])
-    
-    # fill data structure 
+
+    # fill data structure
     for(j in 1:d){
       temp_ji = filter_i %>% filter(level == j)
       data_ji = temp_ji %>% pull(value) # get all observation for individual i in all d levels
@@ -1658,7 +1674,7 @@ input_handle = function(tb, intercept = FALSE){
 
       if(N_ji[j,i] > 0)
         mean_ji[j,i] = mean(data_ji) # compute mean
-      
+
       # compute variance, if not defined set 0
       if(N_ji[j,i] > 1)
         var_ji[j,i] = var(data_ji)
@@ -1670,7 +1686,7 @@ input_handle = function(tb, intercept = FALSE){
         }else{
           if(intercept)
             covariates = model.matrix( formula, data = temp_ji )
-          else  
+          else
             covariates = model.matrix( formula, data = temp_ji )[,-1]
 
           cov_list[[j]][[i]] = matrix(covariates, nrow = N_ji[j,i], ncol = r)
@@ -1679,10 +1695,10 @@ input_handle = function(tb, intercept = FALSE){
           #cov_list[[j]][[i]] = model.matrix( formula, data = temp_ji )[,-1]
         #}
       }
-      
-      
-    }  
-  
+
+
+    }
+
   }
   if(r == 0)
     cov_list = NULL
@@ -1697,7 +1713,7 @@ input_handle = function(tb, intercept = FALSE){
                "mean_ji"=mean_ji,
                "var_ji"=var_ji)
         )
-  
+
 }
 
 
@@ -1753,7 +1769,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
     if(nobs != length(option$partition))
       stop("The number of points in the data is not coherent with the length of the partition. Are there missing values in the data? Such implementation is not able to deal with them")
   }
-  
+
   # Check initial values for gamma0
   if(is.null(option$gamma0))
     option$gamma0 = rep(1,data$d)
@@ -1761,7 +1777,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
     stop("option$gamma0 must be a vector of length d")
   if(any(option$gamma0 <= 0 ))
     stop("All elements of option$gamma0 must be strictly positive")
-      
+
 
   # Check initial values for tau
   K_init = length(table(option$partition)) # compute initial number of clusters
@@ -1778,7 +1794,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
     stop("The length of option$init_mean_cluster must be equal to the initial number of clusters deduced from the initial partition plus Mstar0")
 
   # Check proposal for Mstar
-  option$proposal_Mstar = floor(option$proposal_Mstar)  
+  option$proposal_Mstar = floor(option$proposal_Mstar)
   if(option$proposal_Mstar <= 0)
     stop("proposal_Mstar must be a strictly positive integer")
 
@@ -1787,14 +1803,14 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   {
     r = data$r
     if(length(option$beta0)!= r || nrow(option$Sigma0) != r || ncol(option$Sigma0) != r  )
-      stop("The number of covariates r that is defined in data is not coherent with the size of beta0 or Sigma0 provided in options.")  
+      stop("The number of covariates r that is defined in data is not coherent with the size of beta0 or Sigma0 provided in options.")
     if(  min(eigen(option$Sigma0)$values) <= 1e-14  )
       stop("Sigma0 is not positive definite or it is very ill conditioned.")
   }else{
     if(data$r != 0 )
       warning(" option$IncludeCovariates is set to FALSE but r > 0 ")
   }
-  
+
   return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )
 }
 
@@ -1802,35 +1818,46 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
 
 #' @export
 predictive_players = function(idx_player, dt, fit, burnin = 1){
-  
+
   n_iter <- length(fit$mu) #number of iterations
-  d_i = length( dt$N_ji[,20] != 0 ) 
+  d_i = sum( dt$N_ji[,idx_player] != 0 )
   #res = vector( "list", length = d_i )
   #res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
+  IncludeCovariates = TRUE
+  if(length(fit$beta) == 0)
+    IncludeCovariates = FALSE
+
   res = c()
   for(idx_group in 1:d_i){
-    
+
     Nsi = dt$N_ji[idx_group, idx_player]
-    Xsi = dt$covariates[[idx_group]][[idx_player]]
+    if(IncludeCovariates)
+      Xsi = dt$covariates[[idx_group]][[idx_player]]
+    else
+      Xsi = 0
+
     MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
-    
+
     counter = 1
     for(it in burnin:n_iter){
       # Get sampled values
       M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
       S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
-      beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
-      
+      if(IncludeCovariates)
+        beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+      else
+        beta_it = 0
+
       # chose from the component to sampler from
       m = sample(1:M_it, size = 1, prob = S_it)
-      
+
       # draw from multivariate gaussian
       mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
       ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
-      
+
       # save
       MIX[counter, ] = ypred_it
-      
+
       # update row counter
       counter = counter + 1
     }
@@ -1842,18 +1869,18 @@ predictive_players = function(idx_player, dt, fit, burnin = 1){
 
 #' @export
 compute_LMPL = function(dt, fit, burnin = 1){
-  
+
   n_iter <- length(fit$mu) #number of iterations
   res = 0
   for(s in 1:dt$d){
     for(i in 1:dt$n){
-      
+
       Nsi = dt$N_ji[s,i]
       if(Nsi == 0)
         break
       Xsi = dt$covariates[[s]][[i]]
       Ysi = dt$observations[[s]][[i]]
-      
+
       counter = 1
       a = rep(0,length(burnin:niter))
       for(it in burnin:n_iter){
@@ -1864,7 +1891,7 @@ compute_LMPL = function(dt, fit, burnin = 1){
         beta_it = fit$beta[[it]][s,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
         mu_it = fit$mu[[it]]
         sigma_it = fit$sigma[[it]]
-        
+
         log_f_it = 0
         for(m in 1:M_it){
           mean = mu_it[m]*rep(1,Nsi) + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
@@ -1873,9 +1900,9 @@ compute_LMPL = function(dt, fit, burnin = 1){
         a[counter] = -log_f_it
         counter = counter + 1
       }
-      
+
       res = res - log_stable_sum(a,is_log = TRUE)
-      
+
     }
   }
   res + sum(dt$n_j)*log(niter-burnin)
