@@ -1610,12 +1610,13 @@ input_handle = function(tb, intercept = FALSE){
 
   # set names
   ncol_tb = ncol(tb)
-  r = ncol_tb - 3 # number of covariates
-  names(tb)[1:3] = c("ID","level","value")
+  r = ncol_tb - 4 # number of covariates
+  names(tb)[1:4] = c("ID","level","value","Partition0")
   tb$level <- factor(tb$level, levels = unique(tb$level))
   levels(tb$level) <- as.character(1:length(unique(tb$level)))
 
-  cov_names = names(tb)[4:ncol_tb]
+  if(r > 0)
+    cov_names = names(tb)[5:ncol_tb]
 
   tb = tb %>% ungroup()
   IDs  = tb %>% distinct(ID) %>% pull(ID)
@@ -1644,6 +1645,9 @@ input_handle = function(tb, intercept = FALSE){
 
   cov_list = vector("list", length = d) # list containing all covariates, for each level and for each individual
   cov_list = lapply(1:d, FUN = function(s){cov_list[[s]] = vector("list", length = n) })
+
+  initial_partition = vector("list", length = d)
+  initial_partition = lapply(1:d, FUN = function(s){initial_partition[[s]] = vector("list", length = n) })
 
   if(r > 0)
     formula <- as.formula( paste("value ~ ", paste(cov_names, collapse = "+")) )
@@ -1696,6 +1700,9 @@ input_handle = function(tb, intercept = FALSE){
         #}
       }
 
+      # set initial partition
+      if(nrow(temp_ji)>0)
+        initial_partition[[j]][[i]] = temp_ji$Partition0[1]
 
     }
 
@@ -1711,7 +1718,8 @@ input_handle = function(tb, intercept = FALSE){
                "covariates" = cov_list,
                "N_ji"=N_ji,
                "mean_ji"=mean_ji,
-               "var_ji"=var_ji)
+               "var_ji"=var_ji,
+               "initialPartition" = initial_partition)
         )
 
 }
@@ -1734,7 +1742,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
                                P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
 
   # check input data
-  names_data_input = c("n","d","r","n_j","ID_i","observations","covariates","N_ji","mean_ji","var_ji")
+  names_data_input = c("n","d","r","n_j","ID_i","observations","covariates","N_ji","mean_ji","var_ji","initialPartition")
   if(length(data) != length(names_data_input))
     stop("data input is malformed. Its length is not the expected one. Use set_options() function to set it correctely.")
   if(!all(names(data) == names_data_input ))
@@ -1817,8 +1825,9 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
 
 
 #' @export
-predictive_players = function(idx_player, dt, fit, burnin = 1){
+predictive_players = function(ID_ply, dt, fit, burnin = 1){
 
+  idx_player = which(dt$ID_i == ID_ply)
   n_iter <- length(fit$mu) #number of iterations
   d_i = sum( dt$N_ji[,idx_player] != 0 )
   #res = vector( "list", length = d_i )

@@ -62,11 +62,11 @@ GS_data::GS_data(Eigen::MatrixXd const &dat, unsigned int n_iter, unsigned int b
     // Initialization of gamma and U vector
     //gamma = std::vector<double>(d, gamma0);
     gamma = _gamma0;
-    Rcpp::Rcout<<"Ho letto gamma0, deve essere un vettore di lunghezza d e entrate tutte strettamente positive"<<std::endl;
-    Rcpp::Rcout<<"Stampo gamma: ";        
-    for(auto __v : gamma)
-        Rcpp::Rcout<<__v<<", ";
-    Rcpp::Rcout<<std::endl;
+    //Rcpp::Rcout<<"Ho letto gamma0, deve essere un vettore di lunghezza d e entrate tutte strettamente positive"<<std::endl;
+    //Rcpp::Rcout<<"Stampo gamma: ";        
+    //for(auto __v : gamma)
+        //Rcpp::Rcout<<__v<<", ";
+    //Rcpp::Rcout<<std::endl;
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 1.0);
 
@@ -194,7 +194,7 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
     Rcpp::Rcout<<"initialize_Partition with non empty partition_vec"<<std::endl;
     Rcpp::Rcout << " (K, Mstar, M) = ("<< K <<","<<Mstar<<","<<M<<")"<<std::endl;
     
-            //Rcpp::Rcout<<"Stampo partition_vec: ";        
+            //Rcpp::Rcout<<"Stampo partition_vec: "<<std::endl;        
             //for(auto __v : partition_vec)
                 //Rcpp::Rcout<<__v<<", ";
             //Rcpp::Rcout<<std::endl;
