@@ -93,7 +93,10 @@ void FC_beta_mv::update_data_summary_statistics(GS_data& gs_data){
 								//Rcpp::Rcout<<"eigen_data:"<<std::endl<<eigen_data<<std::endl;
 								//Rcpp::Rcout<<"ones:"<<std::endl<<ones<<std::endl;
 								//Rcpp::Rcout<<"data_ji.mean_ji*ones:"<<std::endl<<data_ji.mean_ji*ones<<std::endl;
+								//Rcpp::Rcout<<"data_ji.X_ji.transpose():"<<std::endl<<data_ji.X_ji.transpose()<<std::endl;
+								//Rcpp::Rcout<<"beta_s:"<<std::endl<<beta_s<<std::endl;
 								//Rcpp::Rcout<<"data_ji.X_ji.transpose()*beta_s:"<<std::endl<<data_ji.X_ji.transpose()*beta_s<<std::endl;
+								//Rcpp::Rcout<<"data_ji.X_ji.transpose()*beta_s.transpose():"<<std::endl<<data_ji.X_ji.transpose()*beta_s.transpose()<<std::endl;
 								//Rcpp::Rcout<<"beta_s_zji*ones:"<<std::endl<<beta_s_zji*ones<<std::endl;
 								//Rcpp::Rcout<<"first_vect:"<<std::endl<<first_vect<<std::endl;
 								//Rcpp::Rcout<<"second_vect:"<<std::endl<<second_vect<<std::endl;

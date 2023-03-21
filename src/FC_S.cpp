@@ -27,12 +27,6 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     //Rcpp::Rcout<<"gamma["<<j<<"] = "<<gamma[j]<<std::endl;
                     //Rcpp::Rcout<<"U["<<j<<"] = "<<U[j]<<std::endl;
             S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
-            /*
-            NO ERRORE! LE U SALVATE SONO LE U', quindi questa estrazione è proprio sbagliata. 
-            in pratica, cosi facendo si sta facendo uno scaling aggiuntivo
-            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1) );
-            S(j, k) *= 1.0/nu; // compute S', S' is gamma(gamma_j, nu), S' = 1/nu * S
-            */
             // Rcpp::Rcout << S(j,k)<< " ";
         }
         //S NON ALLOCATE

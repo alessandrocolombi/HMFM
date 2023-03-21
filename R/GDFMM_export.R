@@ -1824,6 +1824,61 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
 
 
 
+###' @export
+##predictive_players = function(ID_ply, dt, fit, burnin = 1){
+##
+  ##idx_player = which(dt$ID_i == ID_ply)
+  ##n_iter <- length(fit$mu) #number of iterations
+  ##d_i = sum( dt$N_ji[,idx_player] != 0 )
+  ###res = vector( "list", length = d_i )
+  ###res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
+  ##IncludeCovariates = TRUE
+  ##if(length(fit$beta) == 0)
+    ##IncludeCovariates = FALSE
+##
+  ##res = c()
+  ##for(idx_group in 1:d_i){
+##
+    ##Nsi = dt$N_ji[idx_group, idx_player]
+    ##Ysi = dt$observations[[idx_group]][[idx_player]]
+##
+##
+    ##if(IncludeCovariates)
+      ##Xsi = dt$covariates[[idx_group]][[idx_player]]
+    ##else
+      ##Xsi = 0
+##
+    ##MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
+##
+    ##counter = 1
+    ##for(it in burnin:n_iter){
+      ### Get sampled values
+      ##M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
+      ##S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+##
+      ##if(IncludeCovariates)
+        ##beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+      ##else
+        ##beta_it = 0
+##
+      ### chose from the component to sampler from
+      ##m = sample(1:M_it, size = 1, prob = S_it + weight_it)
+##
+      ### draw from multivariate gaussian
+      ##mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
+      ##ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
+##
+      ### save
+      ##MIX[counter, ] = ypred_it
+##
+      ### update row counter
+      ##counter = counter + 1
+    ##}
+    ##res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
+  ##}
+  ##return(res)
+##}
+
 #' @export
 predictive_players = function(ID_ply, dt, fit, burnin = 1){
 
@@ -1840,25 +1895,26 @@ predictive_players = function(ID_ply, dt, fit, burnin = 1){
   for(idx_group in 1:d_i){
 
     Nsi = dt$N_ji[idx_group, idx_player]
+    Ysi = dt$observations[[idx_group]][[idx_player]]
+
+
     if(IncludeCovariates)
       Xsi = dt$covariates[[idx_group]][[idx_player]]
     else
-      Xsi = 0
+      Xsi = matrix(0,nrow = Nsi, ncol = 1)
 
     MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
 
     counter = 1
     for(it in burnin:n_iter){
-      # Get sampled values
-      M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
-      S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
+
       if(IncludeCovariates)
         beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
       else
-        beta_it = 0
+        beta_it = c(0)
 
       # chose from the component to sampler from
-      m = sample(1:M_it, size = 1, prob = S_it)
+      m = dt$Clustering[[idx_group]][[idx_player]][it]
 
       # draw from multivariate gaussian
       mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
@@ -1870,7 +1926,6 @@ predictive_players = function(ID_ply, dt, fit, burnin = 1){
       # update row counter
       counter = counter + 1
     }
-    #res[[idx_group]] = apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975))
     res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
   }
   return(res)

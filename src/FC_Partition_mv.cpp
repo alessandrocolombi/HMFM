@@ -58,16 +58,19 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     
                     double likelihood_term{0.0};
                     if(gs_data.r > 0){
-                        likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],mv_data[j][i].X_ji.transpose()*gs_data.beta.row(j), sigma[m]);
+                        likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],mv_data[j][i].X_ji.transpose()*gs_data.beta.row(j).transpose(), sigma[m]);
                     }
-                    else
+                    else{
                         likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],sigma[m]);
+                    }
 
                     if( std::abs(log_dmvnorm(mv_data[j][i],mu[m],sigma[m]) - likelihood_term) > 1e-6  ){
                         Rcpp::Rcout<<"i = "<<i<<std::endl;
                         Rcpp::Rcout<<"j = "<<j<<std::endl;
-                        Rcpp::Rcout<<"mu[m]"<<mu[m]<<std::endl;
-                        Rcpp::Rcout<<"sigma[m]"<<sigma[m]<<std::endl;
+                        Rcpp::Rcout<<"mu[m] = "<<mu[m]<<std::endl;
+                        Rcpp::Rcout<<"sigma[m] = "<<sigma[m]<<std::endl;
+                        Rcpp::Rcout<<"mv_data[j][i].X_ji: "<<std::endl<<mv_data[j][i].X_ji<<std::endl;
+                        Rcpp::Rcout<<"gs_data.beta.row(j): "<<std::endl<<gs_data.beta.row(j)<<std::endl;
                         Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]):"<<std::endl<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
                         Rcpp::Rcout<<"likelihood_term:"<<std::endl<<likelihood_term<<std::endl;
                         throw std::runtime_error("Error  in FC_Partition_mv, strano il termine di likelihood");
@@ -155,6 +158,10 @@ double Partition_mv::log_dmvnorm2(Individual data_ji, const double& mu,const GDF
     Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
     GDFMM_Traits::VecCol mu_term( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, mu) ); // define a vector where each element is equal to mu
     GDFMM_Traits::VecCol mean( eigen_data - mu_term - cov_term ); // compute the difference
+    //Rcpp::Rcout<<"eigen_data:"<<std::endl<<eigen_data<<std::endl;
+    //Rcpp::Rcout<<"mu_term:"<<std::endl<<mu_term<<std::endl;
+    //Rcpp::Rcout<<"cov_term:"<<std::endl<<cov_term<<std::endl;
+    //Rcpp::Rcout<<"mean:"<<std::endl<<mean<<std::endl;
     return(  -0.5*data_ji.n_ji*std::log(two_pi*var) - 
              (0.5/var) * mean.dot(mean) 
           );

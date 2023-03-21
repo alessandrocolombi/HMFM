@@ -236,6 +236,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 	// Take output data from the sample
 	Rcpp::NumericMatrix gamma( Gibbs.d, n_iter, Gibbs.out.gamma.begin() );
 	Rcpp::NumericMatrix U( Gibbs.d, n_iter, Gibbs.out.U.begin() );
+	
 	if(FixPart){
 		
 		return Rcpp::List::create( Rcpp::Named("K") = Gibbs.out.K,
@@ -251,6 +252,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 									);
 	}
 	else{
+		
 		const std::vector<std::vector< std::vector<unsigned int>>>& C = Gibbs.out.Ctilde;
 
 			//we need a better structure for C--> we save it as a vector instead of a matrix
