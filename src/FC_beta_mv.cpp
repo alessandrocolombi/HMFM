@@ -25,6 +25,12 @@ void FC_beta_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
 		for(size_t i = 0; i < n_j[j]; i++){
 			const unsigned int& C_ji = Ctilde[j][i]; //C_ji is the component mixture that defines mean-variance for obseration ji
+			if(C_ji >= gs_data.K){
+				Rcpp::Rcout<<"K = "<<gs_data.K<<std::endl;
+				Rcpp::Rcout<<"M = "<<gs_data.M<<std::endl;
+				Rcpp::Rcout<<"C_"<<j<<i<<" = "<<C_ji<<std::endl;
+				throw std::runtime_error("Error in FC_beta_mv.cpp, C_ji can not be greater or equal to K ");
+			}
 			Individual& data_ji = mv_data[j][i]; // shortcut, just for notation
 
 			//Rcpp::Rcout<<"C_"<<j<<i<<" = "<<C_ji<<std::endl;
@@ -82,7 +88,7 @@ void FC_beta_mv::update_data_summary_statistics(GS_data& gs_data){
 				//Rcpp::Rcout<<"beta_s_zji = "<<beta_s_zji<<std::endl;
 				data_ji.Ybar_star_ji = data_ji.mean_ji - 1.0/((double)data_ji.n_ji) * beta_s_zji;
 
-				//Rcpp::Rcout<<"data_ji.mean_ji = "<<data_ji.mean_ji<<" || data_ji.Ybar_star_ji = "<<data_ji.Ybar_star_ji<<std::endl;
+				//Rcpp::Rcout<<"++++++ data_ji.mean_ji = "<<data_ji.mean_ji<<" || data_ji.Ybar_star_ji = "<<data_ji.Ybar_star_ji<<std::endl;
 				if( data_ji.n_ji > 1 ){
 					Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
 					GDFMM_Traits::VecCol ones( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, 1.0) );
@@ -106,11 +112,11 @@ void FC_beta_mv::update_data_summary_statistics(GS_data& gs_data){
 										2.0/(double)(data_ji.n_ji - 1)*inner_product;
 
 
-								//Rcpp::Rcout<<"data_ji.var_ji = "<<data_ji.var_ji<<std::endl;
-								//Rcpp::Rcout<<"Secondo pezzo (deve essere positivo) = "<<( beta_s.transpose()*data_ji.X_jiX_jiT*beta_s -  1.0/(double)data_ji.n_ji*beta_s_zji*beta_s_zji )<<std::endl;
-								//Rcpp::Rcout<<"-2*inner_product = "<<-2.0*inner_product<<std::endl;
+								//Rcpp::Rcout<<"beta_s.transpose()*data_ji.X_jiX_jiT*beta_s = "<<beta_s.transpose()*data_ji.X_jiX_jiT*beta_s<<std::endl;
+								//Rcpp::Rcout<<"1.0/(double)data_ji.n_ji*beta_s_zji*beta_s_zji = "<<1.0/(double)data_ji.n_ji*beta_s_zji*beta_s_zji<<std::endl;
 					
-					//Rcpp::Rcout<<"data_ji.var_ji = "<<data_ji.var_ji<<" || data_ji.Vstar_ji = "<<data_ji.Vstar_ji<<std::endl;
+					//Rcpp::Rcout<<"++++++ data_ji.var_ji = "<<data_ji.var_ji<<" || data_ji.Vstar_ji = "<<data_ji.Vstar_ji<<std::endl;
+					//Rcpp::Rcout<<"-------------------------------------------"<<std::endl;
 				}
 			}
 			else

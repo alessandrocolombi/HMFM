@@ -24,12 +24,12 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         
         const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
-        const std::vector<double>& mu = gs_data.mu; // Vector of means
-        const std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
+        std::vector<double>& mu = gs_data.mu; // Vector of means
+        std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
         const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data;
 
         //Rcpp::Rcout<<"(k,Mstar,M) = "<<gs_data.K<<", "<<gs_data.Mstar<<", "<<gs_data.M<<std::endl;
-//
+
         //Rcpp::Rcout<<"Stampo mu: ";        
         //for(auto __v : mu)
             //Rcpp::Rcout<<__v<<", ";
@@ -56,6 +56,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     //if(m>=K)
                         //Rcpp::Rcout<<"NON allocate: "<<std::endl;
                     
+                    // Check on likelihood term computation
                     double likelihood_term{0.0};
                     if(gs_data.r > 0){
                         likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],mv_data[j][i].X_ji.transpose()*gs_data.beta.row(j).transpose(), sigma[m]);
@@ -69,13 +70,16 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                         Rcpp::Rcout<<"j = "<<j<<std::endl;
                         Rcpp::Rcout<<"mu[m] = "<<mu[m]<<std::endl;
                         Rcpp::Rcout<<"sigma[m] = "<<sigma[m]<<std::endl;
-                        Rcpp::Rcout<<"mv_data[j][i].X_ji: "<<std::endl<<mv_data[j][i].X_ji<<std::endl;
-                        Rcpp::Rcout<<"gs_data.beta.row(j): "<<std::endl<<gs_data.beta.row(j)<<std::endl;
+                        if(gs_data.r > 0){
+                            Rcpp::Rcout<<"mv_data[j][i].X_ji: "<<std::endl<<mv_data[j][i].X_ji<<std::endl;
+                            Rcpp::Rcout<<"gs_data.beta.row(j): "<<std::endl<<gs_data.beta.row(j)<<std::endl;
+                        }
                         Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]):"<<std::endl<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
                         Rcpp::Rcout<<"likelihood_term:"<<std::endl<<likelihood_term<<std::endl;
                         throw std::runtime_error("Error  in FC_Partition_mv, strano il termine di likelihood");
                     }
-                    
+                    // End of check on likelihood term computation
+
                     probs_vec(m) = log(S(j,m)) + log_dmvnorm(mv_data[j][i],mu[m],sigma[m]);
                 
                 }
@@ -121,11 +125,33 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         gs_data.K = k; // updating K in the struct gs_data
         gs_data.allocate_N(k); // initialize N according to new K
         gs_data.update_Ctilde(C, clust_out);
-                //Rcpp::Rcout<< "Numerosity in the "<< k << " clusters: ";
-                //Rcpp::Rcout<<"Stampo gs_data.N_k: ";        
-                //for(auto __v : gs_data.N_k)
-                    //Rcpp::Rcout<<__v<<", ";
-                //Rcpp::Rcout<<std::endl;
+
+        /*
+        I also need to update mu and sigma according to the new labels. Some of the old cluster may have disappeared,
+        I must make sure that the first K components of mu and sigma represent the actual cluster parameters.
+        NOTE that this operation may not be strictly necessary. Indeed, before updating the values of mu and sigma, the old
+        values are erased. Before updating again the partition, such operation is always performed. Instead, this reordering
+        is needed when such values are actually used, for example if some covariates are included in the model
+        */
+        std::vector<double> new_mu(gs_data.M, 0.0);
+        std::vector<double> new_sigma(gs_data.M, 1.0);
+        for(unsigned int m=0; m<k; m++){
+            new_mu[m] = gs_data.mu[clust_out[m]];
+            new_sigma[m] = gs_data.sigma[clust_out[m]];
+        }
+        // Now, set the non active components
+        std::vector<unsigned int> old_numbering(gs_data.M);
+        std::iota(old_numbering.begin(),old_numbering.end(),0);
+        std::vector<unsigned int> diff;
+        std::set_difference(old_numbering.begin(), old_numbering.end(), clust_out.begin(), clust_out.end(),
+                                std::inserter(diff, diff.begin()));
+                
+        for(unsigned int m=k; m<gs_data.M; m++){
+            new_mu[m] = gs_data.mu[diff[m-k]];
+            new_sigma[m] = gs_data.sigma[diff[m-k]];
+        }
+        gs_data.mu = new_mu;
+        gs_data.sigma = new_sigma;
 
         //Check for User Interruption
         try{

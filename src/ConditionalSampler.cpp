@@ -140,8 +140,8 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                                                         };
 
     //Full Conditional vector that we will loop
-    std::vector< std::shared_ptr<FullConditional> > fc_cov{beta_ptr,
-                                                            tau_ptr,
+    std::vector< std::shared_ptr<FullConditional> > fc_cov{tau_ptr,
+                                                            beta_ptr,
                                                             S_ptr,
                                                             lambda_ptr,
                                                             Partition_ptr,

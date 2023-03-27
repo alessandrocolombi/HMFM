@@ -2433,6 +2433,412 @@ for(j in 1:d){
 
 
 
+# 8 - Debug codice importantissimo
+
+
+## Data Generation
+
+```{r}
+suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
+suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
+suppressWarnings(suppressPackageStartupMessages(library(salso)))
+suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
+suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+```
+
+
+```{r}
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+d = 2                   # number of groups
+K = 3                   # number of global clusters
+mu = c(-15,0,15)          # vectors of means
+sd = c(0.5,0.5,0.5)           # vector of sd
+n_j = c(10,10)      # set cardinality of the groups
+
+mix_probs = matrix(c(1/3,1/3,1/3,
+                     1/3,1/3,1/3), 
+                   nrow = d, ncol = K, byrow = T)
+seed = 123
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+mycol_cluster = brewer.pal(n=K, name = "Dark2")
+
+```
+
+## Data Visualization
+
+```{r}
+idx_start = 1
+idx_end = n_j[1]
+xrange = c(-20,20)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+           
+
+par(mfrow = c(1,d), mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  #dj = density(data[j,1:n_j[j]])
+  
+  hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j), 
+       xlim = xrange, ylim = c(0,0.33), 
+       nclass = "fd")
+  
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 2)
+  points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+    
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+
+## Iperparametri $P_0$
+
+```{r}
+Res_range = range( data, na.rm = T )
+R = Res_range[2] - Res_range[1]
+mu0 = mean(data, na.rm = T)
+k0  = 1/R^2
+nu0 = 4
+sigma0 = 0.5#*(100*R/1)
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+
+
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+mean_marginal
+var_marginal
+
+
+```
+
+
+```{r}
+xrange = c(-50,50)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  par(mar = c(2,2,1,1), bty = "l")
+  hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j), 
+       xlim = xrange, ylim = c(0,0.5), 
+       nclass = "fd")
+  
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
+  
+    
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+
+### Marginali nei cluster
+
+Fissato il valore degli iperparametri, voglio visualizzare non solo la marginale dei dati ma anche le marginali nei cluster
+
+
+Calcolo media e varianza nei cluster
+```{r}
+counter = 1
+data_per_cluster = vector("list", length = K)
+log_marginal_prior = vector("list", length = d)
+for(j in 1:d){
+  log_marginal_prior[[j]] = vector( length = n_j[j])
+  for(i in 1:n_j[j]){
+    c_ji = real_partition[counter]
+    data_per_cluster[[c_ji]] = c(data_per_cluster[[c_ji]], data[j,i])
+    log_marginal_prior[[j]][i] = log(ACutils::dnct(data[j,i], n0 = 10, mu0 = 1, gamma0 = sqrt(2)) )
+    counter = counter + 1
+  }
+  
+}
+#data_per_cluster 
+mean_data_per_cluster = unlist(lapply(data_per_cluster, mean))
+mean_data_per_cluster
+var_data_per_cluster  = unlist(lapply(data_per_cluster, var))
+var_data_per_cluster
+
+ndata_per_cluster = unlist(lapply(data_per_cluster, length))
+ndata_per_cluster
+#log_marginal_prior
+
+
+```
+
+```{r}
+dof_post = nu0 + ndata_per_cluster
+k0_post  = k0 + ndata_per_cluster
+location_post = (k0*mu0 + mean_data_per_cluster*ndata_per_cluster)/(k0 + ndata_per_cluster)
+sigma0_post   = 1/dof_post*( (ndata_per_cluster - 1)*var_data_per_cluster + 
+                              nu0*sigma0 + 
+                              (k0*ndata_per_cluster)/(k0 + ndata_per_cluster) * (mu0 - mean_data_per_cluster)^2  
+                           )
+
+scale_post = sqrt( (sigma0_post*(k0_post + 1))/(k0_post)  )
+
+mean_marginal_per_cluster = location_post
+var_marginal_per_cluster = scale_post^2 * (dof_post)/(dof_post - 2)
+
+mean_marginal_per_cluster
+var_marginal_per_cluster
+```
+
+```{r}
+xrange = c(-20,20)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+idx_start = 1
+idx_end = n_j[1]
+
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+
+
+
+for(j in 1:d){
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  par(mar = c(2,2,1,1), bty = "l")
+  plot(grid, Prior_grid, col = "black", lwd = 2, type = "l",
+          main = paste0("Level = ",j), 
+          xlim = xrange, ylim = c(0,0.5))
+  
+  for(kk in 1:K){
+    Marginal_per_cluster_grid = GDFMM:::dnct(x = grid, 
+                                         n0 = dof_post[kk], 
+                                         mu0 = location_post[kk], 
+                                         gamma0 = scale_post[kk])
+  
+    points(grid, Marginal_per_cluster_grid, col = mycol_cluster[kk], lwd = 2, type = "l")
+
+  }
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points )
+  
+  idx_start = idx_end + 1
+  if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+```
+
+
+
+## Run
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  1#5000
+burnin <-  1
+thin   <-  1
+
+a_gamma <-   1; b_gamma  <- 1
+a_lambda <- 10; b_lambda <- 2
+
+Lambda0 = 5
+gamma0 = rep(1,d)
+Mstar0 = 1
+beta0 = c(0,0)
+
+option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0, 
+                      "Adapt_MH_hyp2" = 0.234, "Adapt_MH_var0"=0.1,
+                      "proposal_Mstar" = 1,
+                      "Lambda0" = Lambda0, "gamma0" = gamma0, "Mstar0" = Mstar0,
+                      "beta0" = beta0, "Sigma0" = NULL,
+                      "alpha_gamma" = a_gamma, "beta_gamma" = b_gamma, 
+                      "alpha_lambda" = a_lambda, "beta_lambda" = b_lambda,
+                      "init_mean_cluster" = NULL, 
+                      "init_var_cluster" = NULL, 
+                      "partition" = seq(1,sum(n_j)),
+                      "IncludeCovariates" = FALSE,
+                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, 
+                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T,
+                      "UpdateBeta" = F )
+
+# P0 Hyperparameters:
+# old set: "mu0" = 0,"sigma0"= 1, "k0"= 1/10, "nu0"=10,
+# new set: "mu0" = P0_hyparam$mu0, "k0"= P0_hyparam$k0, "nu0"=P0_hyparam$nu0, "sigma0"= P0_hyparam$sigma0,
+
+# Process parameters
+# old set:  "gamma0" = 1,"Lambda0" = 3, 
+#           "alpha_gamma"=5, "beta_gamma"=0.5, "alpha_lambda"=1, "beta_lambda"=5,
+```
+
+
+```{r}
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+
+### Chains
+```{r, echo = F}
+#Lambda
+plot(GDFMM$lambda, type = 'l', main = expression(Lambda))
+hist(GDFMM$lambda, main = expression(Lambda))
+
+# gamma
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$gamma[j,], type = 'l', main = paste0(expression(gamma), "_",j))
+}
+
+par(mfrow = c(1,d), mar = c(2,2,1,1))
+for(j in 1:d){
+  acf(GDFMM$gamma[j,], main = paste0("ACF - ",expression(gamma), "_",j))
+}
+
+
+# U
+par(mfrow = c(1,d))
+for(j in 1:d){
+  plot(GDFMM$U[j,], type = 'l', main = paste0("U_",j))
+}
+
+# K
+par(mfrow = c(1,1), bty = "l")
+plot(GDFMM$K, type = 'l', main = "K")
+
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(GDFMM$K), main = "Hist - K")
+
+# ARI
+
+part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
+ARI = apply( part_matrix, 1, 
+             FUN = function(part_it){
+                      arandi(part_it,real_partition, adjust = T)
+                  }
+            )
+
+#plot(ARI, type = 'l', main = "ARI")
+
+```
+
+### Clustering
+```{r}
+# COMPUTE BINDER LOSS FUNCTION TO SELECT BEST PARTITION 
+
+# Get labels for each iterations for each data point 
+part_matrix <- GDFMM$Partition[4000:5000,] #GDFMM$Partition is a (n_iter x n_data) matrix
+
+# Compute similarity matrix
+sim_matrix <- psm(part_matrix)
+
+
+heatmap(sim_matrix)
+
+
+binder_sara = minbinder(sim_matrix)
+VI_sara = minVI(sim_matrix)
+
+table(binder_sara$cl)
+table(VI_sara$cl)
+table(real_partition)
+
+arandi(binder_sara$cl,real_partition)
+arandi(VI_sara$cl,real_partition)
+
+
+
+```
+
+
+
+### Density estimation
+```{r}
+xrange = c(-20,20)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+# Predictive in all groups
+Pred_all = predictive_all_groups(grid = grid, fit = GDFMM, burnin = 4000)
+
+# In questo plot sotto colori i pallini secondo il vero cluster.
+idx_start = 1
+idx_end = n_j[1]
+
+
+#par(mfrow = c(1,d), mar = c(2,2,1,1))
+par(mar = c(2,2,1,1), bty = "l")
+for(j in 1:d){
+  
+  # set colors
+  mycol_cluster = brewer.pal(n=K, name = "Dark2")
+  mycol_points  = as.factor(real_partition[idx_start:idx_end])
+  levels(mycol_points) = unique(mycol_cluster)
+  mycol_points = as.character(mycol_points)
+  
+  
+  # frequentist density
+  dj = density(data[j,1:n_j[j]])
+  yrange = range(Pred_all[[j]][3,]) + 0.001*max(Pred_all[[j]][3,])
+  
+  # Trick to add the grid below the plot
+  plot.new()
+  grid(lty = 1,lwd = 2,col = "gray90" )
+  par(new = TRUE)
+  
+  # plot
+  hist(data[j,1:n_j[j]], freq = F, breaks = n_j[j]/5,
+       main = paste0("Level = ",j), 
+       ylim = c(0,0.33), xlim = xrange,
+       ylab = "y-axis", xlab = "x-axis")
+  points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]), 
+          pch = 16, col = mycol_points)
+  #lines(dj$x,dj$y, lwd = 3)
+  #lines(x = grid, y = Pred_all[[j]][1,], col = "blue", lwd = 2, lty = 2) #0.025
+  #lines(x = grid, y = Pred_all[[j]][3,], col = "blue", lwd = 2, lty = 2) #0.975
+  polygon( c(grid, rev(grid)),
+           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+           col = ACutils::t_col(mycol[1], percent = 45))
+  lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
+  
+  points(grid, dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+
+  idx_start = idx_end + 1
+    if(j<d){
+    idx_end = idx_end + n_j[j+1]
+  }
+}
+
+```
+
 
 
 

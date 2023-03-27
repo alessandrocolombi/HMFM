@@ -12,7 +12,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const unsigned int& r= gs_data.r; // number of regression coefficients
     const unsigned int& K = gs_data.K; //number of clusters
     const std::vector<unsigned int>& n_j = gs_data.n_j; // number of observations per group
-    const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of partition
+    const std::vector< std::vector<unsigned int>>& Ctilde = gs_data.Ctilde; // matrix of cluster allocations
     std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; //matrix of data we don't copy it since data can be big but we use a pointer
     const std::string& prior = gs_data.prior; // identifier of the prior adopted for the model - togliamo la stringa e mettiamo una classe prior in modo che sia anche più leggibile
     const GDFMM_Traits::MatRow& beta = gs_data.beta; // dxr matrix of regression coefficients
@@ -36,10 +36,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 
         //Initialize tau according to new M
 
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // TOLGO SOLO PER DEGUGGING, SE M CAMBIA VA IN CRASH SICURO
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //gs_data.allocate_tau(gs_data.M);
+        gs_data.allocate_tau(gs_data.M);
 
         sample::rgamma Gamma;
         sample::rnorm rnorm;
@@ -161,9 +158,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     //Rcpp::Rcout<<"mu0_post:"<<std::endl<<mu0_post<<std::endl;
             mu_m = rnorm(gs_engine, mu0_post, sqrt(sigma2_m / k0_post));
 
-            // SOLO PER DEBUGGING, NON AGGIORNO MU
-            //gs_data.mu[m] = mu_m;
-
+            gs_data.mu[m] = mu_m;
             gs_data.sigma[m] = sigma2_m;
             //Rcpp::Rcout << "Allocate: mu[" << m << "] = " << mu_m << std::endl;
             //Rcpp::Rcout << "sigma[" << m << "] = " << sigma2_m << std::endl;
@@ -209,7 +204,7 @@ void FC_tau_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //1.1) Initialize tau according to new M, set all M values for mean equal to 0 and for variance equal to 1
         gs_data.allocate_tau(gs_data.M);
 
-        //2.2) Draw non allocated components
+        //1.2) Draw non allocated components
         for (unsigned int m = K; m < M; ++m){
 
              //Rcpp::Rcout<<"In marginal sampler case, the code should never reach this part"<<std::endl;
