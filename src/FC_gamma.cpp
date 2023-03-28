@@ -29,13 +29,12 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     double Mstar = gs_data.Mstar;
     double iter = gs_data.iterations;
     GDFMM_Traits::MatUnsCol N = gs_data.N;
-    double acc=0; // <------- DA RIVEDERE
-    double gamma_old;
-    double lmedia;
-    double ln_new;
-    double gamma_new;
+    //double gamma_old;
+    //double lmedia;
+    //double ln_new;
+    //double gamma_new;
     double ln_acp;
-    double ln_u;
+    double u_acc;
     double ww_g{ pow(iter + 1,-hyp2) };
     
 
@@ -43,7 +42,7 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
     double gammaj_new{0.0};
     // Rcpp::Rcout<<"iter="<<iter<<std::endl;
 
-
+    
     for (unsigned int j=0; j<d; j++){
                 //Rcpp::Rcout<<"----------------------------------"<<std::endl;
                 //Rcpp::Rcout<<"Dentro Adaptive for gamma, j = "<<j<<std::endl;
@@ -69,10 +68,27 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
                 //Rcpp::Rcout<<"log_full old = "<<log_full_gamma(gamma[j], Lambda, K, Mstar, N.row(j))<<std::endl;
                 //Rcpp::Rcout<<"log gamma new - log gamma old = "<<log_gammaj_new  - std::log( gamma[j] )<<std::endl;
                 //Rcpp::Rcout<<"Prob accettazione = "<<std::exp(ln_acp)<<std::endl;
+
+        // Checks
+                 /*
+        if(j == 0){
+            double prior_ratio = (alpha - 1.0) * (log_gammaj_new  - std::log( gamma[j] )) - beta * (gammaj_new - gamma[j]);
+            double likelihood_ratio = lgamma( gammaj_new * (double)(Mstar + K) ) - lgamma( gamma[j] * (double)(Mstar + K) ) +
+                                    lgamma( gamma[j] * (double)(Mstar + K) + (double)N.row(j).sum() ) - lgamma( gammaj_new * (double)(Mstar + K) + (double)N.row(j).sum() ) +
+                                    sumlgamma(gammaj_new, N.row(j)) - sumlgamma(gammaj_new, N.row(j)) + 
+                                    K * (lgamma(gamma[j]) - lgamma(gammaj_new)) ;       
+            double proposal_ratio = log_gammaj_new  - std::log( gamma[j] );
+    
+            Rcpp::Rcout<<"old value = "<<gamma[j]<<"; proposed value = "<<gammaj_new<<std::endl;
+            Rcpp::Rcout<<"prior_ratio = "<<prior_ratio<<std::endl;
+            Rcpp::Rcout<<"likelihood_ratio = "<<likelihood_ratio<<std::endl;
+            Rcpp::Rcout<<"proposal_ratio = "<<proposal_ratio<<std::endl;
+        }
+        */
         //3) Acceptance rejection step
-        ln_u = std::log(runif(gs_engine));
+        u_acc = runif(gs_engine);
         
-        if (ln_u  < ln_acp){
+        if ( u_acc  < std::min(1.0, std::exp(ln_acp)) ){
                     //Rcpp::Rcout<<"Accetto"<<std::endl;
             gs_data.gamma[j] = gammaj_new;
         }
@@ -80,7 +96,9 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
         adapt_var_pop_gamma[j] *=  std::exp(  ww_g *( std::exp(std::min(0.0, ln_acp)) - hyp1 
                                                     )  
                                             );
-                //Rcpp::Rcout<<"adapt_var_pop_gamma[j]:"<<std::endl<<adapt_var_pop_gamma[j]<<std::endl;
+        
+        //if(j == 0)
+            //Rcpp::Rcout<<"adapt_var_pop_gamma[j]:"<<std::endl<<adapt_var_pop_gamma[j]<<std::endl;
 
         if (adapt_var_pop_gamma[j] < 1/pow(10, power)){
             adapt_var_pop_gamma[j] = 1/pow(10, power);
@@ -128,7 +146,12 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine){
 
 double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
                                 unsigned int M_star,const GDFMM_Traits::MatUnsCol & n_jk){
-
+    if(n_jk.sum() == 0){
+        Rcpp::Rcout<<"n_jk.sum() == 0"<<std::endl;
+        throw std::runtime_error("Error in FC_gamma.cpp: all entries of n_jk are equal to 0 but at least one must be greater than 0 ");
+    }
+    if(n_jk.size() != k)
+        throw std::runtime_error("Error in FC_gamma.cpp: n_jk should have length equal to k ");
     // Computation of the output
             //Rcpp::Rcout<<"********** Dentro log_full_gamma **********"<<std::endl;
             //Rcpp::Rcout<<"gamma = "<<gamma<<std::endl;
@@ -141,9 +164,12 @@ double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
             //Rcpp::Rcout<<"lgamma(gamma *(M_star + k) + n_jk.sum()):"<<std::endl<<lgamma(gamma *(M_star + k) + n_jk.sum())<<std::endl;
             //Rcpp::Rcout<<"(k * lgamma(gamma)):"<<std::endl<<(k * lgamma(gamma))<<std::endl;
             //Rcpp::Rcout<<"sumlgamma(gamma, n_jk):"<<std::endl<<sumlgamma(gamma, n_jk)<<std::endl;
-
-    double out = l_dgamma(gamma, alpha, beta) + lgamma(gamma * (M_star + k)) - 
-                      lgamma(gamma *(M_star + k) + n_jk.sum()) - (k * lgamma(gamma)) + sumlgamma(gamma, n_jk);
+    double out = (alpha - 1.0) * std::log(gamma) - 
+                 beta * gamma +  //l_dgamma(gamma, alpha, beta) + 
+                 lgamma( gamma * (double)(M_star + k) ) - 
+                 lgamma( gamma * (double)(M_star + k) + (double)n_jk.sum() ) - 
+                 k * lgamma(gamma) + 
+                 sumlgamma(gamma, n_jk);
     //Rcpp::Rcout<<"std::log(pdfgamma(x,alpha,beta))"<< std::log(pdfgamma(x,alpha,beta));
     //Rcpp::Rcout<<"sumlgamma"<<sumlgamma(x, n_jk);
     //Rcpp::Rcout<<"********** Esco da log_full_gamma **********"<<std::endl;
@@ -154,9 +180,8 @@ double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
 double FC_gamma::sumlgamma(double gamma, const GDFMM_Traits::MatUnsCol& n_jk) {
     double sum = 0.0;
     for(unsigned i=0; i<n_jk.size(); i++){
-        sum += lgamma(n_jk(i)+gamma);
+        sum += lgamma( (double)n_jk(i) + gamma );
     }
-    //Rcpp::Rcout<<"Step slg";
     return sum;
 }
 

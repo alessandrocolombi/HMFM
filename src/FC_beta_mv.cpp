@@ -41,7 +41,11 @@ void FC_beta_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
 				Eigen::Map<GDFMM_Traits::VecCol> eigen_data( &(data_ji.obs_ji[0]), data_ji.n_ji ); //cast observation into eigen form
 				GDFMM_Traits::VecCol cl_means( GDFMM_Traits::VecCol::Constant(data_ji.n_ji, mu[C_ji]) ); // define a vector where each element is equal to mu_ji
 				GDFMM_Traits::VecCol temp( eigen_data - cl_means ); // compute the difference
-				beta1 += 1.0/sigma[C_ji] * data_ji.X_ji * temp; // update beta1
+				Rcpp::Rcout<<"Voglio che sia un vettore di lunghezza "<<data_ji.n_ji<<std::endl;
+				Rcpp::Rcout<<"temp:"<<std::endl<<temp<<std::endl;
+				Rcpp::Rcout<<"Voglio vettore di lunghezza "<<r<<std::endl;
+				Rcpp::Rcout<<"data_ji.X_ji * temp:"<<std::endl<<data_ji.X_ji * temp<<std::endl;
+				beta1 += (1.0/sigma[C_ji]) * data_ji.X_ji * temp; // update beta1
 
 				//Rcpp::Rcout<<"eigen_data:"<<std::endl<<eigen_data<<std::endl;
 			}

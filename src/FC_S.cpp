@@ -33,11 +33,6 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         if (Mstar > 0) { // se c'è almeno una componente non allocata
             for (unsigned mstar=0; mstar<Mstar; mstar++) {
                 S(j, K + mstar) = Gamma(gs_engine, gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
-                /*
-                Vecchio ordine
-                S(j, K + mstar) = Gamma(gs_engine, gamma[j],  1 /(U[j] + 1) );
-                S(j, K + mstar) *= 1.0/nu; // compute S', S' is gamma(gamma_j, nu), S' = 1/nu * S
-                */
             }
         }
         // Rcpp::Rcout << "]";
