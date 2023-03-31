@@ -20,7 +20,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         // From gs_data all needed variable are retrived
         unsigned int k = gs_data.K; // number of cluster
         unsigned int d = gs_data.d; // number of group
-        unsigned int M = gs_data.M; // number of components
+        const unsigned int M = gs_data.M; // number of components
         
         const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
@@ -125,6 +125,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         gs_data.K = k; // updating K in the struct gs_data
         gs_data.allocate_N(k); // initialize N according to new K
         gs_data.update_Ctilde(C, clust_out);
+        gs_data.Mstar = gs_data.M - gs_data.K; // update number of non active component
 
         /*
         I also need to update mu and sigma according to the new labels. Some of the old cluster may have disappeared,

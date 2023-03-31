@@ -120,12 +120,13 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
 
     //Initialize Full Conditional Objects
     auto Partition_ptr = std::make_shared<Partition_mv>("Partition", d, n_j, _FixPart);
+    auto Partition_N3_ptr = std::make_shared<Partition_Neal3_mv>("Partition", d, n_j, _FixPart, nu0, sigma0, mu0, k0);
     auto Mstar_ptr = std::make_shared<FC_Mstar>("Mstar", proposal_Mstar, _FixPart, FixedM);
     auto gamma_ptr = std::make_shared<FC_gamma>("gamma", h1, h2, pow, d, adapt_var0, a1, b1, FixedGamma);
     auto tau_ptr = std::make_shared<FC_tau_mv>("tau", nu0, sigma0, mu0, k0, FixedTau);
     auto U_ptr = std::make_shared<FC_U>("U", FixedU);
     auto S_ptr = std::make_shared<FC_S>("S", FixedS);
-    auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, FixedLambda);
+    auto lambda_ptr = std::make_shared<FC_Lambda>("lambda", a2, b2, a1, b1, FixedLambda);
     auto beta_ptr = std::make_shared<FC_beta_mv>("beta", beta0, Sigma0, FixedBeta);
 
 
@@ -149,6 +150,9 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                                                             gamma_ptr,
                                                             Mstar_ptr
                                                         }; 
+
+    //Full Conditional vector that we will loop
+    std::vector< std::shared_ptr<FullConditional> > fc_nocov_Neal3{tau_ptr,S_ptr,lambda_ptr,Partition_N3_ptr,U_ptr,gamma_ptr,Mstar_ptr};
 
     if(IncludeCovariates)            
         std::swap(FullConditionals, fc_cov);

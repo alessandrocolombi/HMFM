@@ -15,8 +15,11 @@ protected:
     double s_p  = 0.01; // mala parameter
     unsigned int power = 10;
     std::vector<double> adapt_var_pop_gamma; //vector for variances to be adapted in MH steps
-    double alpha = 1;
-    double beta = 1;
+
+    // gamma|Lambda hyperparameters: gamma_j|Lambda \sim gamma(alpha, beta*Lambda)
+    double alpha = 1.0;
+    double beta = 1.0;
+
     /* METHODS */
     double log_full_gamma(double x, double Lambda, unsigned int k, unsigned int M_star, const GDFMM_Traits::MatUnsCol & n_jk);
     double sumlgamma(double x, const GDFMM_Traits::MatUnsCol& n_jk);

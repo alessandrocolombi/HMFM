@@ -164,8 +164,9 @@ double FC_gamma::log_full_gamma(double gamma, double Lambda, unsigned int k,
             //Rcpp::Rcout<<"lgamma(gamma *(M_star + k) + n_jk.sum()):"<<std::endl<<lgamma(gamma *(M_star + k) + n_jk.sum())<<std::endl;
             //Rcpp::Rcout<<"(k * lgamma(gamma)):"<<std::endl<<(k * lgamma(gamma))<<std::endl;
             //Rcpp::Rcout<<"sumlgamma(gamma, n_jk):"<<std::endl<<sumlgamma(gamma, n_jk)<<std::endl;
+    double beta_gamma = beta * Lambda;
     double out = (alpha - 1.0) * std::log(gamma) - 
-                 beta * gamma +  //l_dgamma(gamma, alpha, beta) + 
+                 beta_gamma * gamma +  //l_dgamma(gamma, alpha, beta) + 
                  lgamma( gamma * (double)(M_star + k) ) - 
                  lgamma( gamma * (double)(M_star + k) + (double)n_jk.sum() ) - 
                  k * lgamma(gamma) + 

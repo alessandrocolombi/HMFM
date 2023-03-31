@@ -8,7 +8,7 @@ FC_PartitionMarginal::FC_PartitionMarginal( std::string _na, const unsigned int 
 void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     
     if(Partition_fixed){
-         Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
+         //Rcpp::Rcout << "Partition not updated because it is FIXED" << std::endl;
     }
     else{
         //Rcpp::Rcout<<"Dentro Partition"<<std::endl;

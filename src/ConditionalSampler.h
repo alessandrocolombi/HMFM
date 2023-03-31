@@ -19,6 +19,7 @@
 #include "FC_Mstar.h"
 #include "FC_gamma.h"
 #include "FC_Partition_mv.h"
+#include "FC_Partition_Neal3_mv.h"
 #include "FC_beta_mv.h"
 #include "GS_data.h"
 #include "out_data.h"
