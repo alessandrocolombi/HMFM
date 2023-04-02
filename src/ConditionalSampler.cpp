@@ -5,7 +5,7 @@
 // Consrtructor
 ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list, 
                                         unsigned int _n_it, unsigned int _b_in, unsigned int _thn,
-                                        unsigned int _seed, std::string _P0_prior_name, bool _FixPart, 
+                                        unsigned int _seed, std::string _P0_prior_name, bool _FixPart, std::string _algorithm, 
                                         const Rcpp::List& _option) : random_engine(_seed), Partition_fixed(_FixPart), n_iter(_n_it),burn_in(_b_in),thin(_thn){
     // Extract hyper_parameter and initialization values from option
     
@@ -152,12 +152,41 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                                                         }; 
 
     //Full Conditional vector that we will loop
-    std::vector< std::shared_ptr<FullConditional> > fc_nocov_Neal3{tau_ptr,S_ptr,lambda_ptr,Partition_N3_ptr,U_ptr,gamma_ptr,Mstar_ptr};
+    std::vector< std::shared_ptr<FullConditional> > fc_nocov_Neal3{S_ptr,lambda_ptr,Partition_N3_ptr,tau_ptr,U_ptr,gamma_ptr,Mstar_ptr};
+    std::vector< std::shared_ptr<FullConditional> > fc_cov_Neal3{tau_ptr,beta_ptr,S_ptr,lambda_ptr,Partition_N3_ptr,U_ptr,gamma_ptr,Mstar_ptr};
 
+    if( _algorithm == "Neal2"){
+        Rcpp::Rcout<<"Vorrei un Neal2"<<std::endl;
+        if(IncludeCovariates){          
+            Rcpp::Rcout<<"CON covariate"<<std::endl;  
+            std::swap(FullConditionals, fc_cov);
+        }
+        else{
+            Rcpp::Rcout<<"SENZA le covariate"<<std::endl; 
+            std::swap(FullConditionals, fc_nocov);
+        }
+    }
+    else if(_algorithm == "Neal3"){
+        Rcpp::Rcout<<"Vorrei un Neal3"<<std::endl;
+        if(IncludeCovariates){          
+            Rcpp::Rcout<<"CON covariate"<<std::endl;  
+            std::swap(FullConditionals, fc_cov_Neal3);
+        }
+        else{
+            Rcpp::Rcout<<"SENZA le covariate"<<std::endl; 
+            std::swap(FullConditionals, fc_nocov_Neal3);
+        }
+    }
+    else
+        throw std::runtime_error("Error in ConditionalSampler.cpp, algorithm can only be equal to Neal2 or Neal3 ");
+
+    
+    /*
     if(IncludeCovariates)            
         std::swap(FullConditionals, fc_cov);
     else
         std::swap(FullConditionals, fc_nocov);    
+    */
 
     // Initialize return structure 
     out.S.reserve(n_iter);

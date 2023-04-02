@@ -18,8 +18,8 @@ Test_data <- function(data_list) {
 }
 
 #' MCMC_conditional_c
-MCMC_conditional_c <- function(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option) {
-    .Call(`_GDFMM_MCMC_conditional_c`, data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option)
+MCMC_conditional_c <- function(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, algorithm, option) {
+    .Call(`_GDFMM_MCMC_conditional_c`, data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, algorithm, option)
 }
 
 #' Test

@@ -48,7 +48,8 @@ public:
     // Constructor 
     ConditionalSampler( const Rcpp::List& _data_list, 
                         unsigned int _n_it, unsigned int _b_in, unsigned int _thn,
-                        unsigned int _seed, std::string _P0_prior_name, bool _FixPart, 
+                        unsigned int _seed, std::string _P0_prior_name, bool _FixPart,
+                        std::string _algorithm, 
                         const Rcpp::List& _option);
                 
     // Data structure for the output

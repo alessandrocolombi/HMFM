@@ -1739,7 +1739,7 @@ input_handle = function(tb, intercept = FALSE){
 #' @param option [list] the output of \code{\link{set_options}} function
 #' @export
 ConditionalSampler <- function(data, niter, burnin, thin, seed,
-                               P0.prior = "Normal-InvGamma", FixPartition = F, option = NULL) {
+                               P0.prior = "Normal-InvGamma", FixPartition = F, algorithm = "Neal2", option = NULL) {
 
   # check input data
   names_data_input = c("n","d","r","n_j","ID_i","observations","covariates","N_ji","mean_ji","var_ji","initialPartition")
@@ -1819,7 +1819,11 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
       warning(" option$IncludeCovariates is set to FALSE but r > 0 ")
   }
 
-  return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, option) )
+  #check algorithm
+  if( !(algorithm == "Neal2" || algorithm == "Neal3") )
+    stop("algorithm can only be equal to Neal2 or Neal3")
+
+  return( GDFMM:::MCMC_conditional_c(data, niter, burnin, thin, seed, P0.prior, FixPartition, algorithm, option) )
 }
 
 
@@ -1879,6 +1883,15 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
   ##return(res)
 ##}
 
+#' predictive_players
+#'
+#' This function computes the predictive distribution for player \code{ID_ply} generated from \code{\link{ConditionalSampler}}
+#' @param ID_ply [integer] the index of the player of interest.
+#' @param dt [list] This must be the return object of \code{\link{handle_input}}. The Clustering must be added as well
+#' @param fit [list] the output of a conditional sampler, \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}
+#' @param burnin [integer] the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.
+#'
+#' @return [matrix] of size ?? containing the quantiles of level \code{0.025,0.5,0.975}.
 #' @export
 predictive_players = function(ID_ply, dt, fit, burnin = 1){
 
@@ -1971,3 +1984,67 @@ compute_LMPL = function(dt, fit, burnin = 1){
   }
   res + sum(dt$n_j)*log(niter-burnin)
 }
+
+#' predictive_players_fix_partition
+#'
+#' This function computes the predictive distribution for player \code{ID_ply} generated from \code{\link{ConditionalSampler}}
+#' This function is specific for the case where the partition was kept fixed
+#' @param ID_ply [integer] the index of the player of interest.
+#' @param dt [list] This must be the return object of \code{\link{handle_input}}. The Clustering must be added as well
+#' @param fit [list] the output of a conditional sampler, \code{\link{GDFMM_sampler}} or \code{\link{ConditionalSampler}}
+#' @param burnin [integer] the number of draws from \code{\link{GDFMM_sampler}} that must be discarded.
+#'
+#' @return [matrix] of size ?? containing the quantiles of level \code{0.025,0.5,0.975}.
+#' @export
+predictive_players_fix_partition = function(ID_ply, dt, fit, burnin = 1, data_med4season){
+
+  idx_player = which(dt$ID_i == ID_ply)
+  n_iter <- length(fit$mu) #number of iterations
+  d_i = sum( dt$N_ji[,idx_player] != 0 )
+  partition = data_med4season %>% filter(ID == ID_ply) %>% 
+                distinct(SeasonNumber, .keep_all=T) %>% pull(Clustering)
+  IncludeCovariates = TRUE
+  if(length(fit$beta) == 0)
+    IncludeCovariates = FALSE
+
+  res = c()
+  for(idx_group in 1:d_i){
+
+    Nsi = dt$N_ji[idx_group, idx_player]
+    Ysi = dt$observations[[idx_group]][[idx_player]]
+
+
+    if(IncludeCovariates)
+      Xsi = dt$covariates[[idx_group]][[idx_player]]
+    else
+      Xsi = matrix(0,nrow = Nsi, ncol = 1)
+
+    MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
+
+    counter = 1
+    for(it in burnin:n_iter){
+
+      if(IncludeCovariates)
+        beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+      else
+        beta_it = c(0)
+
+      # chose from the component to sampler from
+      m = partition[idx_group]
+
+      # draw from multivariate gaussian
+      mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
+      ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
+
+      # save
+      MIX[counter, ] = ypred_it
+
+      # update row counter
+      counter = counter + 1
+    }
+    res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
+  }
+  return(res)
+}
+
+

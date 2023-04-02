@@ -59,8 +59,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // MCMC_conditional_c
-Rcpp::List MCMC_conditional_c(const Rcpp::List& data_list, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, bool FixPart, Rcpp::List option);
-RcppExport SEXP _GDFMM_MCMC_conditional_c(SEXP data_listSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP FixPartSEXP, SEXP optionSEXP) {
+Rcpp::List MCMC_conditional_c(const Rcpp::List& data_list, unsigned int n_iter, unsigned int burn_in, unsigned int thin, unsigned int seed, Rcpp::String P0_prior_name, bool FixPart, Rcpp::String algorithm, Rcpp::List option);
+RcppExport SEXP _GDFMM_MCMC_conditional_c(SEXP data_listSEXP, SEXP n_iterSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP seedSEXP, SEXP P0_prior_nameSEXP, SEXP FixPartSEXP, SEXP algorithmSEXP, SEXP optionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -71,8 +71,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type P0_prior_name(P0_prior_nameSEXP);
     Rcpp::traits::input_parameter< bool >::type FixPart(FixPartSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type algorithm(algorithmSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type option(optionSEXP);
-    rcpp_result_gen = Rcpp::wrap(MCMC_conditional_c(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option));
+    rcpp_result_gen = Rcpp::wrap(MCMC_conditional_c(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, algorithm, option));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -648,7 +649,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_sampler_c, 8},
     {"_GDFMM_GDFMM_marginal_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_marginal_sampler_c, 8},
     {"_GDFMM_Test_data", (DL_FUNC) &_GDFMM_Test_data, 1},
-    {"_GDFMM_MCMC_conditional_c", (DL_FUNC) &_GDFMM_MCMC_conditional_c, 8},
+    {"_GDFMM_MCMC_conditional_c", (DL_FUNC) &_GDFMM_MCMC_conditional_c, 9},
     {"_GDFMM_Test_Rcpp", (DL_FUNC) &_GDFMM_Test_Rcpp, 1},
     {"_GDFMM_falling_factorial", (DL_FUNC) &_GDFMM_falling_factorial, 2},
     {"_GDFMM_calcola_stirling", (DL_FUNC) &_GDFMM_calcola_stirling, 3},

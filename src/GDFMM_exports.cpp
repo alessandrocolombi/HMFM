@@ -227,10 +227,10 @@ void Test_data(const Rcpp::List& data_list ){
 Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list, 
 							   unsigned int n_iter, unsigned int burn_in, unsigned int thin , 
 							   unsigned int seed, Rcpp::String P0_prior_name, 
-							   bool FixPart, Rcpp::List option){
-	Rcpp::Rcout<<"Dentro conditional sampler"<<std::endl;
+							   bool FixPart, Rcpp::String algorithm, Rcpp::List option){
+	//Rcpp::Rcout<<"Dentro conditional sampler"<<std::endl;
     // Create object ConditionalSampler and sample
-	ConditionalSampler Gibbs(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, option);
+	ConditionalSampler Gibbs(data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, algorithm, option);
     Gibbs.sample();
 
 	// Take output data from the sample

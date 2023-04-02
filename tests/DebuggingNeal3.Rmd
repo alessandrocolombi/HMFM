@@ -1,5 +1,5 @@
 ---
-title: "ShotputApplication"
+title: "Bebuggin Neal 3"
 author: "Alessandro Colombi"
 date: "9/2/2023"
 output: html_document
@@ -29,56 +29,7 @@ my_invgamma = function(x, nu0, sigma0){
   b = a*sigma0
   b^a/gamma(a) * (1/x)^(a+1) * exp(-b/x)
 }
-predictive_players_fix_partition = function(ID_ply, dt, fit, burnin = 1, data_med4season){
 
-  idx_player = which(dt$ID_i == ID_ply)
-  n_iter <- length(fit$mu) #number of iterations
-  d_i = sum( dt$N_ji[,idx_player] != 0 )
-  partition = data_med4season %>% filter(ID == ID_ply) %>% 
-                distinct(SeasonNumber, .keep_all=T) %>% pull(Clustering)
-  IncludeCovariates = TRUE
-  if(length(fit$beta) == 0)
-    IncludeCovariates = FALSE
-
-  res = c()
-  for(idx_group in 1:d_i){
-
-    Nsi = dt$N_ji[idx_group, idx_player]
-    Ysi = dt$observations[[idx_group]][[idx_player]]
-
-
-    if(IncludeCovariates)
-      Xsi = dt$covariates[[idx_group]][[idx_player]]
-    else
-      Xsi = matrix(0,nrow = Nsi, ncol = 1)
-
-    MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
-
-    counter = 1
-    for(it in burnin:n_iter){
-
-      if(IncludeCovariates)
-        beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
-      else
-        beta_it = c(0)
-
-      # chose from the component to sampler from
-      m = partition[idx_group]
-
-      # draw from multivariate gaussian
-      mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
-      ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
-
-      # save
-      MIX[counter, ] = ypred_it
-
-      # update row counter
-      counter = counter + 1
-    }
-    res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
-  }
-  return(res)
-}
 ```
 
 
@@ -101,6 +52,7 @@ mix_probs = matrix(c(0.2,0.2,0,0.2,0.2,0,0.2,
                      0.2,0,0,0.6,0,0,0.2,
                      0,0,0,0.75,0,0.25,0),
                    nrow = d, ncol = K, byrow = T)
+
 seed = 1234
 set.seed(seed)
 lambda_s = c(4,4,2.5,1.5,1.5)
@@ -185,13 +137,14 @@ for(j in 1:d){
 
 ## Hyperparameters 
 
+$P_0$
 ```{r}
 Res_range = range( data$Result )
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data$Result) # should be 0
-k0  = 10/R^2
-nu0 = 4
-sigma0 = 0.5#*(100*R/1)
+k0  = 1/R^2
+nu0 = 10
+sigma0 = 10#*(100*R/1)
 c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
 
 scale = sqrt( (k0 + 1)/(k0) * sigma0 )
@@ -247,13 +200,42 @@ points(x = na.omit(as.numeric(data$Result)),
 
 ```
 
+$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation
+```{r}
+Exp_Lambda   =  50
+Var_Lambda   =   5
+gamma_guess  =  0.01
+Lambda_guess = Exp_Lambda
+
+b_lambda = Exp_Lambda/Var_Lambda
+a_lambda = Exp_Lambda * b_lambda
+
+a_gamma = a_lambda/d
+b_gamma = a_gamma / (gamma_guess * Lambda_guess) 
+
+# plot
+lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
+gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
+par(mar = c(2,2,2,1), bty = "l")
+plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
+
+# cat("\n quantile for L(gamma) (MC estimate) \n")
+# quantile(gamma_mar_prior, probs = c(0.5, 0.95, 0.99))
+
+grid_lambda = seq(1e-8,100,length.out = 10000)
+par(mar = c(2,2,2,1), bty = "l")
+plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), 
+     lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
+
+```
+
 
 ## Run 
 
 
 ### Initial values
 
-Qui invece che prendere tutte le osservazioni prendo solo quella mediana
+Qui invece che prendere tutte le osservazioni prendo solo quella media
 ```{r}
 data_med4season = data %>% group_by(ID,SeasonNumber) %>% 
                                     mutate(MedResult = mean(Result)) %>%
@@ -273,7 +255,7 @@ centers = Kmeans0$centers
 data_med4season = data_med4season %>% cbind("Kmeans" = KmeansCl)
 ```
 
-Plot solo dei valori mediani
+Plot solo dei valori medi
 ```{r}
 
 mycol_clus = hcl.colors(n = length(table(KmeansCl)), palette = "Temps")
@@ -336,29 +318,18 @@ n;d;r;sum(n_j);sum(dt$N_ji)
 
 
 ```{r}
-niter  <-  50000
+niter  <-  5000
 burnin <-  1
 thin   <-    1
 
-mu_gamma  =  0.25
-var_gamma =  0.005
-a_gamma = (mu_gamma*mu_gamma)/var_gamma
-b_gamma = mu_gamma/(var_gamma)
-#a_gamma <- 2 ; b_gamma  <- 0.005
-
-mu_lambda  =  3
-var_lambda =  10
-a_lambda = (mu_lambda*mu_lambda)/var_lambda
-b_lambda = mu_lambda/(var_lambda)
-
 
 # initial values
-beta0 = rep(0,dt$r)
-Sigma0 = 100*diag(dt$r)
+beta0 = rep(-2,dt$r)
+Sigma0 = diag(dt$r)
 
-Lambda0 = 10
+Lambda0 = Exp_Lambda
 gamma0 = rep(0.25,d)#rep(0.025,d)#1/n_j # per ora il valore magico è 0.025
-Mstar0 = 0
+Mstar0 = 3
 
 cluster_mean = data_med4season %>% group_by(Kmeans) %>% 
                 summarise(ClusterMean = mean(Result)) %>% ungroup() %>% pull(ClusterMean)
@@ -382,7 +353,6 @@ option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
                       "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T,
                       "UpdateBeta" = F )
 
-#prior = "Normal"
 prior = "Normal-InvGamma"
 
 
@@ -391,7 +361,7 @@ prior = "Normal-InvGamma"
 
 ```{r}
 GDFMM = ConditionalSampler(dt[1:11], niter, burnin, thin, seed = 123, option = option, FixPartition = F,
-                           P0.prior = prior)
+                           P0.prior = prior, algorithm = "Neal2")
 ```
 
 

@@ -57,6 +57,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                         //Rcpp::Rcout<<"NON allocate: "<<std::endl;
                     
                     // Check on likelihood term computation
+                    /*
                     double likelihood_term{0.0};
                     if(gs_data.r > 0){
                         likelihood_term = log_dmvnorm2(mv_data[j][i],mu[m],mv_data[j][i].X_ji.transpose()*gs_data.beta.row(j).transpose(), sigma[m]);
@@ -78,6 +79,7 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                         Rcpp::Rcout<<"likelihood_term:"<<std::endl<<likelihood_term<<std::endl;
                         throw std::runtime_error("Error  in FC_Partition_mv, strano il termine di likelihood");
                     }
+                    */
                     // End of check on likelihood term computation
 
                     probs_vec(m) = log(S(j,m)) + log_dmvnorm(mv_data[j][i],mu[m],sigma[m]);
