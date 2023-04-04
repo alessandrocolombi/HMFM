@@ -14,15 +14,19 @@ private:
     double k_0; 
     double log_I(unsigned int N_ji, double Ybar_star_ji, double Vstar_ji, double mu1, double k1, double nu1, double sigma1 ) const;
     
+    /*
     std::tuple<double,double,double,unsigned int> 
     compute_cluster_summaries(  const std::vector<unsigned int>& ind_i, 
                                 const std::vector<unsigned int>& ind_j, 
+                                const GDFMM_Traits::uset_uiui& current_indicies,
                                 const std::vector<std::vector<Individual>>& data,
                                 const GDFMM_Traits::MatRow& beta )const;
     std::tuple<double,double,double,unsigned int>  
     compute_cluster_summaries(  const std::vector<unsigned int>& ind_i, 
                                 const std::vector<unsigned int>& ind_j, 
+                                const GDFMM_Traits::uset_uiui& current_indicies,
                                 const std::vector<std::vector<Individual>>& data )const;
+    */
 public:	
 	//Partition_Neal3_mv(){};
     Partition_Neal3_mv(std::string _na, const unsigned int _d, const std::vector<unsigned int>& _n_j, bool _FixPart, double _nu_0, double _sigma_0, double _mu_0, double _k_0 );

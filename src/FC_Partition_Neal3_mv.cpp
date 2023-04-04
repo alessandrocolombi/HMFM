@@ -25,20 +25,24 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
         GDFMM_Traits::MatUnsCol& N = gs_data.N;   //dxK matrix, N(j,m) is the number of elements belonging to level j that are assigned to cluster m
         const GDFMM_Traits::MatRow& S = gs_data.S; // Matrix of weights
         const GDFMM_Traits::MatRow& beta = gs_data.beta; // dxr matrix of regression coefficients
-
+        GDFMM_Traits::vector_uset_uiui& cluster_indicies = gs_data.cluster_indicies; // vector with indicies for each cluster
+        const bool& UseData = gs_data.UseData;
+        
         // Quantities for computing marginal probabilities
         double nu0_post{0.0};
         double k0_post{0.0};
         double mu0_post{0.0};
         double sigma02_post{0.0};
+
         // Initialize ind_i, ind_j
-        std::vector<unsigned int> ind_i; // i index of C elements
-        std::vector<unsigned int> ind_j; // j index of C elements
+        //std::vector<unsigned int> ind_i; // i index of C elements
+        //std::vector<unsigned int> ind_j; // j index of C elements
         
         // Declare auxiliary quantities
         double log_probs_max;
         sample::sample_index sample_index;
         unsigned int new_Cji;
+                
                 /*
                 Rcpp::Rcout<<"###################################"<<std::endl;
                 Rcpp::Rcout<<"Stampo Ctilde INIZIALE: "<<std::endl;     
@@ -49,7 +53,15 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                     Rcpp::Rcout<<std::endl;
                 }
                 Rcpp::Rcout<<std::endl;
+                Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                    Rcpp::Rcout<<__m<<": ";
+                    std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                    [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                    Rcpp::Rcout<<std::endl;
+                }
                 */
+                
         // Chinese Restaurant Franchise like process allocation
         for(unsigned int j=0; j<d; j++){
             for(unsigned int i=0; i<n_j[j]; i++){
@@ -77,7 +89,16 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                         Rcpp::Rcout<<std::endl;
                     }
                     Rcpp::Rcout<<std::endl;
+                    
+                    Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                    for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                        Rcpp::Rcout<<__m<<": ";
+                        std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                        [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                        Rcpp::Rcout<<std::endl;
+                    }
                     */
+                    
     
                 unsigned int& C_ji = Ctilde[j][i];  // what is the table assignment for obs ji? get its cluster membership
                         //Rcpp::Rcout<<"C_"<<j<<i<<":"<<std::endl<<C_ji<<std::endl;
@@ -87,6 +108,21 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                 // remove obs ji from its cluster. In this step, both the local and the global counts must be updated as well as the sums in that cluster
                 N_k[C_ji]--; // decrease the global counts
                 N(j,C_ji)--; // decrease the local counts
+                auto check_erase = cluster_indicies[C_ji].erase( std::make_pair(j,i) ); // erase element index from its cluster
+                if(check_erase == 0){
+                    Rcpp::Rcout<<"(j,i) = "<<j<<", "<<i<<std::endl;
+                    Rcpp::Rcout<<"C_ji = "<<C_ji<<std::endl;
+                    Rcpp::Rcout<<"check_erase = "<<check_erase<<std::endl;
+                    Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                    for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                        Rcpp::Rcout<<__m<<": ";
+                        std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                        [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                        Rcpp::Rcout<<std::endl;
+                    }
+                    Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+                    throw std::runtime_error("Error, the element has not been eliminated from its cluster ");
+                }
 
                 // if the cluster becomes empty, then it must be removed. 
                 // This is achived by replacing the now empty cluster with the last one.
@@ -95,6 +131,8 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                     N_k[C_ji] = N_k[K-1];        // update the global counts
                     N_k.resize(K-1);             // eliminate the last cluster, now empty
                     N.col(C_ji) = N.col(K-1);    // update the local counts
+                    cluster_indicies[C_ji] = cluster_indicies[K-1]; // update the vector of cluster indicies
+                    cluster_indicies.resize(K-1); // eliminate the last cluster, now empty
                     N.conservativeResize(d,K-1); // eliminate the last cluster, now empty
 
                     // change all labels according to new labeling. 
@@ -131,11 +169,18 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                             Rcpp::Rcout<<std::endl;
                         }
                         Rcpp::Rcout<<std::endl;
-    
+                        
+                        Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                        for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                            Rcpp::Rcout<<__m<<": ";
+                            std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                            [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                            Rcpp::Rcout<<std::endl;
+                        }
+
                         Rcpp::Rcout<<"K = "<<K<<std::endl;
                         Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
                         */
-    
                 }
 
 
@@ -144,63 +189,70 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                 // loop over current components 
                 for(std::size_t m = 0; m < M; m++){
                             //Rcpp::Rcout<<"j = "<<j<<", i = "<<i<<", m = "<<m<<std::endl;
+                    
                     // Place data ji in m-th component
                     Ctilde[j][i] = m; 
-                            //Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
-                            //for(auto __v : Ctilde){
-                                //for(auto ___v : __v){
-                                    //Rcpp::Rcout<<___v<<", ";
-                                //}
-                                //Rcpp::Rcout<<std::endl;
-                            //}
-                            //Rcpp::Rcout<<std::endl;
+
+                    // m may exceede the size of cluster_indicies. If so, we are evaluating if (j,i) should form a cluster by its own
+                    GDFMM_Traits::uset_uiui current_indicies; // Find data in component m
+
+                    if(m < K){
+                        current_indicies = cluster_indicies[m]; // copy all elements that are in such cluster
+                    }
+                    current_indicies.insert(std::make_pair(j,i)); // just add (j,i)
 
                     // Define useful quantities for posterior computations
                     double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
                     double data_var_term{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
                     double sum_piX2{0.0}; // sum_{i=1}^{N_m}( pi*Xbari^2 )
                     unsigned int sum_pi{0}; // sum(pi)
-                    
-                    // Find data in component m
-                    ind_i.clear();
-                    ind_j.clear();
-                    for (unsigned int jj = 0; jj <d ; ++jj) {
-                        for (unsigned int ii = 0; ii < n_j[jj] ; ++ii) {
-                            //Rcpp::Rcout<<"Ctilde["<<j<<"]["<<i<<"]: "<<std::endl<<Ctilde[j][i]<<std::endl;
-                            if(Ctilde[jj][ii] == m){
-                                ind_i.push_back(ii);
-                                ind_j.push_back(jj);
-                            }
-                        }
-                    }
+                            /*
+                                // Find data in component m
+                                // ---> This is no longer needed
+                                ind_i.clear();
+                                ind_j.clear();
+                                for (unsigned int jj = 0; jj <d ; ++jj) {
+                                    for (unsigned int ii = 0; ii < n_j[jj] ; ++ii) {
+                                        //Rcpp::Rcout<<"Ctilde["<<j<<"]["<<i<<"]: "<<std::endl<<Ctilde[j][i]<<std::endl;
+                                        if(Ctilde[jj][ii] == m){
+                                            ind_i.push_back(ii);
+                                            ind_j.push_back(jj);
+                                        }
+                                    }
+                                }
+                            */    
 
-                    if(ind_i.size() == 0){
-                        Rcpp::Rcout<<"(K,Mstar,M) = "<<K<<", "<<Mstar<<", "<<M<<std::endl;
-                        Rcpp::Rcout<<"m = "<<m<<std::endl;
-                        throw std::runtime_error("Error in Partition_Neal3_mv::update, it is not possible to have an empty cluster ");
-                    }
+                            /*
+                            Rcpp::Rcout<<"(K,Mstar,M) = "<<K<<", "<<Mstar<<", "<<M<<std::endl;
+                            Rcpp::Rcout<<"m = "<<m<<std::endl;
 
-                            //Rcpp::Rcout<<"Stampo ind_i: ";        
-                            //for(auto __v : ind_i)
-                                //Rcpp::Rcout<<__v<<", ";
-                            //Rcpp::Rcout<<std::endl;
-        
-                            //Rcpp::Rcout<<"Stampo ind_j: ";        
-                            //for(auto __v : ind_j)
-                                //Rcpp::Rcout<<__v<<", ";
-                            //Rcpp::Rcout<<std::endl;
+                            Rcpp::Rcout<<"Stampo ind_j: ";        
+                            for(auto __v : ind_j)
+                                Rcpp::Rcout<<__v<<", ";
+                            Rcpp::Rcout<<std::endl;
+                            Rcpp::Rcout<<"Stampo ind_i: ";        
+                            for(auto __v : ind_i)
+                                Rcpp::Rcout<<__v<<", ";
+                            Rcpp::Rcout<<std::endl;
 
-                    
+                            Rcpp::Rcout<<"Stampo current_indicies "<<std::endl;
+                            std::for_each(current_indicies.begin(), current_indicies.end(), 
+                                            [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                            Rcpp::Rcout<<std::endl;
+                            */
+                            
                     //computed updated parameters
-                    if(r > 0)
-                        std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data,beta);
-                    else
-                        std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(ind_i,ind_j,mv_data);
-
-                            //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
-                            //Rcpp::Rcout<<"data_var_term:"<<std::endl<<data_var_term<<std::endl;
-                            //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
-                            //Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
+                    if(UseData){
+                        if(r > 0)
+                            std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(current_indicies,mv_data,beta);
+                        else
+                            std::tie(W,data_var_term,sum_piX2,sum_pi) = compute_cluster_summaries(current_indicies,mv_data);
+    
+                                //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
+                                //Rcpp::Rcout<<"data_var_term:"<<std::endl<<data_var_term<<std::endl;
+                                //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
+                                //Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
+                    }
 
                     if(data_var_term < 0){
                         throw std::runtime_error("Error in Partition_Neal3_mv::update, data_var_term can not be negative ");
@@ -211,15 +263,13 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                         Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
                         Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
                         Rcpp::Rcout<<"sum_piX2 - (double)sum_pi*W*W:"<<std::endl<<sum_piX2 - (double)sum_pi*W*W<<std::endl;
-                        Rcpp::Rcout<<"Stampo ind_i: ";        
-                        for(auto __v : ind_i)
-                            Rcpp::Rcout<<__v<<", ";
-                        Rcpp::Rcout<<std::endl;
-                      
-                        Rcpp::Rcout<<"Stampo ind_j: ";        
-                        for(auto __v : ind_j)
-                            Rcpp::Rcout<<__v<<", ";
-                        Rcpp::Rcout<<std::endl;
+                        Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                        for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                            Rcpp::Rcout<<__m<<": ";
+                            std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                            [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                            Rcpp::Rcout<<std::endl;
+                        }
                         throw std::runtime_error("Error in Partition_Neal3_mv::update, sum_piX2 - (double)sum_pi*W*W can not be negative ");
                     }
 
@@ -238,9 +288,11 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                             //Rcpp::Rcout<<"sigma02_post:"<<std::endl<<sigma02_post<<std::endl;
                     
                     // compute log weights
-                    log_probs_vec[m] =  std::log( S(j,m) ) + log_I( mv_data[j][i].n_ji, mv_data[j][i].Ybar_star_ji, mv_data[j][i].Vstar_ji,
-                                                                    mu0_post, k0_post, nu0_post, sigma02_post );
-
+                    log_probs_vec[m] =  std::log( S(j,m) ); //prior term
+                    if(UseData){
+                        // add likelihood term
+                        log_probs_vec[m] += log_I( mv_data[j][i].n_ji, mv_data[j][i].Ybar_star_ji, mv_data[j][i].Vstar_ji, mu0_post, k0_post, nu0_post, sigma02_post );
+                    } 
                             //Rcpp::Rcout<<"std::log( S(j,m) ):"<<std::endl<<std::log( S(j,m) )<<std::endl;
                             //Rcpp::Rcout<<"log_I = "<<log_I( mv_data[j][i].n_ji, mv_data[j][i].Ybar_star_ji, mv_data[j][i].Vstar_ji,mu0_post, k0_post, nu0_post, sigma02_post )<<std::endl;
                             //Rcpp::Rcout<<"log_probs_vec[m]:"<<std::endl<<log_probs_vec[m]<<std::endl;
@@ -274,6 +326,7 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                     N_k[K] = 0;                              // values are assigned later
                     N.conservativeResize(d,K+1);             // allocate space in local counts for the new cluster
                     N.col(K) = VecUnsCol::Constant(d,0);     // values are assigned later. Note that here we are setting empty tables in all the other restaurants
+                    cluster_indicies.resize(K+1);            // values are assigned later
                     new_Cji = K;                             // if here, new_Cji represents a non active component, hence it must be placed in the final cluster
                     K++;
                     Mstar--;
@@ -283,7 +336,7 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                 Ctilde[j][i] = new_Cji; // set new label
                 N_k[new_Cji]++;         // update global counts
                 N(j,new_Cji)++;         // update local counts
-
+                cluster_indicies[new_Cji].insert(std::make_pair(j,i)); // just add (j,i)
                     /*
                     Rcpp::Rcout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"<<std::endl;
                     Rcpp::Rcout<<"Post-update"<<std::endl;
@@ -302,6 +355,14 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                         Rcpp::Rcout<<std::endl;
                     }
                     Rcpp::Rcout<<std::endl;
+
+                    Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                    for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                        Rcpp::Rcout<<__m<<": ";
+                        std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                        [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                        Rcpp::Rcout<<std::endl;
+                    }
     
                     Rcpp::Rcout<<"K = "<<K<<std::endl;
                     Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
@@ -320,6 +381,14 @@ void Partition_Neal3_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engi
                     Rcpp::Rcout<<std::endl;
                 }
                 Rcpp::Rcout<<std::endl;
+
+                Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                for (unsigned int __m = 0; __m < cluster_indicies.size(); ++__m){ // for each cluster
+                    Rcpp::Rcout<<__m<<": ";
+                    std::for_each(cluster_indicies[__m].cbegin(), cluster_indicies[__m].cend(), 
+                                    [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                    Rcpp::Rcout<<std::endl;
+                }
                 Rcpp::Rcout<<"###################################"<<std::endl;
                 */
 
@@ -355,93 +424,3 @@ double Partition_Neal3_mv::log_I(unsigned int N_ji, double Ybar_star_ji, double 
 }
 
 
-std::tuple<double,double,double,unsigned int>
-Partition_Neal3_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
-                                       const std::vector<unsigned int>& ind_j,
-                                       const std::vector<std::vector<Individual>>& data,
-                                       const GDFMM_Traits::MatRow& beta )const
-{
-    // get number of elements in the cluster
-    //unsigned int N_m{ind_i.size()};
-    //Rcpp::Rcout<<"Dentro Partition_Neal3_mv::compute_cluster_summaries.cpp - con COVARIATE"<<std::endl;
-    // initialize return objects
-    double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
-    double mean_of_vars{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
-    double sum_piX2{0.0}; // sum_{i=1}^{N_m}( pi*Xbari^2 )
-    unsigned int sum_pi{0}; // sum(pi)
-
-    // for each element in the cluster
-
-    //  questa funzione non va bene se NON ho le covariate. il problema è l'ultimo termine, quello con beta e z.
-    //  devo differenziare il calcolo di z in base a r=0 e r>0
-    for(size_t ii = 0; ii <ind_i.size() ; ii++){
-
-        const Individual& data_ji = data.at(ind_j[ii]).at(ind_i[ii]);
-
-        //Rcpp::Rcout<<"data_ji.n_ji:"<<std::endl<<data_ji.n_ji<<std::endl;
-        //Rcpp::Rcout<<"data_ji.Ybar_star_ji:"<<std::endl<<data_ji.Ybar_star_ji<<std::endl;
-        //Rcpp::Rcout<<"data_ji.Vstar_ji:"<<std::endl<<data_ji.Vstar_ji<<std::endl;
-        //Rcpp::Rcout<<"data_ji.mean_ji:"<<std::endl<<data_ji.mean_ji<<std::endl;
-        //Rcpp::Rcout<<"data_ji.z_ji:"<<std::endl<<data_ji.z_ji<<std::endl;
-
-        sum_pi += data_ji.n_ji;
-        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.Vstar_ji;
-        sum_piX2 += data_ji.n_ji * data_ji.Ybar_star_ji * data_ji.Ybar_star_ji;
-        //Rcpp::Rcout<<"Voglio uno scalare"<<std::endl;
-        //Rcpp::Rcout<<"data_ji.z_ji:"<<std::endl<<data_ji.z_ji<<std::endl;
-        //Rcpp::Rcout<<"beta.row(ind_j[ii]):"<<std::endl<<beta.row(ind_j[ii])<<std::endl;
-        //Rcpp::Rcout<<"data_ji.z_ji.dot( beta.row(ind_j[ii]) ):"<<std::endl<<data_ji.z_ji.dot( beta.row(ind_j[ii]) )<<std::endl;
-        W += data_ji.n_ji*data_ji.mean_ji - data_ji.z_ji.dot( beta.row(ind_j[ii]) );
-
-    }
-    W = W/(double)sum_pi;
-
-    //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
-    //Rcpp::Rcout<<"mean_of_vars:"<<std::endl<<mean_of_vars<<std::endl;
-    //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
-    //Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
-
-    return( std::tie(W,mean_of_vars,sum_piX2,sum_pi) );
-}
-
-std::tuple<double,double,double,unsigned int>
-Partition_Neal3_mv::compute_cluster_summaries(  const std::vector<unsigned int>& ind_i,
-                                       const std::vector<unsigned int>& ind_j,
-                                       const std::vector<std::vector<Individual>>& data )const
-{
-    // get number of elements in the cluster
-    //unsigned int N_m{ind_i.size()};
-    //Rcpp::Rcout<<"Dentro Partition_Neal3_mv::compute_cluster_summaries.cpp - SENZA convariate"<<std::endl;
-    // initialize return objects
-    double W{0.0}; // W = 1/(sum(pi)) * sum_{i=1}^{N_m}(pi * Xbari)
-    double mean_of_vars{0.0}; // sum_{i=1}^{N_m}( (pi-1)*Vi )
-    double sum_piX2{0.0}; // sum_{i=1}^{N_m}( pi*Xbari^2 )
-    unsigned int sum_pi{0}; // sum(pi)
-
-    // for each element in the cluster
-
-    //  questa funzione non va bene se NON ho le covariate. il problema è l'ultimo termine, quello con beta e z.
-    //  devo differenziare il calcolo di z in base a r=0 e r>0
-    for(size_t ii = 0; ii <ind_i.size() ; ii++){
-
-        const Individual& data_ji = data.at(ind_j[ii]).at(ind_i[ii]);
-
-            //Rcpp::Rcout<<"Dentro compute_cluster_summaries"<<std::endl;
-            //Rcpp::Rcout<<"data_ji.n_ji:"<<std::endl<<data_ji.n_ji<<std::endl;
-            //Rcpp::Rcout<<"data_ji.Ybar_star_ji:"<<std::endl<<data_ji.Ybar_star_ji<<std::endl;
-            //Rcpp::Rcout<<"data_ji.mean_ji:"<<std::endl<<data_ji.mean_ji<<std::endl;
-        sum_pi += data_ji.n_ji;
-        mean_of_vars += (double)(data_ji.n_ji - 1)*data_ji.var_ji;
-        sum_piX2 += data_ji.n_ji * data_ji.mean_ji * data_ji.mean_ji;
-        W += data_ji.n_ji * data_ji.mean_ji;
-
-    }
-    W = W/(double)sum_pi;
-
-    //Rcpp::Rcout<<"W:"<<std::endl<<W<<std::endl;
-    //Rcpp::Rcout<<"mean_of_vars:"<<std::endl<<mean_of_vars<<std::endl;
-    //Rcpp::Rcout<<"sum_piX2:"<<std::endl<<sum_piX2<<std::endl;
-    //Rcpp::Rcout<<"sum_pi:"<<std::endl<<sum_pi<<std::endl;
-
-    return( std::tie(W,mean_of_vars,sum_piX2,sum_pi) );
-}

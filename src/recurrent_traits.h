@@ -28,6 +28,23 @@ namespace GDFMM_Traits{
 	using vector_ui_iterator 	= std::vector<unsigned int>::iterator;
 	using vector_ui_citerator 	= std::vector<unsigned int>::const_iterator;
 
+	// Vector of unordered set with pairs and keys
+	using MyPair = std::pair<unsigned int, unsigned int>;
+
+	struct MyHash {
+	    std::size_t operator()(const MyPair& p) const {
+	        return std::hash<unsigned int>()(p.first) ^ std::hash<unsigned int>()(p.second);
+	    }
+	};
+
+	struct MyEqual {
+	    bool operator()(const MyPair& p1, const MyPair& p2) const {
+	        return p1.first == p2.first && p1.second == p2.second;
+	    }
+	};
+	using uset_uiui = std::unordered_set<MyPair, MyHash, MyEqual>;
+	using vector_uset_uiui = std::vector< uset_uiui >;
+
 }
 
 #endif

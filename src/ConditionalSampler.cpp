@@ -40,6 +40,8 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
     Rcpp::List obs = Rcpp::as<Rcpp::List>(_data_list["observations"]);
     Rcpp::List covariates = Rcpp::as<Rcpp::List>(_data_list["covariates"]);
     bool IncludeCovariates = Rcpp::as<bool>(_option["IncludeCovariates"]);
+    bool UseData = Rcpp::as<bool>(_option["UseData"]);
+
     std::vector<std::vector<Individual>> data;
     data.resize(d);
     for(size_t j = 0; j < d; j++)
@@ -118,6 +120,7 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                         init_mean_clus, init_var_clus, _P0_prior_name, 
                         partition_vec  );
 
+    gs_data.UseData = UseData;
     //Initialize Full Conditional Objects
     auto Partition_ptr = std::make_shared<Partition_mv>("Partition", d, n_j, _FixPart);
     auto Partition_N3_ptr = std::make_shared<Partition_Neal3_mv>("Partition", d, n_j, _FixPart, nu0, sigma0, mu0, k0);
@@ -156,24 +159,22 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
     std::vector< std::shared_ptr<FullConditional> > fc_cov_Neal3{tau_ptr,beta_ptr,S_ptr,lambda_ptr,Partition_N3_ptr,U_ptr,gamma_ptr,Mstar_ptr};
 
     if( _algorithm == "Neal2"){
-        Rcpp::Rcout<<"Vorrei un Neal2"<<std::endl;
-        if(IncludeCovariates){          
-            Rcpp::Rcout<<"CON covariate"<<std::endl;  
+        if(IncludeCovariates){     
+            if(!gs_data.UseData)
+                throw std::runtime_error("Error, it is not possible to include covariates if UseData is FALSE ");   
             std::swap(FullConditionals, fc_cov);
         }
         else{
-            Rcpp::Rcout<<"SENZA le covariate"<<std::endl; 
             std::swap(FullConditionals, fc_nocov);
         }
     }
     else if(_algorithm == "Neal3"){
-        Rcpp::Rcout<<"Vorrei un Neal3"<<std::endl;
-        if(IncludeCovariates){          
-            Rcpp::Rcout<<"CON covariate"<<std::endl;  
+        if(!gs_data.UseData)
+            throw std::runtime_error("Error, it is not possible to run Neal3 if UseData is FALSE ");  
+        if(IncludeCovariates){   
             std::swap(FullConditionals, fc_cov_Neal3);
         }
         else{
-            Rcpp::Rcout<<"SENZA le covariate"<<std::endl; 
             std::swap(FullConditionals, fc_nocov_Neal3);
         }
     }

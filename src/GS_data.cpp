@@ -121,16 +121,39 @@ GS_data::GS_data(   const std::vector<std::vector<Individual>>& _dat,
     }
     else{
         initialize_Partition(_part_vec); // this function initialize (K, M, Ctilde, N, N_k)
+        
+        // Initialize cluster indicies
+        cluster_indicies.resize(K); // resize with the number of clusters
+        for (unsigned int m = 0; m < K; ++m){ // for each cluster
+
+            std::vector< std::pair<unsigned int, unsigned int> > vector_ind; // define vector that will fill the unordered set
+            vector_ind.reserve(N_k[m]);
+
+            for (unsigned int j = 0; j <d ; ++j) { // for each level
+                for (unsigned int i = 0; i < n_j[j] ; ++i) { // for each individual
+                    if(Ctilde[j][i] == m){
+                        // fill the vector
+                        vector_ind.push_back( std::make_pair(j,i) );
+                    }
+                }
+            }
+
+            cluster_indicies[m].insert( vector_ind.cbegin(), vector_ind.cend() ); // fill cluster indicies for cluster m
+
+        }
+
+        //Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+        //for (unsigned int m = 0; m < cluster_indicies.size(); ++m){ // for each cluster
+            //Rcpp::Rcout<<m<<": ";
+            //std::for_each(cluster_indicies[m].cbegin(), cluster_indicies[m].cend(), 
+                            //[](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+            //Rcpp::Rcout<<std::endl;
+        //}
     }
     
     // Initialization of gamma and U vector
     //gamma = std::vector<double>(d, _gamma0);
     gamma = _gamma0;
-    Rcpp::Rcout<<"Ho letto gamma0, deve essere un vettore di lunghezza d e entrate tutte strettamente positive"<<std::endl;
-    Rcpp::Rcout<<"Stampo gamma: ";        
-    for(auto __v : gamma)
-        Rcpp::Rcout<<__v<<", ";
-    Rcpp::Rcout<<std::endl;
     // Rcpp::Rcout << "gamma vector Initialized "<< std::endl;
     U = std::vector<double>(d, 1.0);
 
@@ -225,26 +248,6 @@ void GS_data::initialize_Partition(const std::vector<unsigned int>& partition_ve
         }
     }
 
-            //Rcpp::Rcout<<"Stampo n_j: ";        
-            //for(auto __v : n_j)
-                //Rcpp::Rcout<<__v<<", ";
-            //Rcpp::Rcout<<std::endl;
-        //
-            //Rcpp::Rcout<<"Stampo N_k: ";        
-            //for(auto __v : N_k)
-                //Rcpp::Rcout<<__v<<", ";
-            //Rcpp::Rcout<<std::endl;
-        //
-            //Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
-        //
-            //Rcpp::Rcout<<"Stampo Ctilde"<<std::endl;
-            //for(int __a=0; __a < Ctilde.size(); __a++){
-                //for(int __b=0; __b <Ctilde[__a].size(); __b++ ){
-                    //Rcpp::Rcout<<Ctilde[__a][__b]<<", ";
-                //}
-                //Rcpp::Rcout<<std::endl;
-            //}
-
 }
 
 // Initialize partition (Ctilde, N, N_k) when part_vect is empty
@@ -332,6 +335,35 @@ void GS_data::allocate_tau(unsigned int M){
     sigma = std::vector<double>(M, 1.0);
 }
 
+void GS_data::update_cluster_structures(const std::vector< std::vector<unsigned int>> &C,
+                                        const std::vector<unsigned int> &clust_out) {
+    // update of Ctilde, that imply the update of also N and N_k
+    // This version, also updates the cluster indicies
+    cluster_indicies.clear();
+    cluster_indicies.resize(K); // resize with the updated number of clusters
+
+    for (unsigned int m = 0; m < K; m++){
+
+        std::vector< std::pair<unsigned int, unsigned int> > vector_ind; // define vector that will fill the unordered set
+        vector_ind.reserve(std::accumulate(n_j.cbegin(), n_j.cend(), 0)); // this is a conservative reserve. I still do not know how many elements I must store but they sum surely be less or equal than sum(n_j)
+        for (unsigned int j = 0; j <d ; ++j) {
+            for (unsigned int i = 0; i < n_j[j] ; ++i) {
+                //Rcpp::Rcout<< C[j][i];
+                //Rcpp::Rcout<< clust_out[m]<<std::endl;
+                if(C[j][i] == clust_out[m]){
+                    N(j,m)++;
+                    Ctilde[j][i] = m;
+                    vector_ind.push_back( std::make_pair(j,i) ); // fill the vector
+                }
+                // Rcpp::Rcout<< N(j,m);
+            }
+            N_k[m] = N_k[m]+N(j,m);
+        }
+        cluster_indicies[m].insert( vector_ind.cbegin(), vector_ind.cend() ); // fill cluster indicies for cluster m
+    }
+}
+
+
 void GS_data::update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
                             const std::vector<unsigned int> &clust_out) {
     // update of Ctilde, that imply the update of also N and N_k
@@ -350,6 +382,7 @@ void GS_data::update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
         }
     }
 }
+
 
 void GS_data::initialize_sums_in_clusters()
 {

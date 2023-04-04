@@ -318,7 +318,7 @@ n;d;r;sum(n_j);sum(dt$N_ji)
 
 
 ```{r}
-niter  <-  5000
+niter  <-  500#0
 burnin <-  1
 thin   <-    1
 

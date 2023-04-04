@@ -26,19 +26,39 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const std::vector<unsigned int>& n_j = gs_data.n_j;// number of observation per group
         std::vector<double>& mu = gs_data.mu; // Vector of means
         std::vector<double>& sigma = gs_data.sigma; // Vector of standard deviations
-        const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data;
-
-        //Rcpp::Rcout<<"(k,Mstar,M) = "<<gs_data.K<<", "<<gs_data.Mstar<<", "<<gs_data.M<<std::endl;
-
-        //Rcpp::Rcout<<"Stampo mu: ";        
-        //for(auto __v : mu)
-            //Rcpp::Rcout<<__v<<", ";
-        //Rcpp::Rcout<<std::endl;
-       //Rcpp::Rcout<<"Stampo sigma: ";        
-        //for(auto __v : sigma)
-            //Rcpp::Rcout<<__v<<", ";
-        //Rcpp::Rcout<<std::endl;
+        const std::vector<std::vector<Individual>>& mv_data = gs_data.mv_data; // structure containing all data
+        const bool& UseData = gs_data.UseData;
         
+                /*
+                Rcpp::Rcout<<"(k,Mstar,M) = "<<gs_data.K<<", "<<gs_data.Mstar<<", "<<gs_data.M<<std::endl;
+                Rcpp::Rcout<<"Stampo mu: ";        
+                    for(auto __v : mu)
+                        Rcpp::Rcout<<__v<<", ";
+                    Rcpp::Rcout<<std::endl;
+                Rcpp::Rcout<<"Stampo sigma: ";        
+                for(auto __v : sigma)
+                    Rcpp::Rcout<<__v<<", ";
+                Rcpp::Rcout<<std::endl;
+                Rcpp::Rcout<<"###################################"<<std::endl;
+                Rcpp::Rcout<<"PARTITIONZE INIZIALE"<<std::endl;
+                Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+                for(auto __v : gs_data.Ctilde){
+                    for(auto ___v : __v){
+                        Rcpp::Rcout<<___v<<", ";
+                    }
+                    Rcpp::Rcout<<std::endl;
+                }
+                Rcpp::Rcout<<std::endl;
+                Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                for (unsigned int __m = 0; __m < gs_data.cluster_indicies.size(); ++__m){ // for each cluster
+                    Rcpp::Rcout<<__m<<": ";
+                    std::for_each(gs_data.cluster_indicies[__m].cbegin(), gs_data.cluster_indicies[__m].cend(), 
+                                    [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                    Rcpp::Rcout<<std::endl;
+                }
+                */
+                
+
  
         // Create vector to store probabilities for the M components
         GDFMM_Traits::VecRow probs_vec(M);
@@ -51,10 +71,6 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             for(unsigned int i=0; i<n_j[j]; i++){
                 // compute "probability" each m component for y_ji 
                 for(unsigned int m=0; m<M; m++){
-                    //Rcpp::Rcout<<"S("<<j<<","<<m<<") = "<<S(j,m)<<std::endl;
-                    //Rcpp::Rcout<<"log_dmvnorm(mv_data[j][i],mu[m],sigma[m]):"<<std::endl<<log_dmvnorm(mv_data[j][i],mu[m],sigma[m])<<std::endl;
-                    //if(m>=K)
-                        //Rcpp::Rcout<<"NON allocate: "<<std::endl;
                     
                     // Check on likelihood term computation
                     /*
@@ -82,7 +98,10 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     */
                     // End of check on likelihood term computation
 
-                    probs_vec(m) = log(S(j,m)) + log_dmvnorm(mv_data[j][i],mu[m],sigma[m]);
+                    probs_vec(m) = log(S(j,m)); // prior term
+                    
+                    if(UseData)
+                     probs_vec(m) += log_dmvnorm(mv_data[j][i],mu[m],sigma[m]); //likelihood term
                 
                 }
                 // get the maximum "probability"
@@ -126,7 +145,29 @@ void Partition_mv::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         //Rcpp::Rcout<<"K = "<<k<<std::endl;
         gs_data.K = k; // updating K in the struct gs_data
         gs_data.allocate_N(k); // initialize N according to new K
-        gs_data.update_Ctilde(C, clust_out);
+        //gs_data.update_Ctilde(C, clust_out); // old functin, does not update cluster_indicies
+        gs_data.update_cluster_structures(C, clust_out);
+
+                /*
+                Rcpp::Rcout<<"PARTITIONZE FINALE"<<std::endl;
+                Rcpp::Rcout<<"Stampo Ctilde: "<<std::endl;     
+                for(auto __v : gs_data.Ctilde){
+                    for(auto ___v : __v){
+                        Rcpp::Rcout<<___v<<", ";
+                    }
+                    Rcpp::Rcout<<std::endl;
+                }
+                Rcpp::Rcout<<std::endl;
+                Rcpp::Rcout<<"Stampo cluster_indicies "<<std::endl;  
+                for (unsigned int __m = 0; __m < gs_data.cluster_indicies.size(); ++__m){ // for each cluster
+                    Rcpp::Rcout<<__m<<": ";
+                    std::for_each(gs_data.cluster_indicies[__m].cbegin(), gs_data.cluster_indicies[__m].cend(), 
+                                    [](const std::pair<unsigned int, unsigned int> p){Rcpp::Rcout<<"("<<p.first<<", "<<p.second<<") - ";});
+                    Rcpp::Rcout<<std::endl;
+                }
+                Rcpp::Rcout<<"###################################"<<std::endl;
+                */
+
         gs_data.Mstar = gs_data.M - gs_data.K; // update number of non active component
 
         /*

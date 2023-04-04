@@ -18,6 +18,14 @@ public :
     void print() const;
     bool binary_decision(double p1, const sample::GSL_RNG& engine) const;
     double log_raising_factorial(const unsigned int& n, const double& a)const;
+    std::tuple<double,double,double,unsigned int> 
+    compute_cluster_summaries(  const GDFMM_Traits::uset_uiui& current_indicies,
+                                const std::vector<std::vector<Individual>>& data,
+                                const GDFMM_Traits::MatRow& beta )const;
+    std::tuple<double,double,double,unsigned int>  
+    compute_cluster_summaries(  const GDFMM_Traits::uset_uiui& current_indicies,
+                                const std::vector<std::vector<Individual>>& data )const;
+
     virtual ~FullConditional() = default;
 };
 #endif

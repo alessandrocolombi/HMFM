@@ -358,6 +358,7 @@ arrange_partition = function(partition){
 #' @param beta0 [double] the prior mean for the regression coefficients.
 #' @param Sigma0 [double] the prior covariance matrix for the regression coefficients.
 #' @param IncludeCovariates [bool] set \code{TRUE} if covariates are provided.
+#' @param UseData [bool] set \code{FALSE} to sample from the prior.
 #' @param Adapt_MH_hyp1 [double] default is 0.7.
 #' @param Adapt_MH_hyp2 [double] default is 0.234.
 #' @param Adapt_MH_power_lim [double] default is 10.
@@ -381,6 +382,7 @@ set_options = function( partition = NULL, Mstar0 = 2,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = NULL,
                         beta0 = c(0,0), Sigma0 = 10*diag(2),
                         IncludeCovariates = FALSE,
+                        UseData = TRUE,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234, Adapt_MH_power_lim = 10, Adapt_MH_var0=1,
                         proposal_Mstar = 1,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
@@ -389,7 +391,7 @@ set_options = function( partition = NULL, Mstar0 = 2,
 )
 {
   option<-list("Mstar0" = Mstar0, "Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
-                "beta0" = beta0, "Sigma0" = Sigma0, "IncludeCovariates" = IncludeCovariates,
+                "beta0" = beta0, "Sigma0" = Sigma0, "IncludeCovariates" = IncludeCovariates, "UseData" = UseData,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2, "Adapt_MH_power_lim"=Adapt_MH_power_lim, "Adapt_MH_var0"=Adapt_MH_var0,
                "proposal_Mstar" = proposal_Mstar,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,

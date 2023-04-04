@@ -19,6 +19,7 @@ struct GS_data{
     double lambda; // M|lambda ~ Poi(lambda)
     //double nu; // S_jm ~ gamma(gamma_j, nu), da togliere
     double log_sum; // sum of log(U_j+1)*gamma_j : logarithm of 1/psi_prod
+    bool UseData;
 
     // vectors
     std::vector<std::vector<double>> data; // our data, y_ji
@@ -34,6 +35,7 @@ struct GS_data{
     std::vector<double> squared_sum_cluster_elements; // vector of length K, each element contains the squared sum of the data within that cluster
     std::vector<std::vector<double>> log_prob_marginal_data; //same structure of data, it contains the marginal probabilities of each data in log-scale.
 
+    GDFMM_Traits::vector_uset_uiui cluster_indicies; // vector of unordered sets whose keys are a pair of unsigned int. Each element of the vector contains the indicies (j,i) that specify which that belong to that specific cluster
     // strings
     std::string prior; //Name of the prior for tau
     
@@ -89,6 +91,8 @@ struct GS_data{
     void allocate_N(unsigned int K);
     void update_Ctilde(const std::vector< std::vector<unsigned int>> &C,
                             const std::vector<unsigned int> &clust_out);
+    void update_cluster_structures( const std::vector< std::vector<unsigned int>> &C,
+                                    const std::vector<unsigned int> &clust_out);
     void update_log_sum();
     void allocate_tau(unsigned int M);
 
