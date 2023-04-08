@@ -9,7 +9,7 @@ set_options_marginal(
   Lambda0 = 3,
   mu0 = 0,
   sigma0 = 1,
-  gamma0 = 1,
+  gamma0 = NULL,
   Adapt_MH_hyp1 = 0.7,
   Adapt_MH_hyp2 = 0.234,
   sp_mala_U = 0.01,
@@ -37,7 +37,7 @@ set_options_marginal(
 
 \item{sigma0}{\link{double} the rate parameter in the prior of sigma.}
 
-\item{gamma0}{\link{double} the initial value for the gamma parameters.}
+\item{gamma0}{\link{vector} of initial values for the gamma parameters.}
 
 \item{Adapt_MH_hyp1}{\link{double} default is 0.7.}
 

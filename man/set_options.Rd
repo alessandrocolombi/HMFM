@@ -10,10 +10,11 @@ set_options(
   Lambda0 = 3,
   mu0 = 0,
   sigma0 = 1,
-  gamma0 = 1,
+  gamma0 = NULL,
   beta0 = c(0, 0),
   Sigma0 = 10 * diag(2),
   IncludeCovariates = FALSE,
+  UseData = TRUE,
   Adapt_MH_hyp1 = 0.7,
   Adapt_MH_hyp2 = 0.234,
   Adapt_MH_power_lim = 10,
@@ -47,13 +48,15 @@ set_options(
 
 \item{sigma0}{\link{double} the rate parameter in the prior of sigma.}
 
-\item{gamma0}{\link{double} the initial value for the gamma parameters.}
+\item{gamma0}{\link{vector} vector of initial values for the gamma parameters.}
 
 \item{beta0}{\link{double} the prior mean for the regression coefficients.}
 
 \item{Sigma0}{\link{double} the prior covariance matrix for the regression coefficients.}
 
 \item{IncludeCovariates}{\link{bool} set \code{TRUE} if covariates are provided.}
+
+\item{UseData}{\link{bool} set \code{FALSE} to sample from the prior.}
 
 \item{Adapt_MH_hyp1}{\link{double} default is 0.7.}
 

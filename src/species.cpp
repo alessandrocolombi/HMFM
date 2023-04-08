@@ -508,10 +508,10 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 //questa è sola per 1 o 2 gruppi
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma){
 
-	//Rcpp::Rcout<<"Dentro a compute_Kprior_unnormalized: ";
-	//for(auto __v : n_i)
-		//Rcpp::Rcout<<__v<<", ";
-	//Rcpp::Rcout<<std::endl;
+	Rcpp::Rcout<<"INPUT --> compute_Kprior_unnormalized: d = "<<n_i.size()<<"; K = "<<k<<std::endl;
+	for(auto __v : n_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
 
 	double inf = std::numeric_limits<double>::infinity();
 
@@ -604,6 +604,7 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		}
 
 		// Complete the sum over all elements in log_a
+		//Rcpp::Rcout<<"OUTPUT --> compute_Kprior_unnormalized: K = "<<k<<"; d = "<<n_i.size()<<"; Prob = "<<log_stable_sum(log_a, TRUE, val_max1, idx_max1)<<std::endl;
 		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 
 	}
@@ -625,7 +626,11 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
 		return -inf;
 
-	
+	Rcpp::Rcout<<"INPUT --> compute_Kprior_unnormalized_recursive: d = "<<n_i.size()<<"; K = "<<k<<std::endl;
+	Rcpp::Rcout<<"Stampo n_i: ";		
+	for(auto __v : n_i)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
 	// if here, n_i.size()>2 
 	std::vector<double> log_a(k+1, -inf);    
 	// Initialize quantities to find the maximum of log_a
@@ -688,6 +693,7 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 				//Rcpp::Rcout<<__v<<", ";
 			//Rcpp::Rcout<<std::endl;
 	// Complete the sum over all elements in log_a
+	//Rcpp::Rcout<<"OUTPUT --> compute_Kprior_unnormalized_recursive: K = "<<k<<"; d = "<<n_i.size()<<"; Prob = "<<log_stable_sum(log_a, TRUE, val_max1, idx_max1)<<std::endl;
 	return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 }
 

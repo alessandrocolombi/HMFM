@@ -24,7 +24,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
         const std::vector<double>& gamma = gs_data.gamma; //gamma variables
         const double& log_sum = gs_data.log_sum;
         const GDFMM_Traits::MatUnsCol& N = gs_data.N; // dxK matrix; 
-        
+        //Rcpp::Rcout<<"FC_Mstar::update"<<std::endl;
         if(d == 0){
 
 
@@ -74,6 +74,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
             gs_data.Mstar = sample_index(gs_engine, probs);
             gs_data.M = k + gs_data.Mstar;
             */
+
             // ORIGNAL VERSION
             //get sample index from GSL wrappers
             sample::sample_index sample_index;
@@ -110,6 +111,7 @@ void FC_Mstar::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                                             k, lambda, gamma, N );
 
             //Rcpp::Rcout<<"alpha = "<<std::min(1.0,std::exp(log_alpha))<<std::endl;
+            //Rcpp::Rcout<<"-------------------------------------------"<<std::endl;
             // Acceptance-rejection move
             double u = runif(gs_engine);
             if( u  < std::min(1.0, std::exp(log_alpha))  )

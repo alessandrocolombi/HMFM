@@ -12,6 +12,7 @@ MCMC_conditional_c(
   seed,
   P0_prior_name,
   FixPart,
+  algorithm,
   option
 )
 }

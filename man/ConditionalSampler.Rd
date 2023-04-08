@@ -14,6 +14,7 @@ ConditionalSampler(
   seed,
   P0.prior = "Normal-InvGamma",
   FixPartition = F,
+  algorithm = "Neal2",
   option = NULL
 )
 }
