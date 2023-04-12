@@ -1212,6 +1212,7 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' @param k0 [double] the parameter in the prior of mu.
 #' @param sigma0 [double] the rate parameter in the prior of sigma.
 #' @param nu0 [double] the shape parameter in the prior of sigma.
+#' @param UseData [bool] set \code{FALSE} to sample from the prior.
 #' @param Adapt_MH_hyp1 [double] default is 0.7.
 #' @param Adapt_MH_hyp2 [double] default is 0.234.
 #' @param alpha_gamma [double] the shape parameter in the prior of gamma.
@@ -1226,6 +1227,7 @@ predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma)
 #' @export
 set_options_marginal = function( partition = NULL,
                         Lambda0 = 3, mu0 = 0, sigma0 = 1, gamma0 = NULL,
+                        UseData = TRUE,
                         Adapt_MH_hyp1 = 0.7,Adapt_MH_hyp2 = 0.234,
                         sp_mala_U = 0.01, sp_mala_gamma=0.01,
                         k0 = 1/10, nu0 = 10, alpha_gamma = 1, beta_gamma = 1, alpha_lambda = 1, beta_lambda = 1,
@@ -1234,6 +1236,7 @@ set_options_marginal = function( partition = NULL,
                       )
 {
   option<-list("Lambda0" = Lambda0, "mu0" = mu0,"sigma0"= sigma0, "gamma0" = gamma0,
+               "UseData" = UseData,
                "Adapt_MH_hyp1"= Adapt_MH_hyp1,"Adapt_MH_hyp2"= Adapt_MH_hyp2,
                "sp_mala_U"=sp_mala_U,"sp_mala_gamma"=sp_mala_gamma,
                "k0"= k0, "nu0"=nu0, "alpha_gamma"=alpha_gamma,

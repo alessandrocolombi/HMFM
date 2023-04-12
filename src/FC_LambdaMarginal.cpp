@@ -1,8 +1,8 @@
 #include "FC_LambdaMarginal.h"
 
-FC_LambdaMarginal::FC_LambdaMarginal(   std::string _na, double _a, double _b, bool _keepfixed, 
+FC_LambdaMarginal::FC_LambdaMarginal(   std::string _na, double _a, double _b, double _agamma, double _bgamma, bool _keepfixed, 
                                         double _h1, double _h2, double _pow, double _adapt_var0   ) : 
-                                        FC_Lambda(_na,_a,_b,_keepfixed), hyp1(_h1), hyp2(_h2), power(_pow), adapt_var_proposal_Lambda(_adapt_var0){};
+                                        FC_Lambda(_na,_a,_b,_agamma,_bgamma,_keepfixed), hyp1(_h1), hyp2(_h2), power(_pow), adapt_var_proposal_Lambda(_adapt_var0){};
 
 void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     
@@ -16,6 +16,7 @@ void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engin
     const std::vector<double>& U = gs_data.U; //U latent variables
     const std::vector<double>& gamma = gs_data.gamma; //gamma variables
     const double& K = gs_data.K; // number of clusters
+    const unsigned int& d = gs_data.d;
     const double& iter = gs_data.iterations; //iteration number
 
     // Auxiliary variables
@@ -29,6 +30,12 @@ void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engin
     
     // Rcpp::Rcout<<"iter="<<iter<<std::endl;
     
+    // NUOVA PRIOR: L(gamma,Lambda) = L(gamma|Lambda)*L(Lambda)
+    double a_Lambda{a2};
+    double b_Lambda{b2};
+    a_Lambda += d * a_gamma;
+    b_Lambda += b_gamma * std::accumulate(gamma.cbegin(), gamma.cend(), 0.0);
+
     // Update of Lambda via Adapting Metropolis Hastings - computation of quantities is in logarithm for numerical reasons
         
     //1) Sample proposed value in log scale
@@ -37,8 +44,8 @@ void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engin
         
     //2) Compute acceptance probability in log scale
     //double log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K) const;
-    ln_acp = log_FCLambda_marginal(Lambda_new, U, gamma, K ) - 
-             log_FCLambda_marginal(Lambda, U, gamma, K ) +
+    ln_acp = log_FCLambda_marginal(Lambda_new, U, gamma, K, a_Lambda, b_Lambda ) - 
+             log_FCLambda_marginal(Lambda, U, gamma, K, a_Lambda, b_Lambda ) +
              log_Lambda_new  - std::log(Lambda);
 
     //3) Acceptance rejection step
@@ -63,7 +70,8 @@ void FC_LambdaMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_engin
 
 }
 
-double FC_LambdaMarginal::log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K) const 
+double FC_LambdaMarginal::log_FCLambda_marginal(const double& x, const std::vector<double>& U, const std::vector<double>& gamma, const unsigned int& K,
+                                                const double& a_Lambda, const double& b_Lambda) const 
 {
     /*
     const double sumPsi { std::inner_product(U.cbegin(), U.cend(), gamma.cbegin(), 0.0, std::plus<>(),
@@ -78,8 +86,8 @@ double FC_LambdaMarginal::log_FCLambda_marginal(const double& x, const std::vect
         sumPsi += Psi_j;
         sum_log_K_plus_LambdaPsi += std::log(K + x*Psi_j);
     }
-    return(     std::log(x)*(a2 + U.size()*( (double)K-1.0) - 1.0) - 
-                x*(b2 + U.size() - sumPsi) + 
+    return(     std::log(x)*(a_Lambda + U.size()*( (double)K-1.0) - 1.0) - 
+                x*(b_Lambda + U.size() - sumPsi) + 
                 sum_log_K_plus_LambdaPsi  
           );
 }

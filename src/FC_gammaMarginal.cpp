@@ -218,8 +218,9 @@ double FC_gammaMarginal::log_FCgamma_marginal(const std::vector<double>& x, cons
         for(std::size_t k = 0; k < N.cols(); k++)
             sumPochammer += log_raising_factorial(N(j,k), x[j]);
 
+        double beta_gamma = beta * Lambda;
         res +=  (alpha - 1.0) * std::log(x[j]) - 
-                beta * x[j] - 
+                beta_gamma * x[j] - 
                 (double)K * gamma_log_onePlusU +
                 sumPochammer ;
     }
@@ -256,10 +257,11 @@ std::vector<double> FC_gammaMarginal::grad_log_FCgamma_marginal(const std::vecto
     double Lambda_ProdPsi{Lambda*std::exp(-SumLog)}; // this is Lambda*prod_psi
 
     // 2) Compute the gradient
+    double beta_gamma = beta * Lambda;
     std::vector<double> grad_res(d,0.0); // inizialize the result
     for(size_t j=0; j<x.size(); j++){
         grad_res[j] = ( alpha - 1.0 )/(x[j]) - // this is (a_1-1)/(gamma_j)
-                      beta - // this is b_1
+                      beta_gamma - // this is b_1
                       (double)K * std::log(1 + U[j]) + // this is K*log(1+U_j)
                       sum_diGamma(x[j],N.row(j)) - // this is sum_k ( digamma(gamma_j+n_jk) - digamma(gamma_j) )
                       Lambda_ProdPsi * std::log(1.0 + U[j]) * ( 1.0 + 1.0/( (double)K + Lambda_ProdPsi ) );

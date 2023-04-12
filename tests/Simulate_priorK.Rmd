@@ -33,14 +33,16 @@ my_invgamma = function(x, nu0, sigma0){
 ```
 
 
+# DISCLAIMER
 
+Non va bene tutto quello che ho fatto. Ho tolto i dati solo dalla partizione ma poi le altre quantità sono comunque estratte dalle full conditional. Devo estrarre tutto dalla prior, giusto?
+Posso risolvere solo se tengo $\gamma$ e $\Lambda$ fissi.
 
 # Simulate data (d=2)
 
 Inizio con un caso semplice, $d=2$, per capire se la formula teorica e quella pratica mi danno risultati simili
 ```{r}
 
-#1) Per prima cosa, estraggo un singolo valore per ogni giocatore in ogni stagione. Lo faccio estraendo da una mistura
 n = 100
 d = 2                         # number of seasons
 K = 7                         # number of global clusters
@@ -102,40 +104,10 @@ for(h in 1:nrow(data_small)){
 
 ```
 
-```{r}
-mycol_trueclust = hcl.colors(n=K,palette = "Zissou1")
-cols = data$TrueClustering
-levels(cols) = mycol_trueclust
-cols = as.character(cols)
 
 
-seasons = 1:d
 
-par(mar = c(4,4,2,1))
-plot( x = data$t_ji, 
-      y = data$Result,
-      ylab = "Result", xlab = "Season",
-      pch = 16, cex = 0.5, col = cols)
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-```
-
-### Plot istogrammi (no covariate)
-```{r}
-mycol_trueclust = hcl.colors(n=K,palette = "Zissou1")
-for(j in 1:d){
-  plot(0,0,main = paste0("Season ",j),xlab = "Result", type = "n", xlim = range(data$Result), ylim = c(0,1))
-  for(k in 1:K){
-      res = data %>% filter(SeasonNumber == j) %>% filter(TrueClustering == k) %>% pull(Result)
-      if(length(res)>0)
-        hist(res, freq = FALSE, nclass = "fd", col=mycol_trueclust[k], add = T)
-  }
-
-}
-
-```
-
-
-## Hyperparameters 
+## Hyperparameters (Non servono, ma devo comunque definirli)
 
 $P_0$
 ```{r}
@@ -154,104 +126,39 @@ var_marginal  = nu0/(nu0-2) * scale^2
 mean_marginal
 var_marginal
 ```
-Plot di $P_0$
+
+$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation (non serve per il momento, lascio solo perché devo comunque definire gli iperparametri)
+
+
 ```{r}
-xrange = c(-50,50)
-l_grid = 1000
-grid = seq(xrange[1],xrange[2],length.out = l_grid)
-   
-#par(mfrow = c(1,3), mar = c(2,2,2,1), bty = "l")
-# Qua plotto la marginale
-Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
-par(mar = c(2,2,2,1), bty = "l")
-plot(1,1, xlim = xrange, ylim = c(0,max(Prior_grid)),
-     type = "n",
-     main = "Marginal data Density")
-grid(lty = 1,lwd = 2,col = "gray90" )
-points(x = na.omit(as.numeric(data$Result)), 
-       y = rep(0, length(na.omit(as.numeric(data$Result)))), 
-       ylim = c(0,0.1),
-       pch = 16)
-points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
-  
-# Qua plotto la inverse-gamma
-sigma_grid = seq(1e-5, 100, length.out = 1000)
-par(mar = c(2,2,2,1), bty = "l")
-plot(x = sigma_grid, y = my_invgamma(sigma_grid, nu0 = nu0, sigma0 = sigma0), 
-     main = "Inverse-gamma prior Density", type = "l", lwd = 2, lty = 1)
-grid(lty = 1,lwd = 2,col = "gray90" )
-legend("topright", legend = c( "empricial var", 
-                               paste0("InvGamma(",nu0/2,", ",round(sigma0*nu0/2, digits = 3),")")  ),
-       lwd = 2, lty = c(2,1), col = c("grey45","black"))
- 
-# Qua invece plotto la marginale di mu
-scale_mu = sqrt( sigma0/k0 )
-Mar_mu_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale_mu)
-par(mar = c(2,2,2,1), bty = "l")
-plot(1,1, xlim = xrange, ylim = c(0,max(Mar_mu_grid)),
-     type = "n",
-     main = "Marginal mu Density")
-grid(lty = 1,lwd = 2,col = "gray90" )
-points(grid, Mar_mu_grid, col = "black", lwd = 2, type = "l")
-points(x = na.omit(as.numeric(data$Result)), 
-       y = rep(0, length(na.omit(as.numeric(data$Result)))), 
-       ylim = c(0,0.1),
-       pch = 16)
-
-```
-
-$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation
-
-- Caso 1: $\texttt{Exp_Lambda} = 20$, $\texttt{Var_Lambda} = 2$, $\texttt{gamma_guess} = 0.01$ -> tutto coincide con le curve teoriche
-- Caso 2: $\texttt{Exp_Lambda} = 5$, $\texttt{Var_Lambda} = 1$, $\texttt{gamma_guess} = 0.01$ -> tutto coincide con le curve teoriche, ma ci vuole tanto per arrivare a convergenza
-- Caso 3: $\texttt{Exp_Lambda} = 10$, $\texttt{Var_Lambda} = 1$, $\texttt{gamma_guess} = 1/200$ -> tutto coincide con le curve teoriche, ma ci vuole tanto per arrivare a convergenza
-```{r}
-Exp_Lambda   =  10
-Var_Lambda   =  1
-gamma_guess  =  1/200
+Exp_Lambda   =  20
+Var_Lambda   =  2
+gamma_guess  =  0.01
 Lambda_guess = Exp_Lambda
 
 b_lambda = Exp_Lambda/Var_Lambda
 a_lambda = Exp_Lambda * b_lambda
 
 a_gamma = a_lambda/d
-b_gamma = a_gamma / (gamma_guess * Lambda_guess) 
+b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
 # plot
-lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
-gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
-par(mar = c(2,2,2,1), bty = "l")
-plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
+# lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
+# gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
+# par(mar = c(2,2,2,1), bty = "l")
+# plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
 
 # cat("\n quantile for L(gamma) (MC estimate) \n")
 # quantile(gamma_mar_prior, probs = c(0.5, 0.95, 0.99))
-
-grid_lambda = seq(1e-8,100,length.out = 10000)
-par(mar = c(2,2,2,1), bty = "l")
-plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), 
-     lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
+# 
+# grid_lambda = seq(1e-8,100,length.out = 10000)
+# par(mar = c(2,2,2,1), bty = "l")
+# plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda),
+#      lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
 
 ```
 
-## Theroretical number of clusters
 
-Fixing $\gamma_1,\dots,\gamma_d$ as well as $\Lambda$
-```{r}
-gamma_mean = rep( (a_gamma/b_gamma) * b_lambda/(a_lambda - 1) , d)
-lambda_mean = a_lambda/b_lambda
-Kmax   = 20
-pk = rep(0,Kmax)
-for(k in 1:Kmax){
-  #cat("\n k = ",k,"\n")
-  pk[k] = p_distinct_prior(k = k, n_j = n_j, gamma = gamma_mean, prior = "Poisson", 
-                           lambda = lambda_mean, Max_iter = 100)
-  #cat("\n sum(pk) = ",sum(pk),"\n")
-}
-
-cat("\n sum(pk) = ",sum(pk),"\n")
-plot(pk, type = "h", pch = 16, lty = 1, lwd = 2, xaxt = "n", xlab = "K")
-mtext(text = as.character(1:20), side = 1, at = 1:20)
-```
 
 
 ## Run 
@@ -259,61 +166,21 @@ mtext(text = as.character(1:20), side = 1, at = 1:20)
 
 ### Initial values
 
-Qui invece che prendere tutte le osservazioni prendo solo quella media
 ```{r}
 data_med4season = data %>% group_by(ID,SeasonNumber) %>% 
                                     mutate(MedResult = mean(Result)) %>%
                                     select(ID,SeasonNumber,Result, MedResult,t_ji) %>%
                                     distinct(ID,SeasonNumber, .keep_all = TRUE) %>% 
                                     ungroup() %>% arrange(SeasonNumber)
-
-data_med4season
-```
-
-```{r}
-Ncenters = 30
+Ncenters = 10
 ymedian = data_med4season %>% pull(MedResult)
 Kmeans0 = kmeans(x = ymedian, centers = Ncenters, iter.max = 50, nstart = 10 )
 KmeansCl = Kmeans0$cluster
 centers = Kmeans0$centers
 data_med4season = data_med4season %>% cbind("Kmeans" = KmeansCl)
-```
-
-Plot solo dei valori medi
-```{r}
-
-mycol_clus = hcl.colors(n = length(table(KmeansCl)), palette = "Temps")
-cols = as.factor(data_med4season$Kmeans)
-levels(cols) = mycol_clus
-cols = as.character(cols)
-
-seasons = 1:d
-par(mar = c(4,4,2,1))
-plot( x = data_med4season$t_ji, 
-      y = data_med4season$MedResult,
-      ylab = "Result", xlab = "Season",
-      pch = 16, cex = 0.5, col = cols)
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-#abline(h = centers, lty = 2, col = "black", lwd = 0.1)
-```
-Plot di tutti i valori
-```{r}
 data_with_init = data %>% left_join(data_med4season %>% 
                                      select("ID","SeasonNumber","MedResult","Kmeans"), 
                                      by = c("ID","SeasonNumber"))
-
-mycol_clus = hcl.colors(n = length(table(KmeansCl)), palette = "Temps")
-cols = as.factor(data_with_init$Kmeans)
-levels(cols) = mycol_clus
-cols = as.character(cols)
-
-seasons = 1:d
-par(mar = c(4,4,2,1))
-plot( x = data_with_init$t_ji, 
-      y = data_with_init$Result,
-      ylab = "Result", xlab = "Season",
-      pch = 16, cex = 0.5, col = cols)
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 
 ```
 
@@ -340,11 +207,40 @@ n;d;r;sum(n_j);sum(dt$N_ji)
 
 ```
 
+## Theroretical number of clusters
+
+Fixing $\gamma_1,\dots,\gamma_d$ as well as $\Lambda$
+```{r}
+mygamma = 1
+mylambda = 5
+
+gamma_mean = rep( mygamma , d)
+lambda_mean = mylambda
+Kmax   = 20
+pk = rep(0,Kmax)
+for(k in 1:Kmax){
+  #cat("\n k = ",k,"\n")
+  pk[k] = p_distinct_prior(k = k, n_j = n_j, gamma = gamma_mean, prior = "Poisson", 
+                           lambda = lambda_mean, Max_iter = 100)
+  #cat("\n sum(pk) = ",sum(pk),"\n")
+}
+
+cat("\n sum(pk) = ",sum(pk),"\n")
+par(mar = c(2,2,2,1), bty = "l")
+plot(pk, type = "h", pch = 16, lty = 1, lwd = 2, xaxt = "n", xlab = "K", main = "Theoretical K")
+mtext(text = as.character(1:20), side = 1, at = 1:20)
+```
 
 
+## Cases
+
+- Caso 1: $\Lambda = 25$, $\gamma_1 = \dots = \gamma_d = 0.01$ -> teoria e MCMC coincidono
+- Caso 2: $\Lambda = 25$, $\gamma_1 = \dots = \gamma_d = 1/200$ -> teoria e MCMC coincidono ma servono più iterazioni rispetto a prima. Inoltre, $K$ si schiaccia un po' di più verso i valori piccoli
+- Caso 3: $\Lambda = 5$, $\gamma_1 = \dots = \gamma_d = 0.01$ -> Tutto bene, valori teorici e MCMC coincidono. 
+- Caso 4: $\Lambda = 5$, $\gamma_1 = \dots = \gamma_d = 1$ -> Tutto bene, valori teorici e MCMC coincidono ma dopo tante iterazioni (100k). In realtà facendo meno iterazioni sembra vada tutto abbastanza bene, solo non sono precisissimi. In questo caso, tutte le componenti sono attive, quindi $K$ e $M$ coincidono.
 
 ```{r}
-niter  <-  50000
+niter  <-  10000
 burnin <-  1
 thin   <-    1
 
@@ -353,8 +249,8 @@ thin   <-    1
 beta0 = rep(-2,dt$r)
 Sigma0 = diag(dt$r)
 
-Lambda0 = Exp_Lambda
-gamma0 = rep(0.25,d)#rep(0.025,d)#1/n_j # per ora il valore magico è 0.025
+Lambda0 = mylambda
+gamma0 = rep(mygamma,d)
 Mstar0 = 3
 
 cluster_mean = data_med4season %>% group_by(Kmeans) %>% 
@@ -376,8 +272,8 @@ option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
                       "partition" = initial_partition,
                       "IncludeCovariates" = FALSE,
                       "UseData" = FALSE,
-                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, 
-                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T,
+                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = F, 
+                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = F,
                       "UpdateBeta" = F )
 
 prior = "Normal-InvGamma"
@@ -457,23 +353,21 @@ pk_MCMC = table(GDFMM$K[(niter/2) : niter])/ length((niter/2) : niter)
 names(pk_MCMC) = paste0(names(pk_MCMC),".15")
 pm_MCMC = table(GDFMM$K[(niter/2) : niter] + GDFMM$Mstar[(niter/2) : niter])/ length((niter/2) : niter)
 names(pm_MCMC) = paste0(names(pm_MCMC),".05")
-grid_lambda = seq(1e-8,20,length.out = 10000)
 
 B = 10000
-lambda_prior = rgamma(n=B, shape = a_lambda, rate = b_lambda)
-M_mar_prior = rpois(n=B, lambda = lambda_prior)+1
+M_mar_prior = rpois(n=B, lambda = mylambda ) + 1
 
 
-
+xmax = 20
 par(mar = c(2,2,2,1), bty = "l")
-plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), ylim = c(0,1),
-     lwd = 2, lty = 1, type = "l", main = "Prior comparison", ylab = " ", col = "blue")
-points(pk_MCMC, type = "h", col = "black", xlab = "K")
+plot(pk_MCMC, type = "h",  ylim = c(0,0.5), xlim = c(0, xmax), col = "black", 
+     xlab = " ", ylab = " ", main = "Prior comparison", xaxt = "n")
+mtext(text = as.character(1:xmax), side = 1, at = 1:xmax, cex = 0.75)
 points(pk, type = "h", pch = 16, lty = 1, lwd = 2, xaxt = "n", xlab = "K", col = "lightblue4")
 points(pm_MCMC, type = "h", col = "orange", xlab = "K")
 points(table(M_mar_prior)/B, type = "h", col = "red", xlab = "M")
-legend("topright", c("K - Exact","K - MCMC","Lambda","M - MC", "M - MCMC"), 
-       col = c("lightblue4","black","blue","red","orange"), pch = 16)
+legend("topright", c("K - Exact","K - MCMC","M - MC", "M - MCMC"), 
+       col = c("lightblue4","black","red","orange"), pch = 16)
 
 ```
 
@@ -485,7 +379,6 @@ legend("topright", c("K - Exact","K - MCMC","Lambda","M - MC", "M - MCMC"),
 Ora simulo un caso in cui $d=15$ in cui posso solo usare la stima MCMC
 ```{r}
 
-#1) Per prima cosa, estraggo un singolo valore per ogni giocatore in ogni stagione. Lo faccio estraendo da una mistura
 n = 100
 d = 15                         # number of seasons
 K = 7                         # number of global clusters
@@ -547,23 +440,6 @@ for(h in 1:nrow(data_small)){
 
 ```
 
-```{r}
-mycol_trueclust = hcl.colors(n=K,palette = "Zissou1")
-cols = data$TrueClustering
-levels(cols) = mycol_trueclust
-cols = as.character(cols)
-
-
-seasons = 1:d
-
-par(mar = c(4,4,2,1))
-plot( x = data$t_ji, 
-      y = data$Result,
-      ylab = "Result", xlab = "Season",
-      pch = 16, cex = 0.5, col = cols)
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-```
-
 
 
 ## Hyperparameters 
@@ -585,83 +461,36 @@ var_marginal  = nu0/(nu0-2) * scale^2
 mean_marginal
 var_marginal
 ```
-Plot di $P_0$
+
+
+$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation (non serve per il momento, lascio solo perché devo comunque definire gli iperparametri)
+
+
 ```{r}
-xrange = c(-50,50)
-l_grid = 1000
-grid = seq(xrange[1],xrange[2],length.out = l_grid)
-   
-#par(mfrow = c(1,3), mar = c(2,2,2,1), bty = "l")
-# Qua plotto la marginale
-Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
-par(mar = c(2,2,2,1), bty = "l")
-plot(1,1, xlim = xrange, ylim = c(0,max(Prior_grid)),
-     type = "n",
-     main = "Marginal data Density")
-grid(lty = 1,lwd = 2,col = "gray90" )
-points(x = na.omit(as.numeric(data$Result)), 
-       y = rep(0, length(na.omit(as.numeric(data$Result)))), 
-       ylim = c(0,0.1),
-       pch = 16)
-points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
-  
-# Qua plotto la inverse-gamma
-sigma_grid = seq(1e-5, 100, length.out = 1000)
-par(mar = c(2,2,2,1), bty = "l")
-plot(x = sigma_grid, y = my_invgamma(sigma_grid, nu0 = nu0, sigma0 = sigma0), 
-     main = "Inverse-gamma prior Density", type = "l", lwd = 2, lty = 1)
-grid(lty = 1,lwd = 2,col = "gray90" )
-legend("topright", legend = c( "empricial var", 
-                               paste0("InvGamma(",nu0/2,", ",round(sigma0*nu0/2, digits = 3),")")  ),
-       lwd = 2, lty = c(2,1), col = c("grey45","black"))
- 
-# Qua invece plotto la marginale di mu
-scale_mu = sqrt( sigma0/k0 )
-Mar_mu_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale_mu)
-par(mar = c(2,2,2,1), bty = "l")
-plot(1,1, xlim = xrange, ylim = c(0,max(Mar_mu_grid)),
-     type = "n",
-     main = "Marginal mu Density")
-grid(lty = 1,lwd = 2,col = "gray90" )
-points(grid, Mar_mu_grid, col = "black", lwd = 2, type = "l")
-points(x = na.omit(as.numeric(data$Result)), 
-       y = rep(0, length(na.omit(as.numeric(data$Result)))), 
-       ylim = c(0,0.1),
-       pch = 16)
-
-```
-
-$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation:
-
-- Caso 1: $\texttt{Exp_Lambda} = 25$, $\texttt{Var_Lambda} = 2$, $\texttt{gamma_guess} = 0.01$ -> $M$ coincide con curva teorica, $K$ è sensato
-- Caso 2: $\texttt{Exp_Lambda} = 25$, $\texttt{Var_Lambda} = 2$, $\texttt{gamma_guess} = 1/200$ -> $M$ coincide con curva teorica, $K$ è sensato
-- Caso 3: $\texttt{Exp_Lambda} = 5$, $\texttt{Var_Lambda} = 1$, $\texttt{gamma_guess} = 0.01$ -> cosi non va molto bene, $K+M^*$ nel MCMC sovrastima $M$
-- Caso 4: $\Lambda = 5$ fisso, $\gamma = 1e-5$ tutti uguali e fissi --> cosi non va bene, $K+M^*$ nel MCMC sovrastima $M$
-```{r}
-Exp_Lambda   =  25
+Exp_Lambda   =  20
 Var_Lambda   =  2
-gamma_guess  =  0.1
+gamma_guess  =  0.01
 Lambda_guess = Exp_Lambda
 
 b_lambda = Exp_Lambda/Var_Lambda
 a_lambda = Exp_Lambda * b_lambda
 
 a_gamma = a_lambda/d
-b_gamma = a_gamma / (gamma_guess * Lambda_guess) 
+b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
 # plot
-lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
-gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
-par(mar = c(2,2,2,1), bty = "l")
-plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
+# lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
+# gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
+# par(mar = c(2,2,2,1), bty = "l")
+# plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
 
 # cat("\n quantile for L(gamma) (MC estimate) \n")
 # quantile(gamma_mar_prior, probs = c(0.5, 0.95, 0.99))
-
-grid_lambda = seq(1e-8,100,length.out = 10000)
-par(mar = c(2,2,2,1), bty = "l")
-plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), 
-     lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
+# 
+# grid_lambda = seq(1e-8,100,length.out = 10000)
+# par(mar = c(2,2,2,1), bty = "l")
+# plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda),
+#      lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
 
 ```
 
@@ -671,44 +500,21 @@ plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda),
 
 ### Initial values
 
-Qui invece che prendere tutte le osservazioni prendo solo quella media
 ```{r}
 data_med4season = data %>% group_by(ID,SeasonNumber) %>% 
                                     mutate(MedResult = mean(Result)) %>%
                                     select(ID,SeasonNumber,Result, MedResult,t_ji) %>%
                                     distinct(ID,SeasonNumber, .keep_all = TRUE) %>% 
                                     ungroup() %>% arrange(SeasonNumber)
-
-data_med4season
-```
-
-```{r}
-Ncenters = 5
+Ncenters = 10
 ymedian = data_med4season %>% pull(MedResult)
 Kmeans0 = kmeans(x = ymedian, centers = Ncenters, iter.max = 50, nstart = 10 )
 KmeansCl = Kmeans0$cluster
 centers = Kmeans0$centers
 data_med4season = data_med4season %>% cbind("Kmeans" = KmeansCl)
-```
-
-Plot di tutti i valori
-```{r}
 data_with_init = data %>% left_join(data_med4season %>% 
                                      select("ID","SeasonNumber","MedResult","Kmeans"), 
                                      by = c("ID","SeasonNumber"))
-
-mycol_clus = hcl.colors(n = length(table(KmeansCl)), palette = "Temps")
-cols = as.factor(data_with_init$Kmeans)
-levels(cols) = mycol_clus
-cols = as.character(cols)
-
-seasons = 1:d
-par(mar = c(4,4,2,1))
-plot( x = data_with_init$t_ji, 
-      y = data_with_init$Result,
-      ylab = "Result", xlab = "Season",
-      pch = 16, cex = 0.5, col = cols)
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 
 ```
 
@@ -738,8 +544,37 @@ n;d;r;sum(n_j);sum(dt$N_ji)
 
 
 
+## Cases
+
 ```{r}
-niter  <-  1000#0
+mygamma = 0.001
+mylambda = 10
+
+# gamma_mean = rep( mygamma , d)
+# lambda_mean = mylambda
+# Kmax   = 15
+# pk = rep(0,Kmax)
+# for(k in 1:Kmax){
+#   cat("\n k = ",k,"\n")
+#   pk[k] = p_distinct_prior(k = k, n_j = n_j, gamma = gamma_mean, prior = "Poisson", 
+#                            lambda = lambda_mean, Max_iter = 100)
+#   cat("\n sum(pk) = ",sum(pk),"\n")
+# }
+# 
+# cat("\n sum(pk) = ",sum(pk),"\n")
+# par(mar = c(2,2,2,1), bty = "l")
+# plot(pk, type = "h", pch = 16, lty = 1, lwd = 2, xaxt = "n", xlab = "K", main = "Theoretical K")
+# mtext(text = as.character(1:20), side = 1, at = 1:20)
+```
+
+- Caso 1: $\Lambda = 25$, $\gamma_1 = \dots = \gamma_d = 0.01$ -> Ha senso, $M$ coincide con curva teorica, $K$ è minore di $M$
+- Caso 2: $\Lambda = 25$, $\gamma_1 = \dots = \gamma_d = 1/200$ -> Ha senso, $M$ coincide con curva teorica, $K$ è minore di $M$ e anche minore rispetto a prima
+- Caso 3: $\Lambda = 5$, $\gamma_1 = \dots = \gamma_d = 1$ -> Non mixxa
+- Caso 4: $\Lambda = 5$, $\gamma_1 = \dots = \gamma_d = 0.01$ -> con questi parametri mi aspetto che $K$ e $M$ coincidano. $M$ nel MCMC sovrastima $M$ teorico ma non di troppo
+- Caso 5: $\Lambda = 10$, $\gamma_1 = \dots = \gamma_d = 1e-5$ -> Non mixxa
+
+```{r}
+niter  <-  100000
 burnin <-  1
 thin   <-    1
 
@@ -748,8 +583,9 @@ thin   <-    1
 beta0 = rep(-2,dt$r)
 Sigma0 = diag(dt$r)
 
-Lambda0 = 5
-gamma0 = rep(1,d)#rep(0.025,d)#1/n_j # per ora il valore magico è 0.025
+
+Lambda0 = mylambda
+gamma0 = rep(mygamma,d)
 Mstar0 = 4
 
 cluster_mean = data_med4season %>% group_by(Kmeans) %>% 
@@ -771,8 +607,8 @@ option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
                       "partition" = initial_partition,
                       "IncludeCovariates" = FALSE,
                       "UseData" = FALSE,
-                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = T, 
-                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = T,
+                      "UpdateU" = T, "UpdateM" = T, "UpdateGamma" = F, 
+                      "UpdateS" = T, "UpdateTau" = T, "UpdateLambda" = F,
                       "UpdateBeta" = F )
 
 prior = "Normal-InvGamma"
@@ -831,55 +667,38 @@ barplot(table(GDFMM$K), main = "Hist - K")
 
 ```
 
-Debugging
 ```{r}
+#Debugging
 # Plot U_j
-for(j in 1:d)
-  plot(GDFMM$U[j,], type = 'l', main = paste0(expression(U), "_",j))
-
-# Plot 1/(1+U_j)
-for(j in 1:d)
-  plot( 1/(GDFMM$U[j,]+1), type = 'l', main = paste0("1/(",expression(U), "_",j,"+1)"))
-
-
-# S
-S = GDFMM$S
-S_it = S[[5000]]
-S_it = t(apply(S_it, 1, FUN = function(x){x/sum(x)}))
-S_it[,33]
-
-Part_it = GDFMM$Partition[8000,]
-table(Part_it)
-
-Local_Clustering = list("list", length = d)
-idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-idx_end = cumsum(n_j)
-Kj = matrix(0,nrow = niter, ncol = d)
-for(j in 1:d){
-  Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
-  Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
-  par(mfrow = c(1,2), bty = "l")
-  plot(Kj[,j], type = 'l', main = paste0("Local K in Season ",j))
-  barplot(table(Kj[,j]), main = paste0("Local K in Season ",j))
-
-}
-```
-
-
-```{r}
-par(mar = c(2,2,2,1), bty = "l")
-plot(density(GDFMM$lambda), lwd = 2, main = paste0("Prior vs Posterior - Lambda"), type = "l",
-     ylab = " ", xlim = c(0,25), col = "red")
-points(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), 
-   lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
-
-
-# gamma
-par(mar = c(2,2,2,1), bty = "l")
-plot(density(gamma_mar_prior), lwd = 2, main = paste0("Prior vs Posterior - gamma_",1), type = "l",
-     ylab = " ", xlim = c(0,5), col = "red")
-lines(density(GDFMM$gamma[1,]), lwd = 2)
-legend("topright",c("exact","MCMC"),col=c("red","black"),pch = 16)
+# for(j in 1:d)
+#   plot(GDFMM$U[j,], type = 'l', main = paste0(expression(U), "_",j))
+# 
+# # Plot 1/(1+U_j)
+# for(j in 1:d)
+#   plot( 1/(GDFMM$U[j,]+1), type = 'l', main = paste0("1/(",expression(U), "_",j,"+1)"))
+# 
+# 
+# # S
+# S = GDFMM$S
+# S_it = S[[5000]]
+# S_it = t(apply(S_it, 1, FUN = function(x){x/sum(x)}))
+# S_it[,33]
+# 
+# Part_it = GDFMM$Partition[8000,]
+# table(Part_it)
+# 
+# Local_Clustering = list("list", length = d)
+# idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
+# idx_end = cumsum(n_j)
+# Kj = matrix(0,nrow = niter, ncol = d)
+# for(j in 1:d){
+#   Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
+#   Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
+#   par(mfrow = c(1,2), bty = "l")
+#   plot(Kj[,j], type = 'l', main = paste0("Local K in Season ",j))
+#   barplot(table(Kj[,j]), main = paste0("Local K in Season ",j))
+# 
+# }
 ```
 
 
@@ -893,22 +712,21 @@ pk_MCMC = table(GDFMM$K[take_iteration])/ nit
 names(pk_MCMC) = paste0(names(pk_MCMC),".35")
 pm_MCMC = table(GDFMM$K[take_iteration] + GDFMM$Mstar[take_iteration])/ nit
 names(pm_MCMC) = paste0(names(pm_MCMC),".15")
-grid_lambda = seq(1e-8,20,length.out = 10000)
 
 B = 10000
-lambda_prior = 5#rgamma(n=B, shape = a_lambda, rate = b_lambda)
-M_mar_prior = rpois(n=B, lambda = lambda_prior)+1
+M_mar_prior = rpois(n=B, lambda = mylambda ) + 1
 
 
 
+xmax = 40
 par(mar = c(2,2,2,1), bty = "l")
-plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), ylim = c(0,0.4),
-     lwd = 2, lty = 1, type = "l", main = "Prior comparison", ylab = " ", col = "blue")
-points(pk_MCMC, type = "h", col = "black", xlab = "K")
+plot(pk_MCMC, type = "h",  ylim = c(0,0.5), xlim = c(0, xmax), col = "black", 
+     xlab = " ", ylab = " ", main = "Prior comparison", xaxt = "n")
+mtext(text = as.character(1:xmax), side = 1, at = 1:xmax, cex = 0.75)
 points(pm_MCMC, type = "h", col = "orange", xlab = "K")
 points(table(M_mar_prior)/B, type = "h", col = "red", xlab = "M")
-legend("topright", c("K - MCMC","Lambda","M - MC", "M - MCMC"), 
-       col = c("black","blue","red","orange"), pch = 16)
+legend("topright", c("K - MCMC","M - MC", "M - MCMC"), 
+       col = c("black","red","orange"), pch = 16)
 ```
 
 
@@ -948,6 +766,206 @@ plot(pk, type = "h", col = "lightblue4", xlab = "K",xaxt = "n",
 points(Exact_M, type = "h", col = "red", xlab = "M", main = "Exact M")
 mtext(text = as.character(1:20), side = 1, at = 1:20)
 ```
+
+
+# B - Use Marginal Sampler
+
+NON USARE!
+
+```{r}
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+n = 100
+d = 15                         # number of seasons
+K = 7                         # number of global clusters
+mu = c(-4,-2 ,-2,0  ,2  ,2,4)      # vectors of means
+sd = sqrt(c(1 ,0.5, 1,0.5,0.5,1,1))   # vector of sd
+mix_probs = matrix(c(0.2,0.2,0,0.2,0.2,0,0.2,
+                     0.25,0,0.25,0,0,0.25,0.25,
+                     0.2,0.2,0,0.2,0.2,0,0.2,
+                     0.2,0,0,0.6,0,0,0.2,
+                     0,0,0,0.75,0,0.25,0),
+                   nrow = d, ncol = K, byrow = T)
+
+seed = 1234
+set.seed(seed)
+n_j = rep(n,d) 
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+```
+
+
+
+## Hyperparameters 
+
+$P_0$
+```{r}
+Res_range = range( data )
+R = Res_range[2] - Res_range[1]
+mu0 = mean(data) # should be 0
+k0  = 1/R^2
+nu0 = 10
+sigma0 = 10#*(100*R/1)
+c("mu0"=mu0,"k0"=k0,"nu0"=nu0,"sigma0"=sigma0)
+
+scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+mean_marginal = mu0
+var_marginal  = nu0/(nu0-2) * scale^2
+
+mean_marginal
+var_marginal
+```
+
+Plot di $P_0$
+```{r}
+xrange = c(-50,50)
+l_grid = 1000
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+   
+#par(mfrow = c(1,3), mar = c(2,2,2,1), bty = "l")
+# Qua plotto la marginale
+Prior_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale)
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1, xlim = xrange, ylim = c(0,max(Prior_grid)),
+     type = "n",
+     main = "Marginal data Density")
+grid(lty = 1,lwd = 2,col = "gray90" )
+points(x = na.omit(as.numeric(data)), 
+       y = rep(0, length(na.omit(as.numeric(data)))), 
+       ylim = c(0,0.1),
+       pch = 16)
+points(grid, Prior_grid, col = "black", lwd = 2, type = "l")
+  
+# Qua plotto la inverse-gamma
+sigma_grid = seq(1e-5, 100, length.out = 1000)
+par(mar = c(2,2,2,1), bty = "l")
+plot(x = sigma_grid, y = my_invgamma(sigma_grid, nu0 = nu0, sigma0 = sigma0), 
+     main = "Inverse-gamma prior Density", type = "l", lwd = 2, lty = 1)
+grid(lty = 1,lwd = 2,col = "gray90" )
+legend("topright", legend = c( "empricial var", 
+                               paste0("InvGamma(",nu0/2,", ",round(sigma0*nu0/2, digits = 3),")")  ),
+       lwd = 2, lty = c(2,1), col = c("grey45","black"))
+ 
+# Qua invece plotto la marginale di mu
+scale_mu = sqrt( sigma0/k0 )
+Mar_mu_grid = GDFMM:::dnct(x = grid, n0 = nu0, mu0 = mu0, gamma0 = scale_mu)
+par(mar = c(2,2,2,1), bty = "l")
+plot(1,1, xlim = xrange, ylim = c(0,max(Mar_mu_grid)),
+     type = "n",
+     main = "Marginal mu Density")
+grid(lty = 1,lwd = 2,col = "gray90" )
+points(grid, Mar_mu_grid, col = "black", lwd = 2, type = "l")
+points(x = na.omit(as.numeric(data)), 
+       y = rep(0, length(na.omit(as.numeric(data)))), 
+       ylim = c(0,0.1),
+       pch = 16)
+
+```
+
+$(\Lambda,\gamma_1,\dots,\gamma_d)$ prior elicitation:
+
+- Caso 1: $\texttt{Exp_Lambda} = 25$, $\texttt{Var_Lambda} = 2$, $\texttt{gamma_guess} = 0.01$ -> come quello che ottengo con il condizionale
+
+```{r}
+Exp_Lambda   =  5
+Var_Lambda   =  2
+gamma_guess  =  1
+Lambda_guess = Exp_Lambda
+
+b_lambda = Exp_Lambda/Var_Lambda
+a_lambda = Exp_Lambda * b_lambda
+
+a_gamma = a_lambda/d
+b_gamma = a_gamma / (gamma_guess * Lambda_guess) 
+
+# plot
+lambda_prior = rgamma(n=10000, shape = a_lambda, rate = b_lambda)
+gamma_mar_prior = rgamma(n=10000, shape = a_gamma, rate = lambda_prior*b_gamma)
+par(mar = c(2,2,2,1), bty = "l")
+plot(density(gamma_mar_prior), lwd = 2, main = "Marginal for gamma", ylab = " ")
+
+# cat("\n quantile for L(gamma) (MC estimate) \n")
+# quantile(gamma_mar_prior, probs = c(0.5, 0.95, 0.99))
+
+grid_lambda = seq(1e-8,100,length.out = 10000)
+par(mar = c(2,2,2,1), bty = "l")
+plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), 
+     lwd = 2, lty = 1, type = "l", main = "prior for lambda", ylab = " ")
+
+```
+
+
+## Run
+
+```{r}
+# Run  --------------------------------------------------------------------
+niter  <-  10000
+burnin <-  1
+thin   <-  1
+
+Lambda0 = 5
+gamma0 = rep(0.01,d)
+
+option = set_options_marginal(
+             "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
+             "UseData" = FALSE,
+             "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
+             "sp_mala_U" = 0.01, "sp_mala_gamma"=0.001,
+             "gamma0" = gamma0,"Lambda0" = Lambda0, 
+             "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
+             "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
+             "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
+             "init_var_cluster" = NULL,#unlist(var_data_per_cluster),
+             "UpdateU" = T, "UpdateGamma" = F, "UpdateTau" = T, "UpdateLambda" = F, 
+             "partition" = real_partition#seq(1,sum(n_j))
+        )
+```
+
+
+```{r}
+#GDFMM = GDFMM_sampler(data, niter, burnin, thin, seed = 123, option = option)
+GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = 123, FixPartition = F, option = option)
+```
+
+
+### Chains
+```{r, echo = F}
+
+# K
+par(mfrow = c(1,1), bty = "l")
+plot(GDFMM$K, type = 'l', main = "K")
+
+
+par(mfrow = c(1,1), bty = "l")
+barplot(table(GDFMM$K), main = "Hist - K")
+
+
+```
+
+## Confronto
+```{r}
+pk_MCMC = table(GDFMM$K[(niter/2) : niter])/ length((niter/2) : niter)
+names(pk_MCMC) = paste0(names(pk_MCMC),".15")
+
+grid_lambda = seq(1e-8,50,length.out = 10000)
+B = 10000
+lambda_prior = rgamma(n=B, shape = a_lambda, rate = b_lambda)
+M_mar_prior = rpois(n=B, lambda = lambda_prior)+1
+
+
+
+par(mar = c(2,2,2,1), bty = "l")
+plot(grid_lambda, dgamma(grid_lambda, shape = a_lambda, rate = b_lambda), ylim = c(0,0.4),
+     lwd = 2, lty = 1, type = "l", main = "Prior comparison", ylab = " ", col = "blue")
+points(pk_MCMC, type = "h", col = "black", xlab = "K")
+points(table(M_mar_prior)/B, type = "h", col = "red", xlab = "M")
+legend("topright", c("K - MCMC","Lambda","M - MC"), 
+       col = c("black","blue","red"), pch = 16)
+
+```
+
 
 # Esperimento dati veri
 

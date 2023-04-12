@@ -9,6 +9,7 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
     const std::vector<double>& gamma = gs_data.gamma;
     const GDFMM_Traits::MatUnsCol& N = gs_data.N;
     GDFMM_Traits::MatRow & S = gs_data.S; //non-const ref. because we modify it
+    const bool& UseData = gs_data.UseData; 
 
     // Random sampler is created
     sample::rgamma Gamma;
@@ -26,7 +27,17 @@ void FC_S::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
                     //Rcpp::Rcout<<"N("<<j<<","<<k<<") = "<<N(j,k)<<std::endl;
                     //Rcpp::Rcout<<"gamma["<<j<<"] = "<<gamma[j]<<std::endl;
                     //Rcpp::Rcout<<"U["<<j<<"] = "<<U[j]<<std::endl;
-            S(j, k) = Gamma(gs_engine, N(j, k) + gamma[j], 1 /(U[j] + 1.0) ); //This is S' and U is U'
+            double shape_S{gamma[j]};
+            //if(UseData){
+                shape_S += (double)N(j,k);
+            //}
+            S(j, k) = Gamma(gs_engine, shape_S, 1 /(U[j] + 1.0) ); 
+            //if(std::abs(S(j, k)) < 1e-12){
+                //Rcpp::Rcout<<"S(j, k) :"<<std::endl<<S(j, k) <<std::endl;
+                //Rcpp::Rcout<<"shape_S = "<<shape_S<<std::endl;
+                //Rcpp::Rcout<<"U[j] = "<<U[j]<<std::endl;
+                //throw std::runtime_error("Error in FC_S.cpp, S is too small ");
+            //}
             // Rcpp::Rcout << S(j,k)<< " ";
         }
         //S NON ALLOCATE

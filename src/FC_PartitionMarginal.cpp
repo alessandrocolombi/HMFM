@@ -37,6 +37,7 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
         const double& log_sum = gs_data.log_sum;
         std::vector<double>& sum_cluster_elements = gs_data.sum_cluster_elements;
         std::vector<double>& squared_sum_cluster_elements = gs_data.squared_sum_cluster_elements;
+        const bool& UseData = gs_data.UseData;
 
         // Quantities for computing marginal probabilities
         const double& dof_prior{nu_0};
@@ -199,32 +200,35 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
 
                 // loop over current clusters 
                 for(std::size_t l = 0; l < K; l++){
-                    //computed updated parameters
-                    dof_post = dof_prior + N_k[l];
-                    double k_0_post = k_0 + N_k[l];
-                    location_post = (k_0*location_prior + sum_cluster_elements[l])/k_0_post;
-                    double sigma_0_post =   (1/dof_post) * (    (double)(N_k[l]-1) * gs_data.compute_var_in_cluster(l) +
-                                                                dof_prior*sigma_0 +
-                                                                (double)k_0/(k_0_post) * (double)N_k[l] * 
-                                                                    (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] )
-                                                            );
 
-                    scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
-                            //Rcpp::Rcout<<"gs_data.compute_var_in_cluster("<<l<<") = "<<gs_data.compute_var_in_cluster(l)<<std::endl;
-                            //Rcpp::Rcout<<"sigma_0_post = "<<sigma_0_post<<std::endl;
-                            //Rcpp::Rcout<<"k_0_post = "<<k_0_post<<std::endl;
-                            //Rcpp::Rcout<<"scale_post = "<<scale_post<<std::endl;
-                    log_probs_vec[l] =  std::log( (double)N(j,l) + gamma[j] ) + 
-                                        log_dnct(data[j][i], dof_post, location_post, scale_post);
+                    log_probs_vec[l] =  std::log( (double)N(j,l) + gamma[j] ); // set prior term
+                    //if(UseData){
+                        //computed updated parameters
+                        dof_post = dof_prior + N_k[l];
+                        double k_0_post = k_0 + N_k[l];
+                        location_post = (k_0*location_prior + sum_cluster_elements[l])/k_0_post;
+                        double sigma_0_post =   (1/dof_post) * (    (double)(N_k[l]-1) * gs_data.compute_var_in_cluster(l) +
+                                                                    dof_prior*sigma_0 +
+                                                                    (double)k_0/(k_0_post) * (double)N_k[l] * 
+                                                                        (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] )
+                                                                );
 
-                                        
+                        scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post);
+                                //Rcpp::Rcout<<"gs_data.compute_var_in_cluster("<<l<<") = "<<gs_data.compute_var_in_cluster(l)<<std::endl;
+                                //Rcpp::Rcout<<"sigma_0_post = "<<sigma_0_post<<std::endl;
+                                //Rcpp::Rcout<<"k_0_post = "<<k_0_post<<std::endl;
+                                //Rcpp::Rcout<<"scale_post = "<<scale_post<<std::endl;
+                        log_probs_vec[l] += log_dnct(data[j][i], dof_post, location_post, scale_post); // add likelihood term                  
+                    //}
 
                 }
                 
                 // we are done looping over the already occupied clusters. Next, calculate the log probability of a new table.
+                //if(UseData){
                 log_probs_vec[K] =  log_const_new_cluster + 
-                                    std::log( gamma[j] * Lambda ) +
-                                    log_prob_marginal_data[j][i];
+                                    std::log( gamma[j] * Lambda );   // prior term            
+                //}
+                log_probs_vec[K] += log_prob_marginal_data[j][i]; // add likelihood term
 
 
                         //Rcpp::Rcout<<"log_probs_vec:"<<std::endl<<log_probs_vec<<std::endl;
