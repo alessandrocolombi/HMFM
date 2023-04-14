@@ -121,11 +121,14 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
                         partition_vec  );
 
     gs_data.UseData = UseData; // boolean that defines if I want to sample from the prior or the posterior
+
+    /*
     if(!UseData && !FixedGamma)
         throw std::runtime_error("Error in GibbsSamplerMarginal.cpp: If UseData is FALSE, UpdateGamma must be FALSE ");
     if(!UseData && !FixedLambda)
         throw std::runtime_error("Error in GibbsSamplerMarginal.cpp: If UseData is FALSE, UpdateLambda must be FALSE ");
-
+    */
+    
     //Initialize Full Conditional Objects
     auto Partition_ptr = std::make_shared<Partition_mv>("Partition", d, n_j, _FixPart);
     auto Partition_N3_ptr = std::make_shared<Partition_Neal3_mv>("Partition", d, n_j, _FixPart, nu0, sigma0, mu0, k0);
