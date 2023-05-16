@@ -414,6 +414,7 @@ for(j in 1:d){
 }
 
 ```
+
 ```{r}
 xrange = c(-25,25)
 l_grid = 200

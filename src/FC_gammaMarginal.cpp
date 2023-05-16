@@ -64,7 +64,7 @@ void FC_gammaMarginal::update(GS_data & gs_data, const sample::GSL_RNG & gs_engi
 
     }
     */
-    if(d == 0){ 
+    if(d == 1){ 
 
         // ---------------------------------------------------
         // ADAPTIVE MH UPDATE for positive valued random vector
