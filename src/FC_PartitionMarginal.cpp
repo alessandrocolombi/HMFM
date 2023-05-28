@@ -213,8 +213,10 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                                                                         (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] )
                                                                 );
 
-                        //scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post); // c'era questo, provo a cambiare
-                        scale_post = std::sqrt(sigma_0_post*(k_0_post)/(k_0_post+1.0));
+                        scale_post = std::sqrt(sigma_0_post*(k_0_post + 1.0)/k_0_post); 
+                        //scale_post = std::sqrt(sigma_0_post*(k_0_post)/(k_0_post+1.0));
+                        // Dai conti teorici mi sembra ci voglia la riga sopra ma in pratica con quella sotto va molto meglio
+
                                 //Rcpp::Rcout<<"gs_data.compute_var_in_cluster("<<l<<") = "<<gs_data.compute_var_in_cluster(l)<<std::endl;
                                 //Rcpp::Rcout<<"sigma_0_post = "<<sigma_0_post<<std::endl;
                                 //Rcpp::Rcout<<"k_0_post = "<<k_0_post<<std::endl;
