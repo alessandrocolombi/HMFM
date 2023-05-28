@@ -105,6 +105,7 @@ seed = 1234
 set.seed(seed)
 lambda_s = c(4,4,2.5,1.5,1.5)
 N_ji = unlist(lapply( as.list(lambda_s), FUN = function(x){rpois(n = n, lambda = x)} ))
+#N_ji = matrix(1,nrow = d, ncol = n, byrow = T )
 N_ji = matrix(N_ji,nrow = d, ncol = n, byrow = T )
 N_ji = N_ji + 1
 zeros = apply(N_ji, 1, function(N_j){sum(N_j == 0)})
@@ -290,6 +291,8 @@ plot( x = data_med4season$t_ji,
 abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 #abline(h = centers, lty = 2, col = "black", lwd = 0.1)
 ```
+
+
 Plot di tutti i valori
 ```{r}
 data_with_init = data %>% left_join(data_med4season %>% 

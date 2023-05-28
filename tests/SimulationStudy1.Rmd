@@ -1063,13 +1063,13 @@ var_lambda = 1
 a_lambda = (mu_lambda*mu_lambda)/var_lambda
 b_lambda = mu_lambda/(var_lambda)
 
-
+gamma0 = rep(0.1,d)
 
 option = set_options_marginal(
              "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
              "Adapt_MH_hyp1"= 0.7,"Adapt_MH_hyp2"= 0.234, 
              "sp_mala_U" = 0.01, "sp_mala_gamma"=0.001,
-             "gamma0" = 0.1,"Lambda0" = mu_lambda, 
+             "gamma0" = gamma0,"Lambda0" = mu_lambda, 
              "alpha_gamma"=a_gamma, "beta_gamma"=b_gamma, 
              "alpha_lambda"=a_lambda, "beta_lambda"=b_lambda,
              "init_mean_cluster" = NULL,#unlist(mean_data_per_cluster), 
@@ -1122,14 +1122,14 @@ plot(GDFMM$U[10,], type = "l")
 # ARI
 
 part_matrix <- GDFMM$Partition #GDFMM$Partition is a (n_iter x n_data) matrix
-ARI = apply( part_matrix, 1, 
-             FUN = function(part_it){
-                      arandi(part_it,real_partition, adjust = T)
-                  }
-            )
-
-par(mfrow = c(1,1), mar = c(2,2,1,1))
-plot(ARI, type = 'l', main = "ARI")
+# ARI = apply( part_matrix, 1, 
+#              FUN = function(part_it){
+#                       arandi(part_it,real_partition, adjust = T)
+#                   }
+#             )
+# 
+# par(mfrow = c(1,1), mar = c(2,2,1,1))
+# plot(ARI, type = 'l', main = "ARI")
 
 ```
 
@@ -1195,6 +1195,36 @@ L1err
 
 
 
+
+```{r}
+idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
+idx_end = cumsum(n_j)
+mycol = hcl.colors(n=3,palette = "Zissou1")
+
+Nclus = K
+mycol_cluster = hcl.colors(n=Nclus, palette = "Berlin")
+
+
+for(j in 1:d){
+  par(mfrow = c(1,1), mar = c(2,2,1,1))
+  plot(0,0,main = paste0("Season ",j),xlab = "Result", type = "n", xlim = range(data, na.rm = T), ylim = c(0,1))
+  for(k in 1:Nclus){
+      res = data[j,1:n_j[j]]#data_small %>% filter(SeasonNumber == j) %>% filter(TrueClustering == k) %>% pull(Result)
+      if(length(res)>0)
+        hist(res, freq = FALSE, nclass = "fd", col=mycol_cluster[k], add = T)
+  }
+  polygon( c(grid, rev(grid)),
+           c(Pred_all[[j]][1,], rev(Pred_all[[j]][3,])),
+           col = ACutils::t_col(mycol[1], percent = 45),
+           border = NA  )
+  lines(x = grid, y = Pred_all[[j]][2,], col = mycol[1], lwd = 3) #0.5
+
+  points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+  legend("topright", col = c(mycol[1],"red"), legend =c("Stimata","Vera"),lwd = 2)
+}
+
+```
 
 
 
