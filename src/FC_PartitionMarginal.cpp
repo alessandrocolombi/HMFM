@@ -98,7 +98,12 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 Rcpp::Rcout<<std::endl;
 
                 Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
-
+                for(int kk = 0; kk < K; kk++){
+                    Rcpp::Rcout<<"sum_cluster_elements["<<kk<<"] = "<<sum_cluster_elements[kk]<<"; ";
+                    Rcpp::Rcout<<"squared_sum_cluster_elements["<<kk<<"] = "<<squared_sum_cluster_elements[kk]<<"; ";
+                    Rcpp::Rcout<<std::endl;
+                }
+                
                 Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
                 for(auto __v : sum_cluster_elements)
                     Rcpp::Rcout<<__v<<", ";
@@ -204,13 +209,12 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                     log_probs_vec[l] =  std::log( (double)N(j,l) + gamma[j] ); // set prior term
                     //if(UseData){
                         //computed updated parameters
-                        dof_post = dof_prior + N_k[l];
-                        double k_0_post = k_0 + N_k[l];
+                        dof_post = dof_prior + (double)N_k[l];
+                        double k_0_post = k_0 + (double)N_k[l];
                         location_post = (k_0*location_prior + sum_cluster_elements[l])/k_0_post;
                         double sigma_0_post =   (1/dof_post) * (    (double)(N_k[l]-1) * gs_data.compute_var_in_cluster(l) +
                                                                     dof_prior*sigma_0 +
-                                                                    (double)k_0/(k_0_post) * (double)N_k[l] * 
-                                                                        (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] )
+                                                                    ( k_0 * (double)N_k[l] * (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) * (location_prior - sum_cluster_elements[l]/(double)N_k[l] ) )/(k_0_post)
                                                                 );
 
                         scale_post = std::sqrt(sigma_0_post) * std::sqrt( (k_0_post + 1.0)/k_0_post ); 
@@ -275,7 +279,12 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
                 Rcpp::Rcout<<std::endl;
 
                 Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
-
+                for(int kk = 0; kk < K; kk++){
+                    Rcpp::Rcout<<"sum_cluster_elements["<<kk<<"] = "<<sum_cluster_elements[kk]<<"; ";
+                    Rcpp::Rcout<<"squared_sum_cluster_elements["<<kk<<"] = "<<squared_sum_cluster_elements[kk]<<"; ";
+                    Rcpp::Rcout<<std::endl;
+                }
+                
                 Rcpp::Rcout<<"Stampo sum_cluster_elements: ";        
                 for(auto __v : sum_cluster_elements)
                     Rcpp::Rcout<<__v<<", ";
@@ -303,6 +312,42 @@ void FC_PartitionMarginal::update(GS_data& gs_data, const sample::GSL_RNG& gs_en
             }
 
         }
+        /*
+            NON HO MOTIVI DI CREDERE CHE MEDIA E VARIANZA NEI CLUSTER SIANO SBAGLIATI        
+        Rcpp::Rcout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"<<std::endl;
+        Rcpp::Rcout<<"Post-update"<<std::endl;
+        Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+        // Trivial check
+        for(int kk = 0; kk < K; kk++){
+
+            std::vector<double> my_data_in_cluster;
+            my_data_in_cluster.reserve(N_k[kk]);
+            for(unsigned int j=0; j<d; j++){
+                for(unsigned int i=0; i<n_j[j]; i++){
+                    if(Ctilde[j][i] == kk)
+                        my_data_in_cluster.push_back(data[j][i]);
+                }
+            }
+            Rcpp::Rcout<<"my_data_in_cluster.size() = "<<my_data_in_cluster.size()<<std::endl;
+            double my_mean = std::accumulate(my_data_in_cluster.cbegin(), my_data_in_cluster.cend(), 0.0)/my_data_in_cluster.size();
+            double my_sumSquaredDiff = std::accumulate(my_data_in_cluster.cbegin(), my_data_in_cluster.cend(), 0.0, 
+                [my_mean](double acc, double val) {
+                    double diff = val - my_mean;
+                    return acc + diff * diff;
+                });
+            double my_var = my_sumSquaredDiff / (double)(my_data_in_cluster.size() - 1);
+
+            // print
+            Rcpp::Rcout<<"Mean_in_cluster("<<kk<<") = "<<sum_cluster_elements[kk]/(double)N_k[kk]<<std::endl;
+            Rcpp::Rcout<<"my_mean = "<<my_mean<<std::endl;
+            Rcpp::Rcout<<"Var_in_cluster("<<kk<<") = "<<gs_data.compute_var_in_cluster(kk)<<std::endl;
+            Rcpp::Rcout<<"my_var = "<<my_var<<std::endl;
+            Rcpp::Rcout<<std::endl;
+        }
+        */
+
+
+
 
         // In marginal sampler the non allocated components are not sampled. For sake of code generality, set M = K
         gs_data.M = K;
@@ -335,7 +380,7 @@ double FC_PartitionMarginal::log_dnct(const double& x, double const & n0, double
         throw std::runtime_error("Error in log_dnct, the degree of freedom must be strictly positive  ");
     if(gamma0 <= 0)
         throw std::runtime_error("Error in log_dnct, the scale must be strictly positive  ");
-    return(   std::lgamma( (n0+1.0)/2.0 ) - std::lgamma( n0/2.0 ) - 0.5*std::log(M_PI*gamma0*n0) - 0.5*(n0 + 1.0)*std::log(1.0 + (1.0/n0)*(x-mu0)*(x-mu0)/(gamma0*gamma0)  )  );
+    return(   std::lgamma( (n0+1.0)/2.0 ) - std::lgamma( n0/2.0 ) - 0.5*std::log(M_PI*gamma0*gamma0*n0) - 0.5*(n0 + 1.0)*std::log(1.0 + (1.0/n0)*(x-mu0)*(x-mu0)/(gamma0*gamma0)  )  );
 }
 
 

@@ -1481,6 +1481,7 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
     # Prior_grid is a vector of length l_grid, it contains the marginal prior evauated over the grid
     # Prior_grid[i] = nct(grid[i] | dof = nu0, loc = mu0, scale = sqrt(k0/(k0+1)*sigma0) ), where nct is the non-central student-t distribution
     scale = sqrt( (option$k0)/(option$k0 + 1) * option$sigma0 )
+    scale = sqrt( (option$k0 + 1)/(option$k0) * option$sigma0 ) # secondo me è giusta questa seconda ma prima era implementata l'altra
     Prior_grid = GDFMM:::dnct(x = grid, n0 = option$nu0, mu0 = option$mu0, gamma0 = scale)
 
     # Compute normalized weigths
