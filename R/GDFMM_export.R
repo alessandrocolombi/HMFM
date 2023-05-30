@@ -1586,7 +1586,7 @@ Compute_L1_dist = function(Pred, p_mix, mu, sigma, grid ){
 
   # Evaluate the true densities over a grid of points
   true_dens_eval = apply(p_mix, 1, FUN = function(x){
-    GDFMM::dmix(x = grid, w_j = x, mu_vec = mu, sigma_vec = sd)
+    GDFMM::dmix(x = grid, w_j = x, mu_vec = mu, sigma_vec = sigma)
   })
 
 
