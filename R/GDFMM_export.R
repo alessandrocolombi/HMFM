@@ -1459,6 +1459,14 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
   l_grid <- length(grid)  #length of the grid
   MIX    <- matrix(0, nrow=n_save, ncol=l_grid)
 
+
+  # Prior_grid is a vector of length l_grid, it contains the marginal prior evauated over the grid
+  # Prior_grid[i] = nct(grid[i] | dof = nu0, loc = mu0, scale = sqrt(k0/(k0+1)*sigma0) ), where nct is the non-central student-t distribution
+  #scale = sqrt( (option$k0)/(option$k0 + 1) * option$sigma0 )
+  scale = sqrt( (option$k0 + 1)/(option$k0) * option$sigma0 ) # secondo me è giusta questa seconda ma prima era implementata l'altra
+  Prior_grid = GDFMM:::dnct(x = grid, n0 = option$nu0, mu0 = option$mu0, gamma0 = scale)
+  #cat("\n scale = ",scale,"\n variance = ",option$nu0/(option$nu0-2) * scale^2)
+
   # This loop computes the predictive distribution over a grid
   for(it in (burnin + 1):n_iter){
 
@@ -1477,12 +1485,6 @@ predictive_marginal <- function(idx_group, grid, fit, option, burnin = 0)
                          dnorm( x = grid, mean=mu_it[m], sd=sqrt(sig2_it[m]) )
                      }
                    ))
-
-    # Prior_grid is a vector of length l_grid, it contains the marginal prior evauated over the grid
-    # Prior_grid[i] = nct(grid[i] | dof = nu0, loc = mu0, scale = sqrt(k0/(k0+1)*sigma0) ), where nct is the non-central student-t distribution
-    scale = sqrt( (option$k0)/(option$k0 + 1) * option$sigma0 )
-    scale = sqrt( (option$k0 + 1)/(option$k0) * option$sigma0 ) # secondo me è giusta questa seconda ma prima era implementata l'altra
-    Prior_grid = GDFMM:::dnct(x = grid, n0 = option$nu0, mu0 = option$mu0, gamma0 = scale)
 
     # Compute normalized weigths
     log_stable_sum = log_stable_sum(log_q_it)
@@ -2007,7 +2009,7 @@ predictive_players_fix_partition = function(ID_ply, dt, fit, burnin = 1, data_me
   idx_player = which(dt$ID_i == ID_ply)
   n_iter <- length(fit$mu) #number of iterations
   d_i = sum( dt$N_ji[,idx_player] != 0 )
-  partition = data_med4season %>% filter(ID == ID_ply) %>% 
+  partition = data_med4season %>% filter(ID == ID_ply) %>%
                 distinct(SeasonNumber, .keep_all=T) %>% pull(Clustering)
   IncludeCovariates = TRUE
   if(length(fit$beta) == 0)
