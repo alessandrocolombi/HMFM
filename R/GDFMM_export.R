@@ -1906,6 +1906,57 @@ predictive_players = function(ID_ply, dt, fit, burnin = 1){
   idx_player = which(dt$ID_i == ID_ply)
   n_iter <- length(fit$mu) #number of iterations
   d_i = sum( dt$N_ji[,idx_player] != 0 )
+  #res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
+  IncludeCovariates = TRUE
+  if(length(fit$beta) == 0)
+    IncludeCovariates = FALSE
+
+  res = c()
+  for(idx_group in 1:d_i){
+
+    Nsi = dt$N_ji[idx_group, idx_player]
+    Ysi = dt$observations[[idx_group]][[idx_player]]
+
+    if(IncludeCovariates)
+      Xsi = dt$covariates[[idx_group]][[idx_player]]
+    else
+      Xsi = matrix(0,nrow = Nsi, ncol = 1)
+
+    MIX = rep(0,length(burnin:n_iter))
+
+    counter = 1
+    for(it in burnin:n_iter){
+
+      if(IncludeCovariates)
+        beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
+      else
+        beta_it = c(0)
+
+      # chose from the component to sampler from
+      m = dt$Clustering[[idx_group]][[idx_player]][it]
+
+      # compute the mean for this player in this specific season
+      mean = fit$mu[[it]][m] + Xsi %*% beta_it 
+      mean_it = sum(mean)/Nsi
+      ypred_it = rnorm(n = 1, mean = mean, sd = sqrt(fit$sigma[[it]][m]) )
+      # save
+      MIX[counter] = ypred_it
+
+      # update row counter
+      counter = counter + 1
+    }
+    res = rbind(res, quantile( MIX, prob=c(0.025,0.5,0.975)) )
+  }
+  return(res)
+}
+
+
+# Vecchia e sbagliata
+predictive_players_old = function(ID_ply, dt, fit, burnin = 1){
+
+  idx_player = which(dt$ID_i == ID_ply)
+  n_iter <- length(fit$mu) #number of iterations
+  d_i = sum( dt$N_ji[,idx_player] != 0 )
   #res = vector( "list", length = d_i )
   #res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
   IncludeCovariates = TRUE
