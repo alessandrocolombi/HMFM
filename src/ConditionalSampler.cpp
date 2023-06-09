@@ -19,6 +19,9 @@ ConditionalSampler::ConditionalSampler( const Rcpp::List& _data_list,
     unsigned int Mstar0{Rcpp::as<unsigned int>(_option["Mstar0"])}; 
         
     // Stampe
+    //Rcpp::Rcout<<"n_iter = "<<n_iter<<std::endl;
+    //Rcpp::Rcout<<"thin = "<<thin<<std::endl;
+    //Rcpp::Rcout<<"thin = "<<thin<<std::endl;
     //Rcpp::Rcout<<"Mstar0 = "<<Mstar0<<std::endl;
     //Rcpp::Rcout<<"Partition: "<<std::endl;
     //for(unsigned int i = 0; i<partition_vec.size(); i++)
