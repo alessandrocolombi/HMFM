@@ -24,13 +24,13 @@ This folder contains the Rmarkdown files for the documentation. Do not edit by h
 This folder contains R scripts to test the GDFMM algorithm on simulated datasets or on the Mathscore dataset (Hoff 2009)
 
 # Compile, document, build and run
-The first thing to be done is to clone this repository in a local directory. Open Git or Git Bash and set the directory where you want the folder to be cloned into. The run 
+The first thing to be done is to clone this repository in a local directory. Open Git or Git Bash and set the directory where you want the folder to be cloned into. Then run,
 ```shell
-$ git clone https://github.com/alessandrocolombi/GDFMM.git
+$ git clone https://github.com/author_github_name/package_name.git
 ```
 or run 
 ```shell
-$ git clone git@github.com:alessandrocolombi/GDFMM.git
+$ git clone git@github.com:author_github_name/package_name.git
 ```
 
 To compile the package from Rstudio you have to open the Rproject GDFMM.Rproj.
@@ -53,7 +53,7 @@ devtools::install()
 ```
 2. Sometimes one does not want to clone the repo of the package. If so, just open R and run
 ```R
-devtools::install_github("author_github_name/package_name") #for example devtools::install_github("alessandrocolombi/GDFMM")
+devtools::install_github("author_github_name/package_name") 
 ```
 The drawback for those cases, is that the repo has to be public or at least you have access to it.<br/>
 3. Another possibility, is that the creator of the package builds the tar.gz file of the package, send it to the user which can install it. The tar.gz file can be created by running 
