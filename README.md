@@ -17,7 +17,7 @@ Open R and run
 ```R
 devtools::install_github("alessandrocolombi/GDFMM","HMFM") 
 ```
-
+DEVO RICONTROLLARE L'ULTIMO COMANDO. SECONDO ME C'è UN MODO PER INSTALLARE UN BRANCH SPECIFICO E NON IL MASTER, MA NON SO SE SIA QUELLO
 
 
 
