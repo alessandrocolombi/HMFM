@@ -18,7 +18,9 @@ LinkingTo:
     RcppArmadillo (>= 0.10.7.5.0),
     RcppEigen (>= 0.3.3.9.1),
     RcppParallel (>= 5.1.4),
-    RcppProgress
+    RcppProgress,
+    RcppGSL
 Imports:
     mathjaxr (>= 1.4-0),
-    Rcpp
+    Rcpp,
+    RcppGSL

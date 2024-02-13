@@ -1,6 +1,12 @@
 #ifndef __GSLWRAPPERS_H__
 #define __GSLWRAPPERS_H__
 
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppGSL)]]
+#include <Rcpp.h>
+#include <RcppEigen.h>
+#include <RcppGSL.h>
+
 #include "include_headers.h"
 #include "recurrent_traits.h"
 

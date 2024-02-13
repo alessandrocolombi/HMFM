@@ -11,7 +11,6 @@
 #' @param expected_sum expected value for sum(vec)
 #' @param p theoretical weights applied to divide expected_sum in vec's elements
 #' @return corrected version of vec (if needed)
-#' @export
 sum_check <- function(vec, expected_sum, p){
   if( !dplyr::near( sum(p), 1) )
     stop("weights must sum to 1!")
@@ -42,7 +41,6 @@ sum_check <- function(vec, expected_sum, p){
 #' @param sigma_vec vector of standard deviation for the gaussian distribution
 #' @param alpha level of confidence
 #' @return c(inf, mean, sup) of point estimate of the density in x
-#' @export
 point_density <- function(x, mu_vec, sigma_vec, alpha = 0.05) {
   estimated_density = mean(dnorm(x, mu_vec, sigma_vec))
   err = sd(dnorm(x, mu_vec, sigma_vec))*qnorm(1-alpha/2)
@@ -59,7 +57,6 @@ point_density <- function(x, mu_vec, sigma_vec, alpha = 0.05) {
 #' @param sigma_vec vector of standard deviation for the gaussian distribution
 #' @param alpha level of confidence
 #' @return named matrix with (Inf, estimate, Sup)
-#' @export
 dnorm_est <- function(grid, mu_vec, sigma_vec, alpha = 0.05){
   n = length(grid)
   CI_vec = data.frame( "Inf." = numeric(n), "Est." = numeric(n), "Sup." = numeric(n))
@@ -78,7 +75,6 @@ dnorm_est <- function(grid, mu_vec, sigma_vec, alpha = 0.05){
 #' @param mu_vec vector of mean for the gaussian distribution
 #' @param sigma_vec vector of standard deviation for the gaussian distribution
 #' @return named matrix with (Inf, estimate, Sup)
-#' @export
 dmix <- function(x, w_j, mu_vec, sigma_vec){
   if( !dplyr::near(sum(w_j), 1) )
     stop("weigths don't sum to one")
@@ -107,7 +103,6 @@ dmix <- function(x, w_j, mu_vec, sigma_vec){
 #' @param mu vector of means for the components
 #' @param sigma vector of standard deviations for the components
 #' @return random sample derived my the specified mixture
-#' @export
 rmix <- function(n, p, mu, sigma){
   if( !dplyr::near(sum(p),1) )
     stop("weights for the components must sum to 1")
@@ -148,175 +143,6 @@ rmix <- function(n, p, mu, sigma){
 
   return( mix_sample )
 }
-
-#' simulate_data (never checked)
-#'
-#' function to simulate data from the specified configuration of Gaussian
-#' mixtures in different groups. Results for each one of the \code{n_simul}
-#' datasets are saved in a directory create with the time-stamp of the simulation.
-#' @param n_simul [integer] number of datasets to be simulated
-#' @param group_dim [vector] of numerosity for each group in a dataset
-#' @param p_mix [matrix] with each row that specifies weights for the mixture in the corrispondent
-#'              group
-#' @param mu [vector] of means for the Gaussian components of the mixture
-#' @param sigma [vector] of standard deviations for the Gaussian components of the mixture
-#' @param burnin [integer] number of iterations to be discarded for the GDFMM
-#' @param n_iter [integer] number of iterations to be saved for the GDFMM run
-#' @param thin thinning of the GDFMM run
-#' @param seed [integer] seed for the GDFMM run (0 ==> random seed)
-#' @param option [list] of option for the GDFMM model. See GDFMM_sampler help for the list of
-#'               needed values
-#' @param dir path to the directory where data about simlation have to be saved
-#' @return some metrics to evaluate the goodness of GDFMM
-#' @export
-simulate_data_OLD_POLIMI <- function(n_simul, group_dim, p_mix, mu, sigma,
-                          burnin = 2000, n_iter = 2000, thin = 3, seed = 1234,
-                          option, dir = ".")
-  {
-      # dimension check
-  if( length(group_dim) != dim(p_mix)[1] )
-    stop("*group_dim* must be a vector with same number of elements as number of *p_mix* rows")
-
-  if( dim(p_mix)[2] != length(mu) || dim(p_mix)[2] != length(sigma) )
-    stop("*p_mix* must have number of columns equal to the length of mu and sigma (vectors of same length)")
-
-  # create a directory to save results and set it as working directory
-  original_dir = getwd()
-  name_dir = paste("/simulation_GDFMM_", Sys.time(), sep = "")
-  name_dir = stringr::str_replace_all(name_dir,":",".")
-  name_dir = paste(dir, name_dir, sep = "")
-
-  dir.create(name_dir)
-  setwd(name_dir)
-
-  # create a .txt file to store all informations of the simulation
-
-  cat("SIMULATION options are : \n", file = "simulation_INFO.txt")
-  cat("- Datasets simulated : ", n_simul, "\n", file = "simulation_INFO.txt", append = T)
-  cat("- Numerosity of the groups : ", group_dim, "\n", file = "simulation_INFO.txt", append = T)
-  cat("- Mixture specifics : mu -> (", mu, ")  sigma-> (", sigma, ") \n \n",
-      file = "simulation_INFO.txt", append = TRUE)
-
-  option_text = ""
-  opt_names = names(option)
-  for(name_i in 1:length(opt_names)){
-    option_text = paste(option_text, "-", opt_names[name_i], "=",
-                        option[[opt_names[name_i]]], "\n", sep = " ")
-  }
-  cat("GDFMM options are : \n", option_text, file = "simulation_INFO.txt", append = TRUE)
-  cat("- n_iter = ", n_iter, " seed = ", seed, file = "simulation_INFO.txt", append = TRUE)
-
-  # first set the seed
-  set.seed(seed)
-
-  # retrieve d: number of groups
-  d = length(group_dim)
-  # retrieve M: number of components
-  M = dim(p_mix)[2]
-  # retrieve max length of a group
-  n_max = max(group_dim)
-
-  # create vectors to store metrics of the simulation
-  KLdiv_vec = numeric(n_simul)
-  Mdiff_vec = numeric(n_simul)
-
-  for(i in 1:n_simul){
-    cat("\014")
-    cat("Iteration ", i, " of ", n_simul, "\n")
-      # groups creation
-
-    # initialize data matrix
-    data <- matrix(NA, nrow = d, ncol = n_max)
-    group_list = list()
-    # create the groups
-    for(j in 1:d){
-      n_j <- group_dim[j]
-      group_list[[j]] = rmix(n_j, p_mix[j,], mu, sigma)
-      data[j, 1:n_j] <- group_list[[j]]
-    }
-
-    # 1st run of GDFMM --> obj: estimate partition
-    GS <- GDFMM_sampler(data, n_iter, burnin, thin, seed = seed, option = option)
-    cat("First run of GDFMM done --> computing the partition \n")
-
-    # compute best partion via binder-loss
-    part_matrix <- GS$Partition
-    sim_matrix <- psm(part_matrix)
-    binder_dahl <- dlso(part_matrix, loss = 'binder', estimate = sim_matrix)
-
-    est_part = as.vector(binder_dahl)
-    cat("Partition computed \n")
-    # compute the estimate number of clusters
-    k_est = length( levels( as.factor(est_part) ) )
-
-    option_fixed = c(option, list("partition" = est_part) )
-
-    GS_fixed <- GDFMM_sampler(data, niter = n_iter, burnin = burnin, thin = thin, seed = seed,
-                              FixPartition = T, option = option_fixed)
-
-    # for each group compute mean of weights for the estimated components
-    w_list = GS_fixed$w_jk
-    w = matrix(nrow = d, ncol = k_est)
-
-    for(j in 1:d){
-      w[j, ] = rowMeans(w_list[[j]])
-    }
-
-    # compute mean of mu from GS
-    mu_list = GS_fixed$mu
-    mu_GS = c()
-    for(k in 1:k_est){
-      mu_GS = c(mu_GS, mean(mu_list[[k]]))
-    }
-
-    # # compute mean of sigma from GS
-    sigma_list = GS_fixed$sigma
-    sigma_GS = c()
-    for(k in 1:k_est){
-      sigma_GS = c(sigma_GS, sqrt( mean(sigma_list[[k]]) ) )
-    }
-
-    # create grid to evaluate density
-    max_val = max(data, na.rm = T)
-    min_val = min(data, na.rm = T)
-    range = max_val - min_val
-    grid = seq(min_val - 0.1*range, max_val + 0.1*range, length = 1000)
-
-    # compute real mixture density and estimated one; then compare them with
-    # Kullback-Leibler Divergence
-    KLdiv = 0.0
-    GS_mix = list()
-    real_mix = list()
-    for(j in 1:d){
-      GS_mix[[j]] = dmix(grid, w[j,], mu_GS, sigma_GS)
-      real_mix[[j]] = dmix(grid, p_mix[j,], mu, sigma)
-      KLdiv = KLdiv + KLD(real_mix[[j]], GS_mix[[j]])$sum.KLD.px.py
-    }
-
-
-    # save results for the current iteration
-    save(list = c("GS", "GS_fixed", "est_part", "group_list", "grid", "GS_mix", "real_mix"),
-         file = paste("run", i,".rda", sep = "") )
-
-    # store metrics for the currente iteratiom
-    KLdiv_vec[i] = KLdiv/d
-    Mdiff_vec[i] = abs(M - k_est)
-  }
-  cat("DONE")
-
-  # save list of metrics vector
-  metrics = list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec)
-  save(metrics, file = "metrics_list.rda")
-  save(p_mix, file = "p_mix.rda")
-
-  # restore original working directory
-  setwd(original_dir)
-
-  # return divergence metrics obtained through the simulation
-  return(list("KLD" = KLdiv_vec, "M_diff" = Mdiff_vec))
-}
-
-
 
 #' arrange_partition
 #'
@@ -543,328 +369,6 @@ p_distinct_prior = function(k,n_j, gamma, prior = "Poisson", ..., Max_iter = 100
 }
 
 
-#' p_shared_prior
-#'
-#' This function computes the a priori probability that the number of shared species is equal to \code{s}.
-#' @param s integer, the number of shared species whose probability has to be computed.
-#' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
-#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
-#'
-#' @export
-p_shared_prior = function(s,n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
-  l = list(...)
-  L = length(l)
-
-  #checks
-  if(length(n_j)!=length(gamma))
-    stop("The length of n_j must be equal to the length of gamma")
-  if( any(n_j<0) || any(gamma<=0) )
-    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
-  if(Max_iter<=0)
-    stop("The number of iterations must be strictly positive")
-
-  # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
-  if(prior == "Poisson"){
-    if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
-
-    prior_params$lambda = l$lambda
-  }
-  else if(prior == "NegativeBinomial"){
-    if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
-
-    prior_params$r = l$r
-    prior_params$p = l$p
-  }
-  else
-    stop("prior can only be equal to Poisson or NegativeBinomial")
-
-  # Check trivial cases
-  if(s<0)
-    stop("Error, the number of shared species s can not be negative")
-  if(s > min(n_j))
-    return (0)
-
-
-
-  # Compute non trivial cases
-  return (  p_shared_prior_c(s,n_j,gamma,prior,prior_params,Max_iter)  )
-}
-
-
-
-#' p_distinct_posterior
-#'
-#' This function computes the probability a posteriori that the number of distinct species is equal to \code{r}.
-#' @param r integer, the number of distinct species whose probability has to be computed.
-#' @param k integer, the number of distinct species that have been observed in the sample of sizes given by \code{n_j}.
-#' @param m_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param n_j a positive scalar or a vector of positive integers that defines the size of the groups that have been alread observed. It must be of the same size of \code{m_j}.
-#' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
-#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
-#'
-#' @export
-p_distinct_posterior = function(r, k, m_j, n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
-  l = list(...)
-  L = length(l)
-
-  #checks
-  if(length(n_j)!=length(gamma))
-    stop("The length of n_j must be equal to the length of gamma")
-  if(length(n_j)!=length(m_j))
-    stop("The length of m_j must be equal to the length of n_j")
-  if( any(m_j<0) || any(n_j<0) || any(gamma<=0) )
-    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
-  if(Max_iter<=0)
-    stop("The number of iterations must be strictly positive")
-
-  # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
-  if(prior == "Poisson"){
-    if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
-
-    prior_params$lambda = l$lambda
-  }
-  else if(prior == "NegativeBinomial"){
-    if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
-
-    prior_params$r = l$r
-    prior_params$p = l$p
-  }
-  else
-    stop("prior can only be equal to Poisson or NegativeBinomial")
-
-  # Check Special cases
-  if(k < 0)
-    stop("Error, the number of distinct species k that have been observed can not be negative")
-  if(sum(n_j) == 0)
-    cat("p_distinct_posterior has been called but vector n_i of previous observations is made of all zeros. Call the p_distinct_prior function instead. \n")
-  if(k > sum(n_j))
-    stop("It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined")
-  if(k == 0)
-    stop("The number of distinct species k that have been observed can not be 0. Such value makes no sense when sum(n_j)>0 and the behaviuor is left undefined when sum(n_j)=0. ")
-  if(r > sum(m_j) )
-    return (0)
-  if( r == 0 && sum(m_j) == 0 ){
-    return (1) # just for coherence
-  }
-
-  # Compute non trivial cases
-  return (  p_distinct_posterior_c(r,k,m_j,n_j,gamma,prior,prior_params,Max_iter)  )
-}
-
-#' p_shared_posterior
-#'
-#' This function computes the posterior probability that the number of shared species is equal to \code{t}.
-#' @param t integer, the number of shared species whose probability has to be computed.
-#' @param k integer, the number of distinct species that have been observed in the sample of sizes given by \code{n_j}.
-#' @param m_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param n_j a positive scalar or a vector of positive integers that defines the size of the groups that have been alread observed. It must be of the same size of \code{m_j}.
-#' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
-#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
-#'
-#' @export
-p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
-  l = list(...)
-  L = length(l)
-
-  #checks
-  if(length(n_j)!=length(gamma))
-    stop("The length of n_j must be equal to the length of gamma")
-  if(length(n_j)!=length(m_j))
-    stop("The length of m_j must be equal to the length of n_j")
-  if( any(m_j<0) || any(n_j<0) || any(gamma<=0) )
-    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
-  if(Max_iter<=0)
-    stop("The number of iterations must be strictly positive")
-
-  # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
-  if(prior == "Poisson"){
-    if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
-
-    prior_params$lambda = l$lambda
-  }
-  else if(prior == "NegativeBinomial"){
-    if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
-
-    prior_params$r = l$r
-    prior_params$p = l$p
-  }
-  else
-    stop("prior can only be equal to Poisson or NegativeBinomial")
-
-  # Check Special cases
-  if(k < 0)
-    stop("Error, the number of distinct species k that have been observed can not be negative")
-  if(k == 0)
-    stop("The number of distinct species k that have been observed can not be 0. Such value makes no sense when sum(n_j)>0 and the behaviuor is left undefined when sum(n_j)=0. ")
-  if(sum(n_j) == 0)
-    cat("p_distinct_posterior has been called but vector n_i of previous observations is made of all zeros. Call the p_distinct_prior function instead. \n")
-  if(k > sum(n_j))
-    stop("It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined")
-  if(t<0)
-    stop("Error, the number of shared species t can not be negative")
-  if(t > min(m_j))
-    return (0)
-
-  # Compute non trivial cases
-  return (p_shared_posterior_c(t, k, m_j, n_j, gamma, prior, prior_params, Max_iter ) )
-}
-
-
-
-#' Expected_prior
-#'
-#' This function computes the expected value and the variance of the a priori probability of distinct or shared species.
-#' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species.
-#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
-#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
-#'
-#' @export
-Expected_prior = function(n_j, gamma, type, prior = "Poisson", ..., Max_iter = 100, tol = 10^-12){
-  l = list(...)
-  L = length(l)
-
-  #checks
-  if(length(n_j)!=length(gamma))
-    stop("The length of n_j must be equal to the length of gamma")
-  if( any(n_j<0) || any(gamma<=0) )
-    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
-  if(Max_iter<=0)
-    stop("The number of iterations must be strictly positive")
-  if(type != "distinct" & type != "shared")
-    stop("type can only be distinct or shared")
-
-  # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
-  if(prior == "Poisson"){
-    if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
-
-    prior_params$lambda = l$lambda
-  }
-  else if(prior == "NegativeBinomial"){
-    if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
-
-    prior_params$r = l$r
-    prior_params$p = l$p
-  }
-  else
-    stop("prior can only be equal to Poisson or NegativeBinomial")
-
-  # Check trivial cases
-  if(sum(n_j) == 0)
-    stop("All values in n_j are 0.")
-
-  if(type == "shared" & length(n_j) < 2 )
-    stop("At least two groups are needed to compute the expected values of shared components")
-
-
-  # Compute non trivial cases
-  return( Expected_prior_c(n_j, gamma, type, prior, prior_params, Max_iter, tol  )  )
-}
-
-
-#' Expected_posterior
-#'
-#' This function computes the expected value and the variance of the a posteriori probability of distinct or shared species.
-#' @param k integer, the number of distinct species that have been observed in the sample of sizes given by \code{n_j}.
-#' @param m_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param n_j an positive integer in the case of exchangeable data or a vector of size \code{d} in the case of partially exchangeable data.
-#' @param gamma real valued, it must be of the same size of \code{n_j}
-#' @param type string, select \code{distinct} to compute the expected value of the number of distinct species or select \code{shared} to compute the expected value of the number of shared species.
-#' @param prior a string that indicates the type of prior to be used for the number of components. It can only be equal to \code{"Poisson"} or \code{"NegativeBinomial"}.
-#' @param ... the addition parameters to be used in the prior. Use \code{lambda} for the "Poisson"case (must be strictly positive) and \code{r} (positive integer) and \code{p} (real in (0,1)) for the "NegativeBinomial" case.
-#'
-#' @export
-Expected_posterior = function(k, m_j, n_j, gamma, type, prior = "Poisson", ..., Max_iter = 100, tol = 10^-12){
-  l = list(...)
-  L = length(l)
-
-  #checks
-  if(length(n_j)!=length(gamma))
-    stop("The length of n_j must be equal to the length of gamma")
-  if( any(n_j<0) || any(gamma<=0) )
-    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
-  if(Max_iter<=0)
-    stop("The number of iterations must be strictly positive")
-  if(type != "distinct" & type != "shared")
-    stop("type can only be distinct or shared")
-
-  # read prior parameters
-  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
-  if(prior == "Poisson"){
-    if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
-    if(! names(l)=="lambda")
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
-
-    prior_params$lambda = l$lambda
-  }
-  else if(prior == "NegativeBinomial"){
-    if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
-
-    prior_params$r = l$r
-    prior_params$p = l$p
-  }
-  else
-    stop("prior can only be equal to Poisson or NegativeBinomial")
-
-  # Check trivial cases
-  if(sum(n_j) == 0){
-    stop("All values in n_j are 0. Call the Expected_prior function instead")
-  }
-  if(sum(m_j) == 0)
-    stop("All values in m_j are 0.")
-
-  if(type == "shared" & length(m_j) < 2 )
-    stop("At least two groups are needed to compute the expected values of shared components")
-
-  if(k < 0)
-    stop("Error, the number of distinct species k that have been observed can not be negative")
-  if(k > sum(n_j))
-    stop("It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined")
-  if(k == 0)
-    stop("The number of distinct species k that have been observed can not be 0. Such value makes no sense when sum(n_j)>0 and the behaviuor is left undefined when sum(n_j)=0. ")
-
-  # Compute non trivial cases
-  return( Expected_posterior_c(k, m_j, n_j, gamma, type, prior, prior_params, Max_iter, tol)  )
-}
-
-
 
 
 #' genera_mix_gas
@@ -896,9 +400,8 @@ genera_mix_gas <- function(n = 200, pro=c(0.5,0.5), means = c(-1,1), sds=sqrt(c(
 }
 
 
-#' pred_uninorm: this is the old version of Raf
+#' pred_uninorm: this is the old version
 #'
-#' @export
 pred_uninorm <- function(idx_group, grid, fit){
 
     n_iter <- length(fit$K) #number of iterations
@@ -991,107 +494,6 @@ predictive_all_groups <- function(grid, fit, burnin = 1){
   lapply(1:d, predictive, grid = grid, fit = fit, burnin = burnin)
 }
 
-
-
-#' generate_data
-#'
-#' VECCHIA, NON è DA USARE
-#' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
-#' A major drawback of this function is that the current formulation allows only to use equal mixture proportions.
-#' This is indeed the old version, the newest function is \code{\link{generate_data_prob}}.
-#' @param d [integer] the number of levels in the data.
-#' @param K [integer] the total number of clusters.
-#' @param mu [vector] of length \code{K} defining the means of the clusters.
-#' @param sd [vector] of length \code{K} defining the standard deviations of the clusters.
-#' @param n_j [vector] of length \code{d} defining the cardinality of each groups.
-#' @param seed [integer] the random seed.
-#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
-#' and a vector named \code{real_partition} with the cluster membership of each data point.
-#' @export
-generate_data <- function(d, K = 3, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
-{
-  warning("VECCHIA, NON è DA USARE")
-  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
-  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
-
-  n = sum(n_j) #total number of data points
-  p = matrix(0, nrow = d, ncol = K) # matrix with components weights
-
-  set.seed(seed)
-  Kgruppo = c() # used to save the number of generated clusters in each level
-  componenti_gruppo = NULL # used to state what components are used to generate data in each level
-
-  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
-  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
-  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
-  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
-  # cluster label must always start from 0!
-  for(j in 1:d){
-    Kgruppo[j] = sample(1:K,1) # number of clusters in each level
-    componenti_gruppo[[j]] = sample(1:K,Kgruppo[j], replace = F) # choose the components
-    p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
-    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu[ componenti_gruppo[[j]] ],
-                              sds = sd[ componenti_gruppo[[j]] ] )
-
-    data[j, 1:n_j[j]] = appoggio$y
-    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
-    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
-    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
-  }
-  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
-  # quella che viene modificata dentro il sampler è
-  # partion_within_sampler = arrange_partition(real_partition)
-  return( list(data = data, real_partition = real_partition) )
-}
-
-#' generate_data
-#'
-#' VECCHIA, NON è DA USARE
-#' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
-#' It gets the number of levels, the data to be generated in each level and, within each level, it samples from the mixture defined by \code{K}, \code{mu}, \code{sd} with
-#' weights defined in \code{prob}, which may vary in different levels
-#' @inheritParams generate_data
-#' @param prob [matrix] of dimension \code{d x K} where each row contains the weights for the mixture model in each level. Some may be zero.
-#' @return [list] with a matrix of size \code{d x max(n_j)} named \code{data} containing the data to be fed to \code{\link{GDFMM_sampler}}
-#' and a vector named \code{real_partition} with the cluster membership of each data point.
-#' @export
-generate_data_prob <- function(d, K = 3, p = prob, mu= c(-20,0,20), sd = c(1,1,1), n_j = rep(200, d), seed = 124123 )
-{
-  warning("VECCHIA, NON è DA USARE")
-  if(length(mu) != K || length(sd) != K ) stop("The length of mu and sd must be equal to K")
-  if(length(n_j) != d ) stop("The length of n_j must be equal to d")
-
-  n = sum(n_j) #total number of data points
-  #p = matrix(0, nrow = d, ncol = K) # matrix with components weights
-
-  set.seed(seed)
-  Kgruppo = c() # used to save the number of generated clusters in each level
-  componenti_gruppo = NULL # used to state what components are used to generate data in each level
-
-  data = matrix(NA, nrow = d, ncol = max(n_j))     # d x max(n_j) matrix
-  cluster = matrix(NA, nrow = d, ncol = max(n_j))  # d x max(n_j) matrix
-  real_partition = c()      # real_partition is a vector of length sum(n_j), it collects all the group membership.
-  # values are collected level by level, so first all the values in level 1, the all values in level 2 and so on
-  # cluster label must always start from 0!
-  for(j in 1:d){
-    Kgruppo[j] = 3 # number of clusters in each level
-    componenti_gruppo[[j]] = 1:3 # choose the components
-    p[j,1:Kgruppo[j]] = prob[j,]
-    #p[j,1:Kgruppo[j]] = rep(1/Kgruppo[j], Kgruppo[j]) # set the weights all equals
-    appoggio = genera_mix_gas(n = n_j[j], pro = p[j,1:Kgruppo[j]], means = mu,
-                              sds = sd )
-
-    data[j, 1:n_j[j]] = appoggio$y
-    #cluster[j, 1:n_j[j]] = appoggio$clu, #errore, genera_mix_gas usa sempre indici che partono da 1!
-    cluster[j, 1:n_j[j]] = unlist(lapply(1:n_j[j], function(h){componenti_gruppo[[j]][appoggio$clu[h]]}))
-    real_partition = c(real_partition, cluster[j, 1:n_j[j]])
-  }
-  # In real partition devo avere valore da 0 a K senza buchi. Per esempio, se ho solo 0 e 2 non va bene!
-  # quella che viene modificata dentro il sampler è
-  # partion_within_sampler = arrange_partition(real_partition)
-  return( list(data = data, real_partition = real_partition) )
-}
-
 #' simulate_data
 #'
 #' This function generate data to be used in the \code{\link{GDFMM_sampler}} or \code{\link{GDFMM_marginal_sampler}}.
@@ -1155,7 +557,6 @@ simulate_data <- function(d, K = 3, prob=NULL, mu= c(-20,0,20), sd = c(1,1,1), n
 #' @inheritParams set_options
 #'
 #' @return [matrix] of size \code{n x length(grid)} containing the quantiles of level \code{0.025,0.5,0.975}.
-#' @export
 predictive_new_group <- function(grid, fit, burnin = 1, alpha_gamma, beta_gamma){
     n_iter <- length(fit$mu) #number of iterations
     l_grid <- length(grid)
@@ -1337,7 +738,6 @@ GDFMM_marginal_sampler <- function( data, niter, burnin, thin, seed,
 #' @param barsig2 [scalar] desired value of the mean of the inverse-gamma distribuited parameter. Used only if \code{data} is \code{NULL}.
 #' @param varsig2 [scalar] desired value of the variance of the inverse-gamma distribuited parameter
 #' @param correction [scalar] if \code{data} are provided, the expected value of \code{sigma} is set equal to \code{var(data)/correction}.
-#' @export
 empirical_bayes_normalinvgamma <- function( data = NULL, barmu = 0, varmu = 1, barsig2 = 10, varsig2 = 5, correction = 3  )
 {
   if(!is.null(data)){
@@ -1836,60 +1236,7 @@ ConditionalSampler <- function(data, niter, burnin, thin, seed,
 
 
 
-###' @export
-##predictive_players = function(ID_ply, dt, fit, burnin = 1){
-##
-  ##idx_player = which(dt$ID_i == ID_ply)
-  ##n_iter <- length(fit$mu) #number of iterations
-  ##d_i = sum( dt$N_ji[,idx_player] != 0 )
-  ###res = vector( "list", length = d_i )
-  ###res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
-  ##IncludeCovariates = TRUE
-  ##if(length(fit$beta) == 0)
-    ##IncludeCovariates = FALSE
-##
-  ##res = c()
-  ##for(idx_group in 1:d_i){
-##
-    ##Nsi = dt$N_ji[idx_group, idx_player]
-    ##Ysi = dt$observations[[idx_group]][[idx_player]]
-##
-##
-    ##if(IncludeCovariates)
-      ##Xsi = dt$covariates[[idx_group]][[idx_player]]
-    ##else
-      ##Xsi = 0
-##
-    ##MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
-##
-    ##counter = 1
-    ##for(it in burnin:n_iter){
-      ### Get sampled values
-      ##M_it  = length(fit$mu[[it]]) # compute the number of components (allocated or not)
-      ##S_it = fit$S[[it]][idx_group,]    # get (S_{j,1}^(it), ..., S_{j,M}^(it)), where j is idx_group and M is M_it
-##
-      ##if(IncludeCovariates)
-        ##beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
-      ##else
-        ##beta_it = 0
-##
-      ### chose from the component to sampler from
-      ##m = sample(1:M_it, size = 1, prob = S_it + weight_it)
-##
-      ### draw from multivariate gaussian
-      ##mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
-      ##ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
-##
-      ### save
-      ##MIX[counter, ] = ypred_it
-##
-      ### update row counter
-      ##counter = counter + 1
-    ##}
-    ##res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
-  ##}
-  ##return(res)
-##}
+
 
 #' predictive_players
 #'
@@ -1936,7 +1283,7 @@ predictive_players = function(ID_ply, dt, fit, burnin = 1){
       m = dt$Clustering[[idx_group]][[idx_player]][it]
 
       # compute the mean for this player in this specific season
-      mean = fit$mu[[it]][m] + Xsi %*% beta_it 
+      mean = fit$mu[[it]][m] + Xsi %*% beta_it
       mean_it = sum(mean)/Nsi
       ypred_it = rnorm(n = 1, mean = mean, sd = sqrt(fit$sigma[[it]][m]) )
       # save
@@ -1946,59 +1293,6 @@ predictive_players = function(ID_ply, dt, fit, burnin = 1){
       counter = counter + 1
     }
     res = rbind(res, quantile( MIX, prob=c(0.025,0.5,0.975)) )
-  }
-  return(res)
-}
-
-
-# Vecchia e sbagliata
-predictive_players_old = function(ID_ply, dt, fit, burnin = 1){
-
-  idx_player = which(dt$ID_i == ID_ply)
-  n_iter <- length(fit$mu) #number of iterations
-  d_i = sum( dt$N_ji[,idx_player] != 0 )
-  #res = vector( "list", length = d_i )
-  #res = matrix(0, nrow = 3, ncol = sum(dt$N_ji[,idx_player]))
-  IncludeCovariates = TRUE
-  if(length(fit$beta) == 0)
-    IncludeCovariates = FALSE
-
-  res = c()
-  for(idx_group in 1:d_i){
-
-    Nsi = dt$N_ji[idx_group, idx_player]
-    Ysi = dt$observations[[idx_group]][[idx_player]]
-
-
-    if(IncludeCovariates)
-      Xsi = dt$covariates[[idx_group]][[idx_player]]
-    else
-      Xsi = matrix(0,nrow = Nsi, ncol = 1)
-
-    MIX = matrix(0,nrow = length(burnin:n_iter), ncol = Nsi)
-
-    counter = 1
-    for(it in burnin:n_iter){
-
-      if(IncludeCovariates)
-        beta_it = fit$beta[[it]][idx_group,]    # get (beta_{j,1}^(it), ..., beta_{j,r}^(it))
-      else
-        beta_it = c(0)
-
-      # chose from the component to sampler from
-      m = dt$Clustering[[idx_group]][[idx_player]][it]
-
-      # draw from multivariate gaussian
-      mean = fit$mu[[it]][m] + Xsi %*% beta_it # compute the mean vector, it should have length Nsi
-      ypred_it = rnorm(n = Nsi, mean = mean, sd = rep( sqrt(fit$sigma[[it]][m]) , Nsi))
-
-      # save
-      MIX[counter, ] = ypred_it
-
-      # update row counter
-      counter = counter + 1
-    }
-    res = cbind(res, apply(MIX, 2, quantile, prob=c(0.025,0.5,0.975)) )
   }
   return(res)
 }
