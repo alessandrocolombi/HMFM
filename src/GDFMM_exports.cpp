@@ -119,7 +119,7 @@ Rcpp::List GDFMM_marginal_sampler_c( Eigen::MatrixXd const & dat, unsigned int n
 }
 
 
-//' Test new data
+
 void Test_data(const Rcpp::List& data_list ){
 
 	unsigned int n = Rcpp::as<unsigned int>(data_list["n"]);
@@ -290,7 +290,7 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 
 
 
-//' Test
+
 void Test_Rcpp(const Rcpp::NumericMatrix& X){
 
 	std::vector<double> vec_c(5);
