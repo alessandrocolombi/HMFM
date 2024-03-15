@@ -15,9 +15,8 @@ This folder contains the Rmarkdown files for the documentation. Do not edit by h
 ## Install the package
 Open R and run
 ```R
-devtools::install_github("alessandrocolombi/GDFMM","HMFM") 
+devtools::install_github("alessandrocolombi/GDFMM", ref = "HMFM") 
 ```
-DEVO RICONTROLLARE L'ULTIMO COMANDO. SECONDO ME C'è UN MODO PER INSTALLARE UN BRANCH SPECIFICO E NON IL MASTER, MA NON SO SE SIA QUELLO
 
 
 
