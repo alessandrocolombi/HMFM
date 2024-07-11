@@ -289,6 +289,30 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 }
 
 
+// [[Rcpp::export]]
+Eigen::VectorXd lastirling1(int n)
+{
+  if(n == 0){
+    Eigen::VectorXd zero = Eigen::VectorXd::Constant(1,0.0);
+    return (zero);
+  }
+
+  Eigen::VectorXd LogSk1 = Eigen::VectorXd::Constant(n+1,0.0);
+  Eigen::VectorXd LogSk = Eigen::VectorXd::Constant(n+1,0.0);
+
+  LogSk1(1) = 0;
+  LogSk1(0) = -std::numeric_limits<double>::infinity();
+  LogSk(0)  = -std::numeric_limits<double>::infinity();
+
+  for(int i = 2; i <= n; i++){
+    for(int j  = 1; j < i; j++){
+      LogSk(j) = LogSk1(j) + std::log(i - 1 + std::exp(LogSk1(j-1) - LogSk1(j)));
+    }
+    LogSk(i)  = 0;
+    LogSk1    = LogSk;
+  }
+  return( LogSk.tail(n) ); //eliminate the first element, i.e, return the last n elements
+}
 
 
 void Test_Rcpp(const Rcpp::NumericMatrix& X){

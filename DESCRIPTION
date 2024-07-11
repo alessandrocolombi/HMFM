@@ -1,12 +1,11 @@
 Package: GDFMM
 Type: Package
-Title: Group Dependent Finite Mixture Models
+Title: Hierarchical Mixture of Finite MIxtures
 Version: 0.1.0
 Author: Authors@R: person("Alessandro", "Colombi", email = "a.colombi10@campus.unimib.it",
   role = c("aut", "cre"))
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Alessandro Colombi <a.colombi10@campus.unimib.it>
+Description: A package to fit Mixture of Finite Mixtures with random number of components to hierarchical continuous data
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

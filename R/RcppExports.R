@@ -19,6 +19,10 @@ MCMC_conditional_c <- function(data_list, n_iter, burn_in, thin, seed, P0_prior_
     .Call(`_GDFMM_MCMC_conditional_c`, data_list, n_iter, burn_in, thin, seed, P0_prior_name, FixPart, algorithm, option)
 }
 
+lastirling1 <- function(n) {
+    .Call(`_GDFMM_lastirling1`, n)
+}
+
 #' Raising Factorial
 #'
 #' \loadmathjax This function computes the rising factorial \mjseqn{(a)^{n}} using the gsl code for the Pochhammer symbol, i.e

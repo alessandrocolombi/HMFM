@@ -15,7 +15,7 @@ This folder contains the Rmarkdown files for the documentation. Do not edit by h
 ## Install the package
 Open R and run
 ```R
-devtools::install_github("alessandrocolombi/GDFMM", ref = "HMFM") 
+devtools::install_github("alessandrocolombi/HMFM") 
 ```
 
 
