@@ -273,10 +273,10 @@ tictoc::tic()
   cluster <- parallel::makeCluster(num_cores, type = "SOCK")
   doSNOW::registerDoSNOW(cluster)
   parallel::clusterExport(cluster, list())
-  res = parLapply( cl = cluster, seeds,
+  res = parallel::parLapply( cl = cluster, seeds,
                              fun = SimStudy_runningtimes,
                              ndatas = ndatas)
-  stopCluster(cluster)
+  parallel::stopCluster(cluster)
 tictoc::toc()
 
 

@@ -75,6 +75,7 @@ dnorm_est <- function(grid, mu_vec, sigma_vec, alpha = 0.05){
 #' @param mu_vec vector of mean for the gaussian distribution
 #' @param sigma_vec vector of standard deviation for the gaussian distribution
 #' @return named matrix with (Inf, estimate, Sup)
+#' @export
 dmix <- function(x, w_j, mu_vec, sigma_vec){
   if( !dplyr::near(sum(w_j), 1) )
     stop("weigths don't sum to one")
