@@ -480,7 +480,6 @@ SimStudy_Exp2 = function(seed, n_j){
 
 
 # Example plot -----------------------------------------------------------------
-
 d = 2
 K = 4
 mu=c(-3,-4,1,0)
@@ -490,7 +489,7 @@ n_j=c(50,50)
 mix_probs = matrix(c(0.5,0,0.5,0,
                      0,0.5,0,0.5), nrow = d, ncol = K, byrow = T)
 
-seed = 2032121
+seed = 2032123
 genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
 data = genD$data
 real_partition = genD$real_partition
@@ -520,7 +519,7 @@ mycol_cluster = hcl.colors(n=K, palette = "Temps")
 
 idx_start = 1
 idx_end = n_j[1]
-xrange = c(-5,5)
+xrange = c(-7,7)
 l_grid = 200
 grid = seq(xrange[1],xrange[2],length.out = l_grid)
 
@@ -542,54 +541,6 @@ for(j in 1:d){
          col = "red", lwd = 2, type = "l")
 
 }
-
-# seed = 123
-# d = 2
-# K = 4
-# mu=c(-3,-4,1,0)
-# sd = c(sqrt(1),sqrt(1),sqrt(1),sqrt(1))            # vector of sd
-# n_j = c(100,100)
-#
-#
-# mix_probs = matrix(c(0.5,0,0.5,0,
-#                      0,0.5,0,0.5), nrow = d, ncol = K, byrow = T)
-#
-# genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
-# data = genD$data
-# real_partition = genD$real_partition
-# data_list = vector("list",length = d)
-# for(j in 1:d)
-#   data_list[[j]] = genD$data[j,1:n_j[j]]
-#
-# mycol_cluster = brewer.pal(n=K, name = "Dark2")
-# idx_start = 1
-# idx_end = n_j[1]
-# xrange = c(-7,7)
-# l_grid = 200
-# grid = seq(xrange[1],xrange[2],length.out = l_grid)
-#
-#
-# par(mfrow = c(2,1))
-# for(j in 1:d){
-#   mycol_points  = as.factor(real_partition[idx_start:idx_end])
-#   levels(mycol_points) = unique(mycol_cluster)
-#   mycol_points = as.character(mycol_points)
-#   par(mar = c(2,2,1,1), bty = "l")
-#   hist(data[j,1:n_j[j]], freq = F, main = paste0("Level = ",j),
-#        xlim = xrange, ylim = c(0,0.75),
-#        nclass = "fd")
-#
-#   points( x = data[j,1:n_j[j]], y = rep(0,n_j[j]),
-#           pch = 16, col = mycol_points)
-#   points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
-#          col = "red", lwd = 2, type = "l")
-#   # points(grid, dnorm(x = grid, mean = mu[3], sd = sd[3]),
-#   #        col = "blue", lwd = 2, type = "l")
-#   idx_start = idx_end + 1
-#   if(j<d){
-#     idx_end = idx_end + n_j[j+1]
-#   }
-# }
 
 # n_j = c(25,25) ----------------------------------------------------------
 
