@@ -1,16 +1,13 @@
 # Libraries
+
 suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
 suppressWarnings(suppressPackageStartupMessages(library(hdp)))
-suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
-suppressWarnings(suppressPackageStartupMessages(library(dplyr)))
-suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
-suppressWarnings(suppressPackageStartupMessages(library(AntMAN)))
-suppressWarnings(suppressPackageStartupMessages(library(transport)))
-suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
-suppressWarnings(suppressPackageStartupMessages(library(abind)))
+
+col_type = c("chartreuse3","orange","darkred","royalblue","cyan3")
+# Functions ----------------------------------------------------------------
 
 AM_density_estimation <- function(grid, fit, burnin = 1){
   n_iter <- length(fit$K) #number of iterations
@@ -45,28 +42,27 @@ AM_density_estimation <- function(grid, fit, burnin = 1){
   pred_est <- apply(MIX,2,quantile,prob=c(0.025,0.5,0.975))
   return(pred_est)
 }
+SimStudy_Exp1 = function(seed){
+  suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
+  suppressWarnings(suppressPackageStartupMessages(library(hdp)))
+  suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+  suppressWarnings(suppressPackageStartupMessages(library(salso)))
+  suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+
+  # Initialize return object
+  names_results = c("HMFM_marg","HDP","HMFM_cond","MFM","pooled")
+  names_save = c("ARI_est_part","ARI_est_part_group1","ARI_est_part_group2",
+                 "K_mode", "K1_mode", "K2_mode",
+                 "K_ARI", "K1_ARI", "K2_ARI",
+                 "err_coclust","err_coclust_group1","err_coclust_group2",
+                 "err_L1_group1", "err_L1_group2")
+
+  results = lapply(1:length(names_results),
+                   FUN = function(x){temp = vector("list",length = length(names_save));names(temp) = names_save;temp})
+  names(results) = names_results
 
 
-Nrep =  50
-seed0 = 1605
-
-save_data = vector("list",length = Nrep)
-save_res  = tibble("type" = as.character(), "time" = as.numeric(),
-                   "ARI_est_part" = as.numeric(), "ARI_est_part_group1" = as.numeric(), "ARI_est_part_group2" = as.numeric(),
-                   "K_mode" = as.integer(), "K1_mode" = as.integer(), "K2_mode" = as.integer(),
-                   "K_ARI" = as.integer(), "K1_ARI" = as.integer(), "K2_ARI" = as.integer(),
-                   "err_coclust" = as.numeric(), "err_coclust_star" = as.numeric(),
-                   "err_coclust_group1" = as.numeric(), "err_coclust_star_group1" = as.numeric(),
-                   "err_coclust_group2" = as.numeric(), "err_coclust_star_group2" = as.numeric(),
-                   "err_L1_group1" = as.numeric(), "err_L1_group2" = as.numeric(), "err_L1_mean" = as.numeric(),
-                   "err_wass2_group1" = as.numeric(), "err_wass2_group2" = as.numeric(), "err_wass2_mean" = as.numeric())
-
-
-for(rep in 1:Nrep){
-  cat("\n ----------------------------- \n")
-  cat(" rep =  ",rep)
-  cat("\n ----------------------------- \n")
-  #1) Data Generation
+  # Data Generation -------------------------------------------------------
   d = 2                   # number of groups
   K = 3                   # number of global clusters
   mu=c(-3,0,1.75)         # vectors of means
@@ -77,9 +73,6 @@ for(rep in 1:Nrep){
 
   mix_obs = mix_probs * n_j
 
-  seed = seed0 * rep
-
-  # qua inutile, serve solo per definire le strutture con le dimensioni giuste
   genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
   data = genD$data
   real_partition = genD$real_partition
@@ -101,9 +94,12 @@ for(rep in 1:Nrep){
   for(j in 1:d)
     data_list[[j]] = data[j,1:n_j[j]]
 
-  save_data[[rep]] = list("data" = data, "real_partition" = real_partition, "seed" = seed)
+  # Set number of iterations
+  niter  <-  30000
+  burnin <-  10000
+  thin   <-      1
 
-  #2) Vec-FDP
+  # a) HMFM - marginal ------------------------------------------------------
   ## Hyperparam
 
   ### $P_0$
@@ -127,10 +123,13 @@ for(rep in 1:Nrep){
   a_gamma = a_lambda/d
   b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
+
   ## Run
-  niter  <-  30000
-  burnin <-  10000
-  thin   <- 1
+  gamma0 = rep(0.001,d)
+  Lambda0 = 5
+  Ncenters = 20
+  Kmeans0 = kmeans(x = unlist(data_list), centers = Ncenters, iter.max = 50, nstart = 10 )
+  part0 = Kmeans0$cluster#centers = Kmeans0$centers
   gamma0 = rep(0.001,d)
   Lambda0 = 5
   Ncenters = 20
@@ -149,21 +148,33 @@ for(rep in 1:Nrep){
     "partition" = part0
   )
 
-  tictoc::tic()
-    GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = seed, FixPartition = F, option = option)
-  time = tictoc::toc()
-  time = time$toc - time$tic
+  GDFMM = GDFMM_marginal_sampler(data, niter, burnin, thin, seed = seed, FixPartition = F, option = option)
 
   ## Clustering
   part_matrix <- GDFMM$Partition
   sim_matrix <- psm(part_matrix)
 
   VI_sara = minVI(sim_matrix)
-  ARI_VI  = arandi(VI_sara$cl,real_partition, adjust = TRUE)
-  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]],real_partition[1:n_j[1]], adjust = TRUE)
+  ARI_VI = arandi(VI_sara$cl,real_partition, adjust = TRUE)
+  if(is.na(ARI_VI)){
+    ARI_VI = arandi(VI_sara$cl,real_partition, adjust = FALSE)
+    if(ARI_VI != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
+  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = TRUE)
+  if(is.na(ARI_VI_1)){
+    ARI_VI_1 = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = FALSE)
+    if(ARI_VI_1 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
   ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = TRUE)
+  if(is.na(ARI_VI_2)){
+    ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = FALSE)
+    if(ARI_VI_2 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
 
-  K_ARI = length(table(VI_sara$cl))
+  K_ARI  = length(table(VI_sara$cl))
   K1_ARI = length(table(VI_sara$cl[1:n_j[1]]))
   K2_ARI = length(table(VI_sara$cl[(n_j[1]+1):sum(n_j)]))
 
@@ -175,9 +186,9 @@ for(rep in 1:Nrep){
     Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
     Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
   }
-  K_mod = as.numeric(names(which.max(table(GDFMM$K)))) #as.numeric(which.max(table(GDFMM$K)))
-  K1_mod = as.numeric(names(which.max(table(Kj[,1]))))
-  K2_mod = as.numeric(names(which.max(table(Kj[,2]))))
+  K_mod = as.numeric(which.max(table(GDFMM$K)))
+  K1_mod = as.numeric(which.max(table(Kj[,1])))
+  K2_mod = as.numeric(which.max(table(Kj[,2])))
 
   ## Density estimation
   xrange = c(-5,5)
@@ -199,34 +210,27 @@ for(rep in 1:Nrep){
                             p_mix = mix_probs, mu = mu, sigma = sd,
                             grid = grid)
 
-  # wasserstein 2
-  wass2 = vector("list",2)
-  wass2[[1]] = rep(0,d)
-  for(j in 1:d){
-    f1_true = GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd)
-    wass2[[1]][j] = transport::wasserstein1d(a = Pred_median[[j]], b = f1_true, p = 2)
-  }
-  wass2[[2]] = mean(wass2[[1]])
-  names(wass2) = c("wass2_per_level","wass2_average")
+  # save
+  results$HMFM_marg$ARI_est_part = ARI_VI
+  results$HMFM_marg$ARI_est_part_group1 = ARI_VI_1
+  results$HMFM_marg$ARI_est_part_group2 = ARI_VI_2
+  results$HMFM_marg$K_mode = K_mod
+  results$HMFM_marg$K1_mode = K1_mod
+  results$HMFM_marg$K2_mode = K2_mod
+  results$HMFM_marg$K_ARI = K_ARI
+  results$HMFM_marg$K1_ARI = K1_ARI
+  results$HMFM_marg$K2_ARI = K2_ARI
+  results$HMFM_marg$err_coclust = coclus_list$coclust_err
+  results$HMFM_marg$err_coclust_group1 = coclus_list1$coclust_err
+  results$HMFM_marg$err_coclust_group2 = coclus_list2$coclust_err
+  results$HMFM_marg$err_L1_group1 = L1_list$L1err_per_level[1]
+  results$HMFM_marg$err_L1_group2 = L1_list$L1err_per_level[2]
 
-
-  save_res_temp  = tibble("type" = "VecFDP", "ARI_est_part" = ARI_VI, "time" = time,
-                          "ARI_est_part_group1" = ARI_VI_1, "ARI_est_part_group2" = ARI_VI_2,
-                          "K_mode" = K_mod, "K1_mode" = K1_mod, "K2_mode" = K2_mod,
-                          "K_ARI" = K_ARI, "K1_ARI" = K1_ARI, "K2_ARI" = K2_ARI,
-                          "err_coclust" = coclus_list$coclust_err, "err_coclust_star" = coclus_list$coclust_err_star,
-                          "err_coclust_group1" = coclus_list1$coclust_err, "err_coclust_star_group1" = coclus_list1$coclust_err_star,
-                          "err_coclust_group2" = coclus_list2$coclust_err, "err_coclust_star_group2" = coclus_list2$coclust_err_star,
-                          "err_L1_group1" = L1_list$L1err_per_level[1], "err_L1_group2" = L1_list$L1err_per_level[2],
-                          "err_L1_mean" = L1_list$L1err_average,
-                          "err_wass2_group1" = wass2$wass2_per_level[1], "err_wass2_group2" = wass2$wass2_per_level[2],
-                          "err_wass2_mean" = wass2$wass2_average, )
-
-  save_res = save_res %>% rbind(save_res_temp)
+  # remove and finish
   rm(GDFMM, sim_matrix, Kj, Pred_all,Local_Clustering)
 
-  #3) HDP
 
+  # b) HDP ------------------------------------------------------------------
   ## Hyperparam
 
   Range = range(unlist(data_list))
@@ -251,11 +255,9 @@ for(rep in 1:Nrep){
 
   alpha0 = 1
   gamma0 = 1
+  Niter   = niter
+  Nburnin =  burnin
 
-  Niter   = 30000
-  Nburnin = 10000
-
-  tictoc::tic()
   fit = HDPMarginalSampler(Niter = Niter, Nburnin = Nburnin, d = d, n_j = n_j,
                            data_list = data_list,
                            priorMean = priorMean, priorA = priorA, priorB = priorB,
@@ -263,16 +265,29 @@ for(rep in 1:Nrep){
                            a_gamma = a_gamma, b_gamma = b_gamma,
                            a_alpha = a_alpha, b_alpha = b_alpha,
                            alpha_init = alpha0, gamma_init = gamma0, UpdateConc = TRUE)
-  time = tictoc::toc()
-  time = time$toc - time$tic
 
   ## Clustering
   part_matrix <- fit$Partition
   sim_matrix <- psm(part_matrix)
   VI_sara = minVI(sim_matrix)
-  ARI_VI = arandi(VI_sara$cl,real_partition)
-  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]],real_partition[1:n_j[1]], adjust = TRUE)
+  ARI_VI = arandi(VI_sara$cl,real_partition, adjust = TRUE)
+  if(is.na(ARI_VI)){
+    ARI_VI = arandi(VI_sara$cl,real_partition, adjust = FALSE)
+    if(ARI_VI != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
+  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = TRUE)
+  if(is.na(ARI_VI_1)){
+    ARI_VI_1 = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = FALSE)
+    if(ARI_VI_1 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
   ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = TRUE)
+  if(is.na(ARI_VI_2)){
+    ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = FALSE)
+    if(ARI_VI_2 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
 
   K_ARI = length(table(VI_sara$cl))
   K1_ARI = length(table(VI_sara$cl[1:n_j[1]]))
@@ -281,14 +296,14 @@ for(rep in 1:Nrep){
   Local_Clustering = list("list", length = d)
   idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
   idx_end = cumsum(n_j)
-  Kj = matrix(0,nrow = Niter, ncol = d)
+  Kj = matrix(0,nrow = niter, ncol = d)
   for(j in 1:d){
     Local_Clustering[[j]] = fit$Partition[ , idx_start[j]:idx_end[j] ]
     Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
   }
-  K_mod = as.numeric(names(which.max(table(fit$K))))
-  K1_mod = as.numeric(names(which.max(table(Kj[,1]))))
-  K2_mod = as.numeric(names(which.max(table(Kj[,2]))))
+  K_mod = as.numeric(which.max(table(fit$K)))
+  K1_mod = as.numeric(which.max(table(Kj[,1])))
+  K2_mod = as.numeric(which.max(table(Kj[,2])))
 
 
   ## Density estimation
@@ -298,7 +313,7 @@ for(rep in 1:Nrep){
   # Predictive in all groups
   Pred_all = hdp::predictive_all_groups(grid = grid, fit = fit,
                                         priorMean = priorMean, priorA = priorA, priorB = priorB,
-                                        priorLambda = priorLambda, burnin = 1)
+                                        priorLambda = priorLambda, burnin = Niter/2)
   ## Indici
   coclus_list = Compute_coclust_error(real_partition, sim_matrix)
   coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix[1:n_j[1],1:n_j[1]])
@@ -313,34 +328,27 @@ for(rep in 1:Nrep){
                             p_mix = mix_probs, mu = mu, sigma = sd,
                             grid = grid)
 
+  # save
+  results$HDP$ARI_est_part = ARI_VI
+  results$HDP$ARI_est_part_group1 = ARI_VI_1
+  results$HDP$ARI_est_part_group2 = ARI_VI_2
+  results$HDP$K_mode = K_mod
+  results$HDP$K1_mode = K1_mod
+  results$HDP$K2_mode = K2_mod
+  results$HDP$K_ARI = K_ARI
+  results$HDP$K1_ARI = K1_ARI
+  results$HDP$K2_ARI = K2_ARI
+  results$HDP$err_coclust = coclus_list$coclust_err
+  results$HDP$err_coclust_group1 = coclus_list1$coclust_err
+  results$HDP$err_coclust_group2 = coclus_list2$coclust_err
+  results$HDP$err_L1_group1 = L1_list$L1err_per_level[1]
+  results$HDP$err_L1_group2 = L1_list$L1err_per_level[2]
 
-  # wasserstein 2
-  wass2 = vector("list",2)
-  wass2[[1]] = rep(0,d)
-  for(j in 1:d){
-    f1_true = GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd)
-    wass2[[1]][j] = transport::wasserstein1d(a = Pred_median[[j]], b = f1_true, p = 2)
-  }
-  wass2[[2]] = mean(wass2[[1]])
-  names(wass2) = c("wass2_per_level","wass2_average")
+  # remove and finish
+  rm(fit, sim_matrix, Kj, Pred_all, Local_Clustering)
 
 
-  save_res_temp  = tibble("type" = "HDP", "ARI_est_part" = ARI_VI, "time" = time,
-                          "ARI_est_part_group1" = ARI_VI_1, "ARI_est_part_group2" = ARI_VI_2,
-                          "K_mode" = K_mod, "K1_mode" = K1_mod, "K2_mode" = K2_mod,
-                          "K_ARI" = K_ARI, "K1_ARI" = K1_ARI, "K2_ARI" = K2_ARI,
-                          "err_coclust" = coclus_list$coclust_err, "err_coclust_star" = coclus_list$coclust_err_star,
-                          "err_coclust_group1" = coclus_list1$coclust_err, "err_coclust_star_group1" = coclus_list1$coclust_err_star,
-                          "err_coclust_group2" = coclus_list2$coclust_err, "err_coclust_star_group2" = coclus_list2$coclust_err_star,
-                          "err_L1_group1" = L1_list$L1err_per_level[1], "err_L1_group2" = L1_list$L1err_per_level[2],
-                          "err_L1_mean" = L1_list$L1err_average,
-                          "err_wass2_group1" = wass2$wass2_per_level[1], "err_wass2_group2" = wass2$wass2_per_level[2],
-                          "err_wass2_mean" = wass2$wass2_average, )
-
-  save_res = save_res %>% rbind(save_res_temp)
-  rm(fit, sim_matrix, Kj, Pred_all,Local_Clustering)
-
-  #3) Conditional Vec-FDP
+  # c) HMFM - conditional ---------------------------------------------------
   names = c()
   SeasonNumber = c()
   for(j in 1:d){
@@ -404,10 +412,6 @@ for(rep in 1:Nrep){
   d = dt$d
   r = dt$r
   n_j = dt$n_j
-  ## Run
-  niter  <-  30000
-  burnin <-  10000
-  thin   <-      1
 
   # initial values
   beta0 = rep(0,dt$r)
@@ -441,21 +445,34 @@ for(rep in 1:Nrep){
 
   prior = "Normal-InvGamma"
 
-  tictoc::tic()
+
   GDFMM = ConditionalSampler(dt[1:11], niter, burnin, thin, seed = 123, option = option, FixPartition = F,
                              P0.prior = prior)
-  time = tictoc::toc()
-  time = time$toc - time$tic
 
   ## Clustering
   part_matrix <- GDFMM$Partition
   sim_matrix <- psm(part_matrix)
   VI_sara = minVI(sim_matrix)
-  ARI_VI = arandi(VI_sara$cl,real_partition)
-  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]],real_partition[1:n_j[1]], adjust = TRUE)
+  ARI_VI = arandi(VI_sara$cl,real_partition, adjust = TRUE)
+  if(is.na(ARI_VI)){
+    ARI_VI = arandi(VI_sara$cl,real_partition, adjust = FALSE)
+    if(ARI_VI != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
+  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = TRUE)
+  if(is.na(ARI_VI_1)){
+    ARI_VI_1 = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = FALSE)
+    if(ARI_VI_1 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
   ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = TRUE)
+  if(is.na(ARI_VI_2)){
+    ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = FALSE)
+    if(ARI_VI_2 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
 
-  K_ARI  = length(table(VI_sara$cl))
+  K_ARI = length(table(VI_sara$cl))
   K1_ARI = length(table(VI_sara$cl[1:n_j[1]]))
   K2_ARI = length(table(VI_sara$cl[(n_j[1]+1):sum(n_j)]))
 
@@ -492,35 +509,26 @@ for(rep in 1:Nrep){
                             p_mix = mix_probs, mu = mu, sigma = sd,
                             grid = grid)
 
-  # wasserstein 2
-  wass2 = vector("list",2)
-  wass2[[1]] = rep(0,d)
-  for(j in 1:d){
-    f1_true = GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd)
-    wass2[[1]][j] = transport::wasserstein1d(a = Pred_median[[j]], b = f1_true, p = 2)
-  }
-  wass2[[2]] = mean(wass2[[1]])
-  names(wass2) = c("wass2_per_level","wass2_average")
-
-
-  save_res_temp  = tibble("type" = "VecFDP-Cond", "ARI_est_part" = ARI_VI, "time" = time,
-                          "ARI_est_part_group1" = ARI_VI_1, "ARI_est_part_group2" = ARI_VI_2,
-                          "K_mode" = K_mod, "K1_mode" = K1_mod, "K2_mode" = K2_mod,
-                          "K_ARI" = K_ARI, "K1_ARI" = K1_ARI, "K2_ARI" = K2_ARI,
-                          "err_coclust" = coclus_list$coclust_err, "err_coclust_star" = coclus_list$coclust_err_star,
-                          "err_coclust_group1" = coclus_list1$coclust_err, "err_coclust_star_group1" = coclus_list1$coclust_err_star,
-                          "err_coclust_group2" = coclus_list2$coclust_err, "err_coclust_star_group2" = coclus_list2$coclust_err_star,
-                          "err_L1_group1" = L1_list$L1err_per_level[1], "err_L1_group2" = L1_list$L1err_per_level[2],
-                          "err_L1_mean" = L1_list$L1err_average,
-                          "err_wass2_group1" = wass2$wass2_per_level[1], "err_wass2_group2" = wass2$wass2_per_level[2],
-                          "err_wass2_mean" = wass2$wass2_average, )
-
-  save_res = save_res %>% rbind(save_res_temp)
+  # save
+  results$HMFM_cond$ARI_est_part = ARI_VI
+  results$HMFM_cond$ARI_est_part_group1 = ARI_VI_1
+  results$HMFM_cond$ARI_est_part_group2 = ARI_VI_2
+  results$HMFM_cond$K_mode = K_mod
+  results$HMFM_cond$K1_mode = K1_mod
+  results$HMFM_cond$K2_mode = K2_mod
+  results$HMFM_cond$K_ARI = K_ARI
+  results$HMFM_cond$K1_ARI = K1_ARI
+  results$HMFM_cond$K2_ARI = K2_ARI
+  results$HMFM_cond$err_coclust = coclus_list$coclust_err
+  results$HMFM_cond$err_coclust_group1 = coclus_list1$coclust_err
+  results$HMFM_cond$err_coclust_group2 = coclus_list2$coclust_err
+  results$HMFM_cond$err_L1_group1 = L1_list$L1err_per_level[1]
+  results$HMFM_cond$err_L1_group2 = L1_list$L1err_per_level[2]
+  # remove and finish
   rm(GDFMM, sim_matrix, Kj, Pred_all,Local_Clustering)
 
-  #5) AntMAN - Independent analysis
-
-  # Primo gruppo
+  # d) MFM ------------------------------------------------------------------
+  # First gruppo
   ## Hyperparam
 
   ### $P_0$
@@ -528,8 +536,8 @@ for(rep in 1:Nrep){
   mu0 = mean(data[1,1:n_j[1]])
   R = Range[2] - Range[1]
   k0  = 1/R^2
-  nu0 = 4
-  sigma0 = 0.5
+  nu0 = 4#10
+  sigma0 = 0.5#10#*(100*R/1)
   scale = sqrt( (k0 + 1)/(k0) * sigma0 )
   mean_marginal = mu0
   var_marginal  = nu0/(nu0-2) * scale^2
@@ -539,21 +547,23 @@ for(rep in 1:Nrep){
   components_prior   = AntMAN::AM_mix_components_prior_pois (init=3,  a=1, b=1)
   weights_prior      = AntMAN::AM_mix_weights_prior_gamma(init=2, a=1, b=1)
 
-  tictoc::tic()
   fit <- AntMAN::AM_mcmc_fit(
     y = data[1,1:n_j[1]],
     mix_kernel_hyperparams = mixture_uvn_params,
     mix_components_prior =components_prior,
     mix_weight_prior = weights_prior,
     mcmc_parameters = mcmc_params)
-  time1 = tictoc::toc()
-  time1 = time1$toc - time1$tic
 
   ## Clustering
   sim_matrix <- AntMAN::AM_coclustering(fit)
 
   VI_sara = minVI(sim_matrix)
   ARI_VI_1  = arandi(VI_sara$cl,real_partition[1:n_j[1]], adjust = TRUE)
+  if(is.na(ARI_VI_1)){
+    ARI_VI_1 = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = FALSE)
+    if(ARI_VI_1 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
 
   K1_ARI = length(table(VI_sara$cl))
   K1_mod = as.numeric(names(which.max(table(fit$K))))
@@ -567,25 +577,14 @@ for(rep in 1:Nrep){
   ## Indici
   coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix)
   Pred_median = vector("list", length = 1)
-  for(j in 1:1){
-    Pred_median[[j]] = Pred_all[2,]
-  }
+  Pred_median[[1]] = Pred_all[2,]
 
   L1_list1 = Compute_L1_dist(Pred = Pred_median,
-                             p_mix = matrix(mix_probs[1,],nrow=1,ncol=3), mu = mu, sigma = sd,
+                             p_mix = matrix(mix_probs[1,],nrow=1,ncol=K), mu = mu, sigma = sd,
                              grid = grid)
 
-  wass2_1 = 0
-  for(j in 1:1){
-    f1_true = GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd)
-    wass2_1 = transport::wasserstein1d(a = Pred_median[[j]], b = f1_true, p = 2)
-  }
-
-  rm(fit, sim_matrix, Pred_all)
-
-  # Secondo gruppo
+  # Second group
   ## Hyperparam
-
   ### $P_0$
   Range = range(data[2,1:n_j[2]])
   mu0 = mean(data[2,1:n_j[2]])
@@ -602,27 +601,29 @@ for(rep in 1:Nrep){
   components_prior   = AntMAN::AM_mix_components_prior_pois (init=3,  a=1, b=1)
   weights_prior      = AntMAN::AM_mix_weights_prior_gamma(init=2, a=1, b=1)
 
-  tictoc::tic()
   fit <- AntMAN::AM_mcmc_fit(
     y = data[2,1:n_j[2]],
     mix_kernel_hyperparams = mixture_uvn_params,
     mix_components_prior =components_prior,
     mix_weight_prior = weights_prior,
     mcmc_parameters = mcmc_params)
-  time2 = tictoc::toc()
-  time2 = time2$toc - time2$tic
 
   ## Clustering
   sim_matrix <- AntMAN::AM_coclustering(fit)
 
   VI_sara = minVI(sim_matrix)
   ARI_VI_2  =  arandi(VI_sara$cl,real_partition[(n_j[1]+1):sum(n_j)], adjust = TRUE)
+  if(is.na(ARI_VI_2)){
+    ARI_VI_2  =  arandi(VI_sara$cl,real_partition[(n_j[1]+1):sum(n_j)], adjust = FALSE)
+    if(ARI_VI_2 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
 
   K2_ARI = length(table(VI_sara$cl))
   K2_mod = as.numeric(names(which.max(table(fit$K))))
 
   ## Density estimation
-  xrange = c(-7,7)
+  xrange = c(-5,5)
   l_grid = 200
   grid = seq(xrange[1],xrange[2],length.out = l_grid)
   Pred_all = AM_density_estimation(grid = grid, fit = fit, burnin = 1)
@@ -630,43 +631,422 @@ for(rep in 1:Nrep){
   ## Indici
   coclus_list2 = Compute_coclust_error(real_partition[(n_j[1]+1):sum(n_j)], sim_matrix)
   Pred_median = vector("list", length = 1)
-  for(j in 1:1){
-    Pred_median[[j]] = Pred_all[2,]
-  }
+  Pred_median[[1]] = Pred_all[2,]
 
   L1_list2 = Compute_L1_dist(Pred = Pred_median,
-                             p_mix = matrix(mix_probs[2,],nrow=1,ncol=3), mu = mu, sigma = sd,
+                             p_mix = matrix(mix_probs[2,],nrow=1,ncol=K), mu = mu, sigma = sd,
                              grid = grid)
 
-  wass2_2 = 0
-  for(j in 1:1){
-    f1_true = GDFMM::dmix(x = grid, w_j = mix_probs[2,], mu_vec = mu, sigma_vec = sd)
-    wass2_2 = transport::wasserstein1d(a = Pred_median[[j]], b = f1_true, p = 2)
+  # save
+  results$MFM$ARI_est_part = NaN
+  results$MFM$ARI_est_part_group1 = ARI_VI_1
+  results$MFM$ARI_est_part_group2 = ARI_VI_2
+  results$MFM$K_mode = NaN
+  results$MFM$K1_mode = K1_mod
+  results$MFM$K2_mode = K2_mod
+  results$MFM$K_ARI = NaN
+  results$MFM$K1_ARI = K1_ARI
+  results$MFM$K2_ARI = K2_ARI
+  results$MFM$err_coclust = NaN
+  results$MFM$err_coclust_group1 = coclus_list1$coclust_err
+  results$MFM$err_coclust_group2 = coclus_list2$coclust_err
+  results$MFM$err_L1_group1 = L1_list1$L1err_per_level
+  results$MFM$err_L1_group2 = L1_list2$L1err_per_level
+
+  # remove and finish
+  rm(fit, sim_matrix, Pred_all)
+
+  # e) MFM - pooled ---------------------------------------------------------
+  ## Hyperparam
+  ### $P_0$
+  data_pooled = unlist(data_list)
+  Range = range(data_pooled)
+  mu0 = mean(data_pooled)
+  R = Range[2] - Range[1]
+  k0  = 1/R^2
+  nu0 = 4#10
+  sigma0 = 0.5#10#*(100*R/1)
+  scale = sqrt( (k0 + 1)/(k0) * sigma0 )
+  mean_marginal = mu0
+  var_marginal  = nu0/(nu0-2) * scale^2
+
+  mixture_uvn_params = AntMAN::AM_mix_hyperparams_uninorm  (m0=mu0, k0=k0, nu0=nu0, sig02=sigma0)
+  mcmc_params        = AntMAN::AM_mcmc_parameters(niter=niter, burnin=burnin, thin=10, verbose=1)
+  components_prior   = AntMAN::AM_mix_components_prior_pois (init=3,  a=1, b=1)
+  weights_prior      = AntMAN::AM_mix_weights_prior_gamma(init=2, a=1, b=1)
+
+  fit <- AntMAN::AM_mcmc_fit(
+    y = data_pooled,
+    mix_kernel_hyperparams = mixture_uvn_params,
+    mix_components_prior =components_prior,
+    mix_weight_prior = weights_prior,
+    mcmc_parameters = mcmc_params)
+
+  ## Clustering
+  sim_matrix <- AntMAN::AM_coclustering(fit)
+
+  VI_sara = minVI(sim_matrix)
+  ARI_VI  = arandi(VI_sara$cl,real_partition, adjust = TRUE)
+  if(is.na(ARI_VI)){
+    ARI_VI  = arandi(VI_sara$cl,real_partition, adjust = TRUE)
+    if(ARI_VI != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
+  ARI_VI_1  = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = TRUE)
+  if(is.na(ARI_VI_1)){
+    ARI_VI_1 = arandi(VI_sara$cl[1:n_j[1]], real_partition[1:n_j[1]], adjust = FALSE)
+    if(ARI_VI_1 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
+  }
+  ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = TRUE)
+  if(is.na(ARI_VI_2)){
+    ARI_VI_2  = arandi(VI_sara$cl[(n_j[1]+1):sum(n_j)],real_partition[(n_j[1]+1):sum(n_j)], adjust = FALSE)
+    if(ARI_VI_2 != 1)
+      stop("Adjusted RI is NaN but Unadjusted RI is not 1")
   }
 
+  K_ARI = length(table(VI_sara$cl))
+  K_mod = as.numeric(names(which.max(table(fit$K))))
 
-  save_res_temp  = tibble("type" = "AntMAN", "ARI_est_part" = NA, "time" = time1+time2,
-                          "ARI_est_part_group1" = ARI_VI_1, "ARI_est_part_group2" = ARI_VI_2,
-                          "K_mode" = NA, "K1_mode" = K1_mod, "K2_mode" = K2_mod,
-                          "K_ARI" = NA, "K1_ARI" = K1_ARI, "K2_ARI" = K2_ARI,
-                          "err_coclust" = NA,
-                          "err_coclust_star" = NA,
-                          "err_coclust_group1" = coclus_list1$coclust_err, "err_coclust_star_group1" = coclus_list1$coclust_err_star,
-                          "err_coclust_group2" = coclus_list2$coclust_err, "err_coclust_star_group2" = coclus_list2$coclust_err_star,
-                          "err_L1_group1" = L1_list1$L1err_per_level[1], "err_L1_group2" = L1_list2$L1err_per_level[1],
-                          "err_L1_mean" = mean(L1_list1$L1err_average, L1_list2$L1err_average),
-                          "err_wass2_group1" = wass2_1,"err_wass2_group2" = wass2_2, "err_wass2_mean" = mean(wass2_1,wass2_2) )
+  ## Indici
+  coclus_list = Compute_coclust_error(real_partition, sim_matrix)
+  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix[1:n_j[1],1:n_j[1]])
+  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
 
-  save_res = save_res %>% rbind(save_res_temp)
-  rm(fit, sim_matrix, Pred_all)
+  # save
+  results$pooled$ARI_est_part = ARI_VI
+  results$pooled$ARI_est_part_group1 = ARI_VI_1
+  results$pooled$ARI_est_part_group2 = ARI_VI_2
+  results$pooled$K_mode = K_mod
+  results$pooled$K1_mode = NaN
+  results$pooled$K2_mode = NaN
+  results$pooled$K_ARI = K_ARI
+  results$pooled$K1_ARI = NaN
+  results$pooled$K2_ARI = NaN
+  results$pooled$err_coclust = coclus_list$coclust_err
+  results$pooled$err_coclust_group1 = coclus_list1$coclust_err
+  results$pooled$err_coclust_group2 = coclus_list2$coclust_err
+  results$pooled$err_L1_group1 = NaN
+  results$pooled$err_L1_group2 = NaN
+
+
+  # remove and finish
+  rm(fit, sim_matrix)
+
+
+  # return ------------------------------------------------------------------
+  return(results)
+
 }
 
 
-save_res$type = as.factor(save_res$type)
-# save(save_data, file = "data_exp2_cond_indep_n300.Rdat")
-# save(save_res,  file = "res_exp2_cond_indep_n300.Rdat")
-#save(save_data, file = "data_exp2_cond_indep_n30.Rdat")
-#save(save_res,  file = "res_exp2_cond_indep_n30.Rdat")
+# Example plot -----------------------------------------------------------------
+seed = 1234
+d = 2                   # number of groups
+K = 3                   # number of global clusters
+mu=c(-3,0,1.75)         # vectors of means
+sd = c(sqrt(0.1),sqrt(0.5),sqrt(1.5))       # vector of sd
+n_j=c(300,300)           # set cardinality of the groups
+mix_probs = matrix(c(0.5,0.5,0,
+                     0,0.20,0.80), nrow = d, ncol = K, byrow = T)
 
-save(save_data, file = "data_exp2_n300_final_newmarginal.Rdat")
-save(save_res,  file = "res_exp2_n300_final_newmarginal.Rdat")
+mix_obs = mix_probs * n_j
+
+genD = simulate_data(d = d, K = K, p = mix_probs, mu = mu, sd = sd, n_j = n_j, seed = seed)
+data = genD$data
+real_partition = genD$real_partition
+
+set.seed(seed)
+data[1, 1:mix_obs[1,1] ] = rnorm(n=mix_obs[1,1],mean = mu[1],sd = sd[1])
+real_partition[1:mix_obs[1,1]] = 1
+data[1, (mix_obs[1,1] + 1):( mix_obs[1,1] + mix_obs[1,2] )] = rnorm(n=mix_obs[1,2],mean = mu[2],sd = sd[2])
+real_partition[(mix_obs[1,1] + 1):( mix_obs[1,1] + mix_obs[1,2] ) ] = 2
+
+
+data[2, 1:mix_obs[2,2] ] = rnorm(n=mix_obs[2,2],mean = mu[2],sd = sd[2])
+real_partition[ (n_j[1] + 1): (n_j[1] + mix_obs[2,2] ) ] = 2
+data[2, (mix_obs[2,2] + 1 ):( n_j[2] )] = rnorm(n=mix_obs[2,3],mean = mu[3],sd = sd[3])
+real_partition[(n_j[1] + mix_obs[2,2] + 1 ):( n_j[1] + n_j[2] ) ] = 3
+
+
+data_list = vector("list",length = d)
+for(j in 1:d)
+  data_list[[j]] = data[j,1:n_j[j]]
+
+
+names = c()
+GroupNumber = c()
+for(j in 1:d){
+  names = c(names, seq(1,n_j[j]))
+  GroupNumber = c(GroupNumber, rep(j,n_j[j]))
+}
+
+data_small = tibble( ID = names,
+                     Group = GroupNumber,
+                     TrueClustering = real_partition,
+                     Value = unlist(data_list))
+
+
+
+
+mycol = hcl.colors(n=3,palette = "Zissou1")
+mycol_cluster = hcl.colors(n=K, palette = "Temps")
+
+idx_start = 1
+idx_end = n_j[1]
+xrange = c(-5,5)
+l_grid = 200
+grid = seq(xrange[1],xrange[2],length.out = l_grid)
+
+
+ylim_list = vector("list",2)
+ylim_list[[1]] = c(0,1.5)
+ylim_list[[2]] = c(0,0.75)
+
+par(mfrow = c(1,2), mar = c(2,2,2,1), bty = "l")
+for(j in 1:d){
+  plot(0,0,main = paste0("Group ",j),xlab = " ", type = "n", xlim = xrange, ylim = ylim_list[[j]])
+  grid(lty = 1,lwd = 1, col = "gray90" )
+  for(k in 1:K){
+    res = data_small %>% filter(Group == j) %>% filter(TrueClustering == k) %>% pull(Value)
+    if(length(res)>0){
+      hist(res, freq = FALSE, nclass = "fd",
+           col= ACutils::t_col(mycol_cluster[k], percent = 60), add = T)
+      points( x = res, y = rep(0,length(res) ), pch = 16, col = mycol_cluster[k] )
+    }
+  }
+  points(grid, GDFMM::dmix(x = grid, w_j = mix_probs[j,], mu_vec = mu, sigma_vec = sd),
+         col = "red", lwd = 2, type = "l")
+
+}
+
+# Pooled data
+par(mfrow = c(1,1), mar = c(2,2,2,1), bty = "l")
+plot(0,0,main = paste0("Pooled data"),xlab = " ", type = "n", xlim = xrange, ylim = c(0,1.5))
+grid(lty = 1,lwd = 1, col = "gray90" )
+for(k in 1:K){
+  res = data_small %>% filter(TrueClustering == k) %>% pull(Value)
+  if(length(res)>0){
+    hist(res, freq = FALSE, nclass = "fd",
+         col= ACutils::t_col(mycol_cluster[k], percent = 60), add = T)
+    points( x = res, y = rep(0,length(res) ), pch = 16, col = mycol_cluster[k] )
+  }
+}
+dens_pooled = density(data_small %>% pull(Value))
+points(dens_pooled$x, dens_pooled$y, col = "red", lwd = 2, type = "l")
+
+
+# Run ----------------------------------------------------------
+
+Nrep  = 50
+
+seed0 = 1605
+set.seed(seed0)
+seeds = sample(1:999999, size = Nrep)
+num_cores = 7
+
+tictoc::tic()
+  cluster <- parallel::makeCluster(num_cores, type = "SOCK")
+  doSNOW::registerDoSNOW(cluster)
+  parallel::clusterExport(cluster, list("AM_density_estimation"))
+  res = parallel::parLapply( cl = cluster, seeds,
+                             fun = SimStudy_Exp1)
+  parallel::stopCluster(cluster)
+tictoc::toc()
+
+# Table group 1
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part_group1})
+MFM_res = sapply(res, function(x){x$MFM$ARI_est_part_group1})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part_group1})
+
+cat("\n GROUP 1 \n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","MFM ARI: mean = ",mean(MFM_res),"; sd = ",sd(MFM_res),"\n")
+cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
+# Table group 2
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part_group2})
+MFM_res = sapply(res, function(x){x$MFM$ARI_est_part_group2})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part_group2})
+
+cat("\n GROUP 2 \n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","MFM ARI: mean = ",mean(MFM_res),"; sd = ",sd(MFM_res),"\n")
+cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
+
+# 1 Cluster %
+HDP_res = sum(sapply(res, function(x){x$HDP$K2_ARI == 1}))/Nrep
+HMFMmarg_res = sum(sapply(res, function(x){x$HMFM_marg$K2_ARI == 1}))/Nrep
+HMFMcond_res = sum(sapply(res, function(x){x$HMFM_cond$K2_ARI == 1}))/Nrep
+MFM_res = sum(sapply(res, function(x){x$MFM$K2_ARI == 1}))/Nrep
+
+cat("\n % 1 cluster \n")
+cat("\n HDP : ",HDP_res * 100, "% \n")
+cat("\n HMFM-marg : ",HMFMmarg_res * 100, "% \n")
+cat("\n HMFM-cond : ",HMFMcond_res * 100, "% \n")
+cat("\n MFM : ",MFM_res * 100, "% \n")
+cat("\n pooled : NOT DEFINED \n")
+
+
+## PS1
+name = "err_L1_group1"
+ylabel = "PS group 1"
+
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("err_L1_group1" = MFM_res, "type" = as_factor("MFM")))
+
+
+PS1_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## PS2
+name = "err_L1_group2"
+ylabel = "PS group 2"
+
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+MFM_res = sapply(res, function(x){x$MFM$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("err_L1_group2" = MFM_res, "type" = as_factor("MFM")))
+
+
+PS2_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+## CCE group 1
+name = "err_coclust_group1"
+ylabel = "CCE group 1"
+
+HDP_res = sapply(res, function(x){x$HDP$err_coclust_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust_group1})
+MFM_res = sapply(res, function(x){x$MFM$err_coclust_group1})
+pooled_res = sapply(res, function(x){x$pooled$err_coclust_group1})
+
+
+exp_temp = tibble("err_coclust_group1" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_coclust_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_coclust_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("err_coclust_group1" = HMFMcond_res, "type" = as_factor("MFM"))) %>%
+  rbind(tibble("err_coclust_group1" = pooled_res,   "type" = as_factor("pooled")))
+
+CCE1_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+
+## CCE group 2
+name = "err_coclust_group2"
+ylabel = "CCE group 2"
+
+HDP_res = sapply(res, function(x){x$HDP$err_coclust_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust_group2})
+MFM_res = sapply(res, function(x){x$MFM$err_coclust_group2})
+pooled_res = sapply(res, function(x){x$pooled$err_coclust_group2})
+
+
+exp_temp = tibble("err_coclust_group2" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_coclust_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_coclust_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("err_coclust_group2" = HMFMcond_res, "type" = as_factor("MFM"))) %>%
+  rbind(tibble("err_coclust_group2" = pooled_res,   "type" = as_factor("pooled")))
+
+CCE2_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## K_ARI
+name = "K_ARI"
+ylabel = "Est. K"
+
+HDP_res = sapply(res, function(x){x$HDP$K_ARI})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
+pooled_res = sapply(res, function(x){x$pooled$K_ARI})
+
+exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
+
+
+K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HDP" = col_type[1],
+                               "HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[3],
+                               "pooled" = col_type[5])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+# K_ARI_plot1
+
+
+## K_mode
+name = "K_mode"
+ylabel = "Est. K"
+
+HDP_res = sapply(res, function(x){x$HDP$K_mode})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_mode})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_mode})
+pooled_res   = sapply(res, function(x){x$pooled$K_mode})
+
+
+exp_temp = tibble("K_mode" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_mode" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("pooled")))
+
+
+K_mode_plot1 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HDP" = col_type[1],
+                               "HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[3],
+                               "pooled" = col_type[5])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+# K_mode_plot1
+
+beepr::beep()
