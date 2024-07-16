@@ -244,7 +244,8 @@ SimStudy_Exp2 = function(seed, n_j){
                            priorLambda = priorLambda,
                            a_gamma = a_gamma, b_gamma = b_gamma,
                            a_alpha = a_alpha, b_alpha = b_alpha,
-                           alpha_init = alpha0, gamma_init = gamma0, UpdateConc = TRUE)
+                           alpha_init = alpha0, gamma_init = gamma0,
+                           UpdateConc = TRUE, precompute_Stirling = TRUE)
 
   ## Clustering
   part_matrix <- fit$Partition
@@ -1005,7 +1006,7 @@ num_cores = 7
 tictoc::tic()
   cluster <- parallel::makeCluster(num_cores, type = "SOCK")
   doSNOW::registerDoSNOW(cluster)
-  parallel::clusterExport(cluster, list())
+  parallel::clusterExport(cluster, list("AM_density_estimation"))
   res = parallel::parLapply( cl = cluster, seeds,
                              fun = SimStudy_Exp2,
                              n_j = n_j)
@@ -1204,7 +1205,7 @@ num_cores = 7
 tictoc::tic()
 cluster <- parallel::makeCluster(num_cores, type = "SOCK")
 doSNOW::registerDoSNOW(cluster)
-parallel::clusterExport(cluster, list())
+parallel::clusterExport(cluster, list("AM_density_estimation"))
 res = parallel::parLapply( cl = cluster, seeds,
                            fun = SimStudy_Exp2,
                            n_j = n_j)

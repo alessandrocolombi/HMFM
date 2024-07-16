@@ -3,11 +3,12 @@ suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
 suppressWarnings(suppressPackageStartupMessages(library(hdp)))
 
 setwd("./SimulationStudy")
-Rcpp::sourceCpp("../src/lastirling1.cpp")
+
+
 
 # Function ----------------------------------------------------------------
 
-SimStudy_runningtimes = function(seed, ndatas){
+SimStudy_runningtimes = function(seed, ndatas, precmp_Str){
   suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
   suppressWarnings(suppressPackageStartupMessages(library(GDFMM)))
   suppressWarnings(suppressPackageStartupMessages(library(hdp)))
@@ -132,7 +133,8 @@ SimStudy_runningtimes = function(seed, ndatas){
                                priorLambda = priorLambda,
                                a_gamma = a_gamma, b_gamma = b_gamma,
                                a_alpha = a_alpha, b_alpha = b_alpha,
-                               alpha_init = alpha0, gamma_init = gamma0, UpdateConc = TRUE)
+                               alpha_init = alpha0, gamma_init = gamma0, UpdateConc = TRUE,
+                               precompute_Stirling = precmp_Str)
     time = tictoc::toc()
     time = time$toc - time$tic
 
@@ -263,6 +265,7 @@ SimStudy_runningtimes = function(seed, ndatas){
 # Run - no precomputation ---------------------------------------------------------------------
 ndatas = c(24,50,100,200,400,800,1600)
 Nrep  = 10
+precmp_Str = FALSE
 
 seed0 = 1605
 set.seed(seed0)
@@ -275,7 +278,7 @@ tictoc::tic()
   parallel::clusterExport(cluster, list())
   res = parallel::parLapply( cl = cluster, seeds,
                              fun = SimStudy_runningtimes,
-                             ndatas = ndatas)
+                             ndatas = ndatas, precmp_Str = precmp_Str)
   parallel::stopCluster(cluster)
 tictoc::toc()
 
@@ -335,3 +338,96 @@ for(m in 1:4){
 }
 
 # Warning: the final plot as well as the values on the y-axis depends on the machine this experiment is run
+
+
+
+
+
+# Precomputing stirling numbers -------------------------------------------
+
+res_Stirling_mat = c()
+ndatas = c(1000,2000,5000,10000,20000,30000)
+ndatas = c(1000,2000,5000,10000,20000,30000,35000,40000,45000)
+for(n in ndatas){
+  cat("\n n = ",n,"\n")
+  tictoc::tic()
+    res = lastirlings1(n)
+    rm(res)
+  time = tictoc::toc()
+  time = time$toc - time$tic
+  res_Stirling_mat = c(res_Stirling_mat,time)
+}
+
+col_str = "cadetblue4"
+nomi = unlist(lapply(as.list(ndatas), FUN = function(x){paste0("log(",x/1000,"k)")}))
+grid = log(ndatas)
+grid_lines = seq(log(min(ndatas)),log(10000),length.out = 4)
+par( mar = c(4,4,1,1), bty = "l")
+plot(0,0, ylab = " log( Execution Times )", xlab = "log(n)" ,
+     type = "n", main = "Stirling numbers precomputation", xaxt = "n",
+     xlim = log(c(min(ndatas),max(ndatas))), ylim = c(-4,5.5))
+mtext(text = nomi, side = 1, line = 0.3, at = log(ndatas), las = 1, cex = 0.8)
+grid(lty = 1,lwd = 1, col = "gray90" )
+points(x = grid, y = log(res_Stirling_mat), type = "b", pch = 16,col = col_str, lwd = 3)
+lines(x = grid_lines, y = 2*grid_lines - 16,
+      col = "grey45", lty = 3, lwd = 2, type = "b", pch = 4)
+
+
+
+beepr::beep()
+
+# Run - precomputation ----------------------------------------------------
+
+ndatas = c(24,50,100,200,400,800,1600)
+Nrep  = 14
+precmp_Str = TRUE
+
+seed0 = 1605
+set.seed(seed0)
+seeds = sample(1:999999, size = Nrep)
+num_cores = 7
+
+tictoc::tic()
+  cluster <- parallel::makeCluster(num_cores, type = "SOCK")
+  doSNOW::registerDoSNOW(cluster)
+  parallel::clusterExport(cluster, list())
+  res = parallel::parLapply( cl = cluster, seeds,
+                             fun = SimStudy_runningtimes,
+                             ndatas = ndatas, precmp_Str = precmp_Str)
+  parallel::stopCluster(cluster)
+tictoc::toc()
+
+beepr::beep()
+
+# Plot --------------------------------------------------------------------
+col_type = c("chartreuse3","orange","darkred")
+add = function(x){Reduce("+", x)} # used to sum vectors/matrices stored in elements of a list
+
+HDP_line = add( lapply(res, function(x){log(x$HDP)}) )/Nrep
+HMFMmarg = add( lapply(res, function(x){log(x$HMFM_marg)}) )/Nrep
+HMFMcond = add( lapply(res, function(x){log(x$HMFM_cond)}) )/Nrep
+
+plot_lines = list(HDP_line,HMFMmarg,HMFMcond)
+
+grid = log(ndatas)
+grid_lines = seq(5.5,7.3,length.out = 4)
+nomi = unlist(lapply(as.list(ndatas), FUN = function(x){paste0("log(",x,")")}))
+par( mar = c(4,4,1,1), bty = "l")
+plot(0,0,main = " ", ylab = " log( Execution Times )", xlab = "log(n)" ,
+     type = "n", xaxt = "n",
+     xlim = log(c(20,1800)), ylim = c(-10.5,-2))
+mtext(text = nomi, side = 1, line = 0.3, at = log(ndatas), las = 1, cex = 0.8)
+grid(lty = 1,lwd = 1, col = "gray90" )
+for(m in 1:3){
+  lines(x = grid, y = plot_lines[[m]], col = col_type[m], lwd = 3)
+  lines(x = grid_lines, y = grid_lines - 14.5,
+        col = "black", lty = 2, lwd = 2, type = "b", pch = 16)
+  lines(x = grid_lines, y = 2*grid_lines - 17.4,
+        col = "grey45", lty = 3, lwd = 2, type = "b", pch = 4)
+  legend("topleft",
+         legend = c("HDP","HMFM-marg","HMFM-cond"),
+         col = col_type, lwd = 2, lty = 1 )
+}
+
+# Warning: the final plot as well as the values on the y-axis depends on the machine this experiment is run
+

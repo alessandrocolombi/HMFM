@@ -288,7 +288,10 @@ Rcpp::List MCMC_conditional_c( const Rcpp::List& data_list,
 
 }
 
-
+//' Rigon - lastirling
+//'
+//' Vector of lenght n such that the element in k-th position is log|s(n,k)|
+//' @export
 // [[Rcpp::export]]
 Eigen::VectorXd lastirling1(int n)
 {
@@ -314,6 +317,33 @@ Eigen::VectorXd lastirling1(int n)
   return( LogSk.tail(n) ); //eliminate the first element, i.e, return the last n elements
 }
 
+
+
+//' Rigon - lastirlings1
+//'
+//' Matrix of size (n+1)x(n+1) such that log|s(n,k)| is in position (n+1,k+1) (counting from 1)
+//' e.g., n = 5; k = 2; s(5,2) = 50; Mat = lastirlings1(n); exp(Mat)[n,k] = 50 (counting from 0) 
+//' @export
+// [[Rcpp::export]]
+Eigen::MatrixXd lastirlings1(int n){
+  double inf = std::numeric_limits<double>::infinity();
+
+  Eigen::MatrixXd LogS = Eigen::MatrixXd::Constant(n+1,n+1,-inf);
+  
+  // Fill the starting values
+  LogS(0,0) = 0;
+  LogS(1,1) = 0;
+  
+  for(int i = 2; i <= n; i++){
+    for(int j = 1; j < i; j++){
+      LogS(i,j) = LogS(i-1,j) + std::log(i-1 + std::exp(LogS(i-1,j-1) - LogS(i-1,j))); 
+    }
+    LogS(i,i)  = 0;
+  }
+
+  
+  return(LogS);
+}
 
 void Test_Rcpp(const Rcpp::NumericMatrix& X){
 

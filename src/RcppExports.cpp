@@ -79,6 +79,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lastirlings1
+Eigen::MatrixXd lastirlings1(int n);
+RcppExport SEXP _GDFMM_lastirlings1(SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(lastirlings1(n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_logC
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location);
 RcppExport SEXP _GDFMM_compute_logC(SEXP nSEXP, SEXP scaleSEXP, SEXP locationSEXP) {
@@ -114,6 +125,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GDFMM_GDFMM_marginal_sampler_c", (DL_FUNC) &_GDFMM_GDFMM_marginal_sampler_c, 8},
     {"_GDFMM_MCMC_conditional_c", (DL_FUNC) &_GDFMM_MCMC_conditional_c, 9},
     {"_GDFMM_lastirling1", (DL_FUNC) &_GDFMM_lastirling1, 1},
+    {"_GDFMM_lastirlings1", (DL_FUNC) &_GDFMM_lastirlings1, 1},
     {"_GDFMM_compute_logC", (DL_FUNC) &_GDFMM_compute_logC, 3},
     {"_GDFMM_p_distinct_prior_c", (DL_FUNC) &_GDFMM_p_distinct_prior_c, 6},
     {NULL, NULL, 0}
