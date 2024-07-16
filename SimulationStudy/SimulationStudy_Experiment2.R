@@ -1331,7 +1331,6 @@ CCE_plot3 = exp_temp %>% select(type,!!name) %>%
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10))  + ylim(c(0,0.5))
-# CCE_plot1
 
 
 ## K_ARI

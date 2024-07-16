@@ -264,7 +264,8 @@ SimStudy_Exp1 = function(seed){
                            priorLambda = priorLambda,
                            a_gamma = a_gamma, b_gamma = b_gamma,
                            a_alpha = a_alpha, b_alpha = b_alpha,
-                           alpha_init = alpha0, gamma_init = gamma0, UpdateConc = TRUE)
+                           alpha_init = alpha0, gamma_init = gamma0,
+                           UpdateConc = TRUE, precompute_Stirling = TRUE)
 
   ## Clustering
   part_matrix <- fit$Partition
@@ -917,7 +918,7 @@ PS1_plot1 = exp_temp %>% select(type,!!name) %>%
   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-        text = element_text(size = 10))  + ylim(c(0,0.5))
+        text = element_text(size = 10))  + ylim(c(0,0.2))
 
 
 ## PS2
@@ -940,7 +941,7 @@ PS2_plot1 = exp_temp %>% select(type,!!name) %>%
   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-        text = element_text(size = 10))  + ylim(c(0,0.5))
+        text = element_text(size = 10))  + ylim(c(0,0.2))
 
 ## CCE group 1
 name = "err_coclust_group1"
@@ -957,7 +958,7 @@ exp_temp = tibble("err_coclust_group1" = HDP_res, "type" = as_factor("HDP"))
 exp_temp = exp_temp %>%
   rbind(tibble("err_coclust_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
   rbind(tibble("err_coclust_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-  rbind(tibble("err_coclust_group1" = HMFMcond_res, "type" = as_factor("MFM"))) %>%
+  rbind(tibble("err_coclust_group1" = MFM_res, "type" = as_factor("MFM"))) %>%
   rbind(tibble("err_coclust_group1" = pooled_res,   "type" = as_factor("pooled")))
 
 CCE1_plot1 = exp_temp %>% select(type,!!name) %>%
@@ -983,7 +984,7 @@ exp_temp = tibble("err_coclust_group2" = HDP_res, "type" = as_factor("HDP"))
 exp_temp = exp_temp %>%
   rbind(tibble("err_coclust_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
   rbind(tibble("err_coclust_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-  rbind(tibble("err_coclust_group2" = HMFMcond_res, "type" = as_factor("MFM"))) %>%
+  rbind(tibble("err_coclust_group2" = MFM_res, "type" = as_factor("MFM"))) %>%
   rbind(tibble("err_coclust_group2" = pooled_res,   "type" = as_factor("pooled")))
 
 CCE2_plot1 = exp_temp %>% select(type,!!name) %>%
