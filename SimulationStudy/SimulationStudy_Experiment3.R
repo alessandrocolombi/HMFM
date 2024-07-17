@@ -744,12 +744,12 @@ points(dens_pooled$x, dens_pooled$y, col = "red", lwd = 2, type = "l")
 
 # Run ----------------------------------------------------------
 
-Nrep  = 21#50
+Nrep  = 9#50
 
 seed0 = 1605
 set.seed(seed0)
 seeds = sample(1:999999, size = Nrep)
-num_cores = 7
+num_cores = 3
 
 tictoc::tic()
   cluster <- parallel::makeCluster(num_cores, type = "SOCK")
@@ -760,6 +760,7 @@ tictoc::tic()
   parallel::stopCluster(cluster)
 tictoc::toc()
 
+beepr::beep()
 
 
 ## Predictive score

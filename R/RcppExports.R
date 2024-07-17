@@ -21,7 +21,7 @@ MCMC_conditional_c <- function(data_list, n_iter, burn_in, thin, seed, P0_prior_
 
 #' Rigon - lastirling
 #'
-#' Vector of Stirling numbers s(n,1)...s(n,n)
+#' Vector of lenght n such that the element in k-th position is log|s(n,k)|
 #' @export
 lastirling1 <- function(n) {
     .Call(`_GDFMM_lastirling1`, n)
@@ -29,9 +29,8 @@ lastirling1 <- function(n) {
 
 #' Rigon - lastirlings1
 #'
-#' Commento Ale, questa è l'estensione di lastirling1. Questa ritorna una matrice triangolare inferiori, l'argomento n
-#' vuol dire che deve calcolare tutti gli sviluppi fino ad n, partendo da s(1) che è banalmente uguale ad uno. Anche
-#' questa lavora in scala logaritmica.
+#' Matrix of size (n+1)x(n+1) such that log|s(n,k)| is in position (n+1,k+1) (counting from 1)
+#' e.g., n = 5; k = 2; s(5,2) = 50; Mat = lastirlings1(n); exp(Mat)[n,k] = 50 (counting from 0) 
 #' @export
 lastirlings1 <- function(n) {
     .Call(`_GDFMM_lastirlings1`, n)
