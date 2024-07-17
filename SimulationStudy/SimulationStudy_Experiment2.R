@@ -814,19 +814,6 @@ tictoc::tic()
   parallel::stopCluster(cluster)
 tictoc::toc()
 
-# Table
-HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-
-cat("\n n = ",sum(n_j),"\n")
-cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-
-
 
 ## PS1
 name = "err_L1_group1"
@@ -991,6 +978,19 @@ K_mode_plot1 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
 # K_mode_plot1
 
+
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
 beepr::beep()
 
 # n_j = c(50,50) ----------------------------------------------------------
@@ -1012,20 +1012,6 @@ tictoc::tic()
                              n_j = n_j)
   parallel::stopCluster(cluster)
 tictoc::toc()
-
-
-# Table
-HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-
-cat("\n n = ",sum(n_j),"\n")
-cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-
 
 
 ## PS1
@@ -1190,6 +1176,18 @@ K_mode_plot2 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
         text = element_text(size = 10)) +
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
 
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
 
 beepr::beep()
 # n_j = c(100,100) --------------------------------------------------------
@@ -1211,20 +1209,6 @@ res = parallel::parLapply( cl = cluster, seeds,
                            n_j = n_j)
 parallel::stopCluster(cluster)
 tictoc::toc()
-
-
-# Table
-HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-
-cat("\n n = ",sum(n_j),"\n")
-cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-
 
 
 ## PS1
@@ -1387,6 +1371,18 @@ K_mode_plot3 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10)) +
   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
 
 beepr::beep()
 

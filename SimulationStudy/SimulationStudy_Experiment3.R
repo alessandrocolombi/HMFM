@@ -744,7 +744,7 @@ points(dens_pooled$x, dens_pooled$y, col = "red", lwd = 2, type = "l")
 
 # Run ----------------------------------------------------------
 
-Nrep  = 9#50
+Nrep  = 50
 
 seed0 = 1605
 set.seed(seed0)
@@ -838,6 +838,32 @@ CCE_plot = exp_temp %>% select(type,!!name) %>%
         text = element_text(size = 10))
 
 
+## K_ARI
+name = "K_ARI"
+ylabel = "Est. K"
 
+HDP_res = sapply(res, function(x){x$HDP$K_ARI})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
+pooled_res = sapply(res, function(x){x$pooled$K_ARI})
+
+exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
+
+
+K_ARI_plot = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HDP" = col_type[1],
+                               "HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[3],
+                               "pooled" = col_type[4])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  scale_x_continuous(breaks = seq(min(exp_temp$K_ARI), max(exp_temp$K_ARI), by = 1)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+# K_ARI_plot
 
 beepr::beep()
