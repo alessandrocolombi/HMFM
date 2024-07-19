@@ -22,6 +22,23 @@ data_longform_input$Result      = data_longform_input$Result      - mean(data_lo
 data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
 data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
 
+# Create a pooled ID
+data_longform_input$ID_ji = as.factor(paste0(as.character(data_longform_input$ID),"_",data_longform_input$SeasonNumber))
+data_longform_input$pooled = as.factor("1")
+data_longform_input$Partition0 = 1
+
+
+# Define dt object --------------------------------------------------------
+
+
+dt = input_handle(data_longform_input[,c(10,11,3,12,4)], intercept = FALSE)
+
+View(dt)
+
+n = dt$n
+d = dt$d
+r = dt$r
+n_j = dt$n_j
 
 # Hyperparameters: P0 ---------------------------------------------------------
 
@@ -35,44 +52,6 @@ sigma0 = 20/2
 scale = sqrt( (k0 + 1)/(k0) * sigma0 )
 mean_marginal = mu0
 var_marginal  = nu0/(nu0-2) * scale^2
-
-
-# Initial values ----------------------------------------------------------
-
-data_med4season = data_longform_input %>% group_by(ID,SeasonNumber) %>%
-                                          mutate(MedResult = mean(Result)) %>%
-                                          select(ID,SeasonNumber,Result, MedResult,
-                                            Gender,Environment,Age,AgeEntrance,
-                                            Days,t_ji) %>%
-                                         distinct(ID,SeasonNumber, .keep_all = TRUE) %>%
-                                         ungroup() %>% arrange(SeasonNumber)
-
-
-# covariates
-res = lm(Result ~ Gender, data = as.data.frame(data_med4season))$residuals
-Ncenters = 20
-Kmeans0 = kmeans(x = res, centers = Ncenters, iter.max = 50, nstart = 10 )
-KmeansCl = Kmeans0$cluster
-centers = Kmeans0$centers
-data_med4season = data_med4season %>% cbind("Kmeans" = KmeansCl)
-
-# Tibble con tutti i dati iniziali
-
-data_with_init = data_longform_input %>% left_join(data_med4season %>%
-                                                     select("ID","SeasonNumber","MedResult","Kmeans"),
-                                                   by = c("ID","SeasonNumber"))
-
-
-
-# Setup -------------------------------------------------------------------
-
-
-dt = input_handle(data_with_init[,c(1:3,11,4)], intercept = FALSE)
-
-n = dt$n
-d = dt$d
-r = dt$r
-n_j = dt$n_j
 
 # Hyperparameters: process ------------------------------------------------
 
@@ -106,10 +85,8 @@ Lambda0 = 5
 gamma0 = rep(0.01,d)
 Mstar0 = 0
 
-cluster_mean = data_med4season %>% group_by(Kmeans) %>%
-                summarise(ClusterMean = mean(Result)) %>% ungroup() %>% pull(ClusterMean)
-cluster_var  = data_med4season %>% group_by(Kmeans) %>%
-                summarise(ClusterVar = var(Result)) %>% ungroup() %>% pull(ClusterVar)
+cluster_mean = 0
+cluster_var  = data_longform_input %>% summarise(ClusterVar = var(Result)) %>% pull(ClusterVar)
 initial_partition = unlist(unlist(dt$initialPartition))
 
 
@@ -120,7 +97,7 @@ option = set_options( "mu0" = mu0,"sigma0"= sigma0, "k0"= k0, "nu0"=nu0,
                       "beta0" = beta0, "Sigma0" = Sigma0,
                       "alpha_gamma" = a_gamma, "beta_gamma" = b_gamma,
                       "alpha_lambda" = a_lambda, "beta_lambda" = b_lambda,
-                      "init_mean_cluster" = c(centers, rep(0,Mstar0)),
+                      "init_mean_cluster" = c(cluster_mean, rep(0,Mstar0)),
                       "init_var_cluster" = c(cluster_var, rep(1,Mstar0)),
                       "partition" = initial_partition,
                       "IncludeCovariates" = TRUE,
@@ -133,7 +110,6 @@ prior = "Normal-InvGamma"
 GDFMM = ConditionalSampler(dt[1:11], niter, burnin, thin, seed = 123, option = option, FixPartition = F,
                            P0.prior = prior, algorithm = "Neal2")
 
-beepr::beep()
 # Clustering --------------------------------------------------------------
 
 
@@ -178,7 +154,7 @@ for(j in 1:d){
 }
 
 
-
+plot(Kj[,1], type = "l")
 
 # Analysis: betas -------------------------------------------------------------------
 
@@ -214,23 +190,23 @@ Beta_CI %>%
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10))
 
+plot(Beta_tibble$coefficient, type = "l", main = "Traceplot Beta coefficient")
 
 # Analysis: clustering --------------------------------------------------------------
 
-data_med4season = data_longform_input %>% group_by(ID,SeasonNumber) %>%
-  mutate(MedResult = mean(Result)) %>%
-  select(ID,SeasonNumber,Result, MedResult,
-         Gender,Environment,Age,AgeEntrance,
-         Days,t_ji) %>%
-  distinct(ID,SeasonNumber, .keep_all = TRUE) %>%
+data_med4season = data_longform_input %>% group_by(ID_ji) %>% mutate(MedResult = mean(Result)) %>%
+  select(ID,SeasonNumber,ID_ji,Result, MedResult,Gender,Environment,Age,AgeEntrance,Days,t_ji) %>%
+  distinct(ID_ji, .keep_all = TRUE) %>%
   ungroup() %>% arrange(SeasonNumber)
+
 
 data_med4season$Clustering = rep(0,nrow(data_med4season))
 for(idx in 1:nrow(data_med4season)){
-  id = data_med4season$ID[idx]
-  season_num = data_med4season$SeasonNumber[idx]
-  nobs = which(dt$ID_i == id)
-  data_med4season$Clustering[idx] = dt$finalPartition[[season_num]][[nobs]]
+  id_ji = data_med4season$ID_ji[idx]
+  # id    = data_med4season$ID[idx]
+  # season_num = data_med4season$SeasonNumber[idx]
+  nobs = which(dt$ID_i == id_ji)
+  data_med4season$Clustering[idx] = dt$finalPartition[[1]][[nobs]]
 }
 
 
@@ -243,13 +219,13 @@ data_with_clustering = data_longform_input %>%
 # Global statistics on pooled data
 
 NMale   = data_with_clustering %>% distinct(SeasonNumber,ID, .keep_all = T) %>%
-            filter(Gender == "M") %>% summarise(count = n() ) %>% pull(count)
+  filter(Gender == "M") %>% summarise(count = n() ) %>% pull(count)
 NFemale = data_with_clustering %>% distinct(SeasonNumber,ID, .keep_all = T) %>%
-            filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
+  filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
 MeanMale   = data_with_clustering %>% filter(Gender == "M") %>%
-              summarise(mean = mean(Result) ) %>% pull(mean)
+  summarise(mean = mean(Result) ) %>% pull(mean)
 MeanFemale = data_with_clustering %>% filter(Gender == "W") %>%
-              summarise(mean = mean(Result) ) %>% pull(mean)
+  summarise(mean = mean(Result) ) %>% pull(mean)
 VarMale   = data_with_clustering %>% filter(Gender == "M") %>% summarise(var = var(Result) ) %>% pull(var)
 VarFemale = data_with_clustering %>% filter(Gender == "W") %>% summarise(var = var(Result) ) %>% pull(var)
 
@@ -276,9 +252,9 @@ for(cl in 1:Nclus){
   temp = data_with_clustering %>% filter(Clustering == cl)
   size = table(data_with_clustering$Clustering)[cl]
   NMalecl = temp %>% distinct(SeasonNumber,ID, .keep_all = T) %>%
-              filter(Gender == "M") %>% summarise(count = n() ) %>% pull(count)
+    filter(Gender == "M") %>% summarise(count = n() ) %>% pull(count)
   NFemalecl = temp %>% distinct(SeasonNumber,ID, .keep_all = T) %>%
-                filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
+    filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
   MeanMalecl   = temp %>% filter(Gender == "M") %>% summarise(mean = mean(Result) ) %>% pull(mean)
   MeanFemalecl = temp %>% filter(Gender == "W") %>% summarise(mean = mean(Result) ) %>% pull(mean)
   MeanMaleFemalecl = mean(c(MeanMalecl,MeanFemalecl))
@@ -307,16 +283,12 @@ cluster_summary$Cluster = as.factor(cluster_summary$Cluster)
 # Define cluster ordering according to decreasing mean male
 cluster_summary = cluster_summary %>% arrange( desc(MeanMaleFemalecl))
 # Define cluster ordering according to decreasing mean male/female
-# cluster_summary %>% arrange( desc(MeanMaleFemalecl))
-# --> only minor changes happen and only due to noisy clusters
+cluster_summary %>% arrange( desc(MeanMale))
+# --> they coincide
+
 old_labels = cluster_summary$Cluster
 new_labels = as.factor(1:nlevels(cluster_summary$Cluster))
 cluster_summary = cluster_summary %>% mutate(Cluster = new_labels)
-
-# new_labels <- recode(cluster_summary$Cluster,
-#                      `1` = 10, `2` = 9, `3` = 3, `4` = 8, `5` = 11,
-#                      `6` = 5 , `7` = 2 , `8` = 7, `9` = 12, `10` = 4,
-#                      `11`= 1 , `12` = 6, `13` = 15, `14` = 13, `15` = 14)
 
 cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
                                  NMales = NMale, NFemales = NFemale,
@@ -335,19 +307,22 @@ cluster_summary_ages = cluster_summary[,c(1,10:13)]
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
 kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
-# dim(cluster_summary)
-# kable(cluster_summary[-c(1,8,12,15),-c(6:9,12:13)])
 
 
 
 # Global clusters' sizes
 
 # Compute similarity matrix
+# sim_matrix = application_result$sim_matrix
+# VI_sara = application_result$VI_sara
+
+
 recode_map <- setNames(new_labels, old_labels)
 VI_sara$cl <- recode(VI_sara$cl, !!!recode_map)
 table(VI_sara$cl)
 
 # Local number of clusters and associated traceplots
+
 Kj_VI = vector(length = d)
 idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
 idx_end = cumsum(n_j)
@@ -361,19 +336,20 @@ Kj_VI
 
 # Now, given the 15 global clusters ordered as above, I want to print their sizes in each season
 
-
+Nseason = 15
 Nclus = length(table(data_with_clustering$Clustering))
-Local_sizes = matrix(0, nrow = Nclus, ncol = d)
+Local_sizes = matrix(0, nrow = Nclus, ncol = Nseason)
 
-idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-idx_end = cumsum(n_j)
-for(j in 1:d){
+n_j_seasons = c(403,403,403,403,383,342,295,258,211,163,121,92,62,42,33)
+idx_start = c(1,cumsum(n_j_seasons)[1:(Nseason-1)]+1)
+idx_end = cumsum(n_j_seasons)
+for(j in 1:Nseason){
   Local_table = table(VI_sara$cl[idx_start[j]:idx_end[j]])
   Local_sizes[as.numeric(names(Local_table)), j] = Local_table
 }
 
 rownames(Local_sizes) = unlist(lapply(list(1:Nclus), function(k){paste0("Cluster ",k)}))
-colnames(Local_sizes) = unlist(lapply(list(1:d), function(j){paste0("S",j)}))
+colnames(Local_sizes) = unlist(lapply(list(1:Nseason), function(j){paste0("S",j)}))
 
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
@@ -390,6 +366,7 @@ for(j in 1:d){
   }
 }
 
+# I must also recode labels in data_with_clustering
 
 old2 = factor(data_with_clustering$Clustering)
 old2 <- recode(old2, !!!recode_map, .default = as.factor("16"))
@@ -398,18 +375,17 @@ any(is.na(old2))
 data_with_clustering$Clustering = old2
 
 
-
 Nclus = length(table(data_with_clustering$Clustering))
 mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
 
-seasons = 1:d
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+seasons = 1:15 #1:d
+cl_plots = 1:Nclus
 
 par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
 plot( x = 0, y = 0, type = "n",
       ylab = "Result", xlab = "Season",
       main = "Male athletes",
-      xlim = c(0,d), ylim = c(-6,4.5))
+      xlim = c(0,15), ylim = c(-6,4.5))
 abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 for( cl in cl_plots ){
   temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
@@ -426,14 +402,14 @@ for( cl in cl_plots ){
 Nclus = length(table(data_with_clustering$Clustering))
 mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
 
-seasons = 1:d
+seasons = 1:15
 cl_plots = 1:Nclus #c(1:6,8:10,12:13)
 
 par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
 plot( x = 0, y = 0, type = "n",
       ylab = "Result", xlab = "Season",
       main = "Female athletes",
-      xlim = c(0,d), ylim = c(-6,4.5))
+      xlim = c(0,15), ylim = c(-6,4.5))
 abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 for( cl in cl_plots ){
   temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
@@ -442,8 +418,8 @@ for( cl in cl_plots ){
           y = temp$Result,
           pch = 16, cex = 0.3, col = mycol_clus[cl])
 }
-# highlight women in cluster 14
-cl = 14
+# highlight women in cluster 15
+cl = 15
 temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
 points( x = temp$t_ji,
         y = temp$Result,
@@ -455,7 +431,7 @@ points( x = temp$t_ji,
 # Trajectories ------------------------------------------------------------
 
 # plot some trajectories c(32,110,214,254)
-seasons = 1:d
+seasons = 1:15
 ID_plyrs = data_longform_input %>% distinct(ID) %>% pull(ID)
 yrange = c(-4.7,3.5)
 pt_size = 1 #1.3 (for slide/poster)
@@ -514,29 +490,26 @@ abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 
 # Analysis: trajectories --------------------------------------------------
 
-
-
-
 # posterior plot of trajectories with bands
-ID_plyrs = data_with_ordered_clustering %>% distinct(ID) %>% pull(ID)
+ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
 raf_ply = c(32,110,214,254)
 mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
 mycol_clus[12] = mycol_clus[15]
 
 for(ii in raf_ply){
   ID_ply = ID_plyrs[ii]
-  curva_ply = predictive_players(ID_ply = ID_ply, dt = application_result$dt,
-                                 fit = application_result$GDFMM,
+  curva_ply = predictive_players(ID_ply = ID_ply, dt = dt,
+                                 fit = GDFMM,
                                  burnin = niter/2 )
   n_ji = nrow(curva_ply)
-  temp = data_with_ordered_clustering %>% filter(ID == ID_ply) %>% arrange(t_ji)
+  temp = data_with_clustering %>% filter(ID == ID_ply) %>% arrange(t_ji)
 
   mycol = hcl.colors(n=3,palette = "Zissou1")
   par(mar = c(4,4,2,1), mfrow = c(1,1))
   plot( x = 0, y = 0,
         ylab = "Result", xlab = "Season",
         main = paste0("Athlete - ",ID_ply),
-        xlim = range(data_with_ordered_clustering$t_ji),
+        xlim = range(data_with_clustering$t_ji),
         ylim = yrange,
         pch = 16, cex = pt_size, type = "n")
   abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
