@@ -5,6 +5,7 @@ suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 suppressWarnings(suppressPackageStartupMessages(library(abind)))
+suppressWarnings(suppressPackageStartupMessages(library(knitr)))
 # suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
 # suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
 # suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
@@ -33,7 +34,6 @@ data_longform_input$Partition0 = 1
 
 dt = input_handle(data_longform_input[,c(10,11,3,12,4)], intercept = FALSE)
 
-View(dt)
 
 n = dt$n
 d = dt$d
@@ -120,7 +120,7 @@ part_matrix <- GDFMM$Partition[(niter/2):niter,] #GDFMM$Partition is a (n_iter x
 sim_matrix <- psm(part_matrix)
 
 VI_sara = minVI(sim_matrix)
-
+SeasonNumber_all = data_longform_input %>% distinct(ID_ji, SeasonNumber = SeasonNumber) %>% pull(SeasonNumber)
 
 dt$finalPartition = vector("list", length = d)
 dt$finalPartition = lapply(1:d, FUN = function(s){dt$finalPartition[[s]] = vector("list", length = n) })
@@ -144,17 +144,17 @@ for(j in 1:d){
 
 # Level dependent clustering ----------------------------------------------
 
-Local_Clustering = list("list", length = d)
-idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-idx_end = cumsum(n_j)
-Kj = matrix(0,nrow = niter, ncol = d)
-for(j in 1:d){
-  Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
-  Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
-}
-
-
-plot(Kj[,1], type = "l")
+# Local_Clustering = list("list", length = d)
+# idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
+# idx_end = cumsum(n_j)
+# Kj = matrix(0,nrow = niter, ncol = d)
+# for(j in 1:d){
+#   Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
+#   Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
+# }
+#
+#
+# plot(Kj[,1], type = "l")
 
 # Analysis: betas -------------------------------------------------------------------
 
@@ -283,7 +283,7 @@ cluster_summary$Cluster = as.factor(cluster_summary$Cluster)
 # Define cluster ordering according to decreasing mean male
 cluster_summary = cluster_summary %>% arrange( desc(MeanMaleFemalecl))
 # Define cluster ordering according to decreasing mean male/female
-cluster_summary %>% arrange( desc(MeanMale))
+# cluster_summary %>% arrange( desc(MeanMale))
 # --> they coincide
 
 old_labels = cluster_summary$Cluster
@@ -301,12 +301,11 @@ cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
 
 cluster_summary = cluster_summary %>% mutate(Size = NMales+NFemales) %>% mutate(across(5:13, ~ round(., digits = 2))) %>% select(Cluster,Size,everything())
 
-cluster_summary_means = cluster_summary[,c(1:9)]
+cluster_summary_means = cluster_summary[,c(1:10)]
 cluster_summary_ages = cluster_summary[,c(1,10:13)]
 
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
-kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
-
+# kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
 
 
@@ -321,30 +320,26 @@ recode_map <- setNames(new_labels, old_labels)
 VI_sara$cl <- recode(VI_sara$cl, !!!recode_map)
 table(VI_sara$cl)
 
-# Local number of clusters and associated traceplots
-
-Kj_VI = vector(length = d)
-idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-idx_end = cumsum(n_j)
-for(j in 1:d){
-  Kj_VI[j] = length(table(VI_sara$cl[idx_start[j]:idx_end[j]]))
-}
-
-cat("Number of local cluster: \n")
-Kj_VI
+# Kj_VI = vector(length = d)
+# idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
+# idx_end = cumsum(n_j)
+# for(j in 1:d){
+#   Kj_VI[j] = length(table(VI_sara$cl[idx_start[j]:idx_end[j]]))
+# }
+#
+# cat("Number of local cluster: \n")
+# Kj_VI
 
 
 # Now, given the 15 global clusters ordered as above, I want to print their sizes in each season
 
+
 Nseason = 15
 Nclus = length(table(data_with_clustering$Clustering))
 Local_sizes = matrix(0, nrow = Nclus, ncol = Nseason)
-
-n_j_seasons = c(403,403,403,403,383,342,295,258,211,163,121,92,62,42,33)
-idx_start = c(1,cumsum(n_j_seasons)[1:(Nseason-1)]+1)
-idx_end = cumsum(n_j_seasons)
 for(j in 1:Nseason){
-  Local_table = table(VI_sara$cl[idx_start[j]:idx_end[j]])
+  idx_season_j = which(SeasonNumber_all == j)
+  Local_table = table(VI_sara$cl[idx_season_j])
   Local_sizes[as.numeric(names(Local_table)), j] = Local_table
 }
 
@@ -354,20 +349,51 @@ colnames(Local_sizes) = unlist(lapply(list(1:Nseason), function(j){paste0("S",j)
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
 
-## Final clustering  Visualization
+# Local sizes plots ----------------------------------------------------
 
-counter_obs = 1
-for(j in 1:d){
-  for(i in 1:n){
-    if(dt$N_ji[j,i] > 0){
-      dt$finalPartition[[j]][[i]] = VI_sara$cl[counter_obs]
-      counter_obs = counter_obs + 1
-    }
-  }
+n_j_seasons = apply(Local_sizes,2,sum)
+Nseason = 15
+Nclus = length(table(data_with_clustering$Clustering))
+mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
+Local_sizes_perc = Local_sizes
+for(jj in 1:ncol(Local_sizes)){
+  Local_sizes_perc[,jj] = Local_sizes_perc[,jj]/n_j_seasons[jj]
 }
 
-# I must also recode labels in data_with_clustering
 
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
+
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
+
+# Final clustering  Visualization -----------------------------------------
+
+
+# counter_obs = 1
+# for(j in 1:d){
+#   for(i in 1:n){
+#     if(dt$N_ji[j,i] > 0){
+#       dt$finalPartition[[j]][[i]] = VI_sara$cl[counter_obs]
+#       counter_obs = counter_obs + 1
+#     }
+#   }
+# }
+
+
+# I must also recode labels in data_with_clustering
 old2 = factor(data_with_clustering$Clustering)
 old2 <- recode(old2, !!!recode_map, .default = as.factor("16"))
 levels(old2)
@@ -388,7 +414,7 @@ plot( x = 0, y = 0, type = "n",
       xlim = c(0,15), ylim = c(-6,4.5))
 abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 for( cl in cl_plots ){
-  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
+  temp = data_with_clustering %>% filter(Clustering == cl) %>% filter(Gender == "M")
   #par(mar = c(4,4,2,1))
   points( x = temp$t_ji,
           y = temp$Result,
@@ -426,7 +452,85 @@ points( x = temp$t_ji,
         pch = 8, cex = 0.4, col = mycol_clus[15])
 
 
+# Extra - Cluster specific plots ------------------------------------------
 
+# Male
+
+seasons = 1:Nseason
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( cl in cl_plots ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Male athletes",
+        xlim = c(0,Nseason), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[cl])
+}
+
+# Female
+
+seasons = 1:Nseason
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( cl in cl_plots ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Female athletes",
+        xlim = c(0,Nseason), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[cl])
+}
+
+# Extra - Season specific plots ------------------------------------------
+
+# Male
+
+seasons = 1:Nseason
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( j in seasons ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Male athletes",
+        xlim = c(0,Nseason), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "M")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
+}
+
+# Female
+
+seasons = 1:Nseason
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( j in seasons ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Female athletes",
+        xlim = c(0,Nseason), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "W")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
+}
 
 # Trajectories ------------------------------------------------------------
 

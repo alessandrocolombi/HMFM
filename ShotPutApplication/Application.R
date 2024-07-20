@@ -91,8 +91,8 @@ b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
 # Run ---------------------------------------------------------------------
 
-niter  <-  20000 #number of saved iteration
-burnin <-  50000
+niter  <-  200000 #number of saved iteration
+burnin <-   50000
 thin   <-     10
 
 #total number of iterations is burnin + thin*niter
@@ -327,16 +327,14 @@ cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
                                  AgeEntranceMale = AoeMale, AgeEntranceFemale = AoeFemale),
                           cluster_summary)
 
-cluster_summary = cluster_summary %>% mutate(Size = NMales+NFemales) %>% mutate(across(5:13, ~ round(., digits = 2))) %>% select(Cluster,Size,everything())
+cluster_summary = cluster_summary %>% mutate(Size = NMales+NFemales) %>% mutate(across(5:14, ~ round(., digits = 2))) %>% select(Cluster,Size,everything())
 
-cluster_summary_means = cluster_summary[,c(1:9)]
+cluster_summary_means = cluster_summary[,c(1:10)]
 cluster_summary_ages = cluster_summary[,c(1,10:13)]
 
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
-kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
+# kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
-# dim(cluster_summary)
-# kable(cluster_summary[-c(1,8,12,15),-c(6:9,12:13)])
 
 
 
@@ -352,7 +350,8 @@ Kj_VI = vector(length = d)
 idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
 idx_end = cumsum(n_j)
 for(j in 1:d){
-  Kj_VI[j] = length(table(VI_sara$cl[idx_start[j]:idx_end[j]]))
+  Tab_j = table(VI_sara$cl[idx_start[j]:idx_end[j]])
+  Kj_VI[j] = length( which(Tab_j>0) )
 }
 
 cat("Number of local cluster: \n")
@@ -378,7 +377,37 @@ colnames(Local_sizes) = unlist(lapply(list(1:d), function(j){paste0("S",j)}))
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
 
-## Final clustering  Visualization
+# Local sizes plots ----------------------------------------------------
+
+n_j_seasons = apply(Local_sizes,2,sum)
+Nseason = 15
+Nclus = length(table(data_with_clustering$Clustering))
+mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
+Local_sizes_perc = Local_sizes
+for(jj in 1:ncol(Local_sizes)){
+  Local_sizes_perc[,jj] = Local_sizes_perc[,jj]/n_j_seasons[jj]
+}
+
+
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
+
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
+par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
+matplot(t(Local_sizes_perc[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
+
+# Final clustering  Visualization -----------------------------------------
 
 counter_obs = 1
 for(j in 1:d){
@@ -451,6 +480,85 @@ points( x = temp$t_ji,
 
 
 
+# Extra - Cluster specific plots ------------------------------------------
+
+# Male
+
+seasons = 1:d
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( cl in cl_plots ){
+plot( x = 0, y = 0, type = "n",
+      ylab = "Result", xlab = "Season",
+      main = "Male athletes",
+      xlim = c(0,d), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[cl])
+}
+
+# Female
+
+seasons = 1:d
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( cl in cl_plots ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Female athletes",
+        xlim = c(0,d), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[cl])
+}
+
+# Extra - Season specific plots ------------------------------------------
+
+# Male
+
+seasons = 1:d
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( j in seasons ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Male athletes",
+        xlim = c(0,d), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "M")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
+}
+
+# Female
+
+seasons = 1:d
+cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+
+par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+for( j in seasons ){
+  plot( x = 0, y = 0, type = "n",
+        ylab = "Result", xlab = "Season",
+        main = "Female athletes",
+        xlim = c(0,d), ylim = c(-6,4.5))
+  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
+  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "W")
+  #par(mar = c(4,4,2,1))
+  points( x = temp$t_ji,
+          y = temp$Result,
+          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
+}
 
 # Trajectories ------------------------------------------------------------
 
