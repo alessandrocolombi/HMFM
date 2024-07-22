@@ -13,7 +13,7 @@ suppressWarnings(suppressPackageStartupMessages(library(knitr)))
 setwd(here::here())
 data("ShotPutData")
 setwd("./ShotPutApplication")
-seed0 = 123
+seed0 = 271296
 set.seed(seed0)
 # Load data ---------------------------------------------------------------
 data_longform_input = ShotPutData
