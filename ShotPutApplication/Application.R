@@ -25,7 +25,8 @@ data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_lo
 
 # Hyperparameters: P0 ---------------------------------------------------------
 
-Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
+Res_range = range( data_longform_input$Result )
+# Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data_longform_input$Result) # should be 0
 k0  = 1/R^2
@@ -91,7 +92,7 @@ b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
 # Run ---------------------------------------------------------------------
 
-niter  <-  200000 #number of saved iteration
+niter  <-   20000 #number of saved iteration
 burnin <-   50000
 thin   <-     10
 
@@ -144,7 +145,7 @@ part_matrix <- GDFMM$Partition[(niter/2):niter,] #GDFMM$Partition is a (n_iter x
 sim_matrix <- psm(part_matrix)
 
 VI_sara = minVI(sim_matrix)
-
+table(VI_sara$cl)
 
 dt$finalPartition = vector("list", length = d)
 dt$finalPartition = lapply(1:d, FUN = function(s){dt$finalPartition[[s]] = vector("list", length = n) })
