@@ -13,7 +13,8 @@ suppressWarnings(suppressPackageStartupMessages(library(knitr)))
 setwd(here::here())
 data("ShotPutData")
 setwd("./ShotPutApplication")
-
+seed0 = 123
+set.seed(seed0)
 # Load data ---------------------------------------------------------------
 data_longform_input = ShotPutData
 
@@ -51,6 +52,7 @@ data_med4season = data_longform_input %>% group_by(ID,SeasonNumber) %>%
 
 
 # covariates
+
 res = lm(Result ~ Gender, data = as.data.frame(data_med4season))$residuals
 Ncenters = 20
 Kmeans0 = kmeans(x = res, centers = Ncenters, iter.max = 50, nstart = 10 )
@@ -95,7 +97,7 @@ b_gamma = a_gamma / (gamma_guess * Lambda_guess)
 
 niter  <-   20000 #number of saved iteration
 burnin <-   50000
-thin   <-     10
+thin   <-      10
 
 #total number of iterations is burnin + thin*niter
 
@@ -147,6 +149,8 @@ sim_matrix <- psm(part_matrix)
 
 VI_sara = minVI(sim_matrix)
 table(VI_sara$cl)
+beepr::beep()
+
 
 dt$finalPartition = vector("list", length = d)
 dt$finalPartition = lapply(1:d, FUN = function(s){dt$finalPartition[[s]] = vector("list", length = n) })
