@@ -645,3 +645,15 @@ for(ii in raf_ply){
 
 
 
+# save --------------------------------------------------------------------
+
+nome_exp = "quantile"
+nome_run = "pooled"
+nome_file = paste0("./save/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
+
+res = list("GDFMM" = GDFMM,
+           "sim_matrix" = sim_matrix,
+           "VI_sara" = VI_sara, "dt" = dt)
+
+
+save(res, file = nome_file)

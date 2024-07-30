@@ -24,36 +24,6 @@ data_longform_input$Age         = data_longform_input$Age         - mean(data_lo
 data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
 
 
-# Load data (old) ---------------------------------------------------------
-
-# data_aligned = read.csv("Shotput_longformat_preproc_nofew50.csv", row.names=1)
-# data_aligned = as_tibble(data_aligned) %>% mutate(ID = as.factor(ID),
-#                                                   SeasonNumber = as.factor(SeasonNumber),
-#                                                   Gender = as.factor(Gender),
-#                                                   Environment = as.factor(Environment)) %>%
-#   select(ID,SeasonNumber,Result,
-#          Gender,Environment,Age,AgeEntrance,
-#          Days,t_ji)
-#
-#
-# # select first 15 seasons only
-# n = nrow(data_aligned %>% distinct(ID))
-# selectIDs = 1:n
-# d = 15
-# IDs  = data_aligned %>% distinct(ID) %>% pull(ID)
-# data_longform_input = data_aligned %>%
-#   filter(ID %in% IDs[selectIDs]) %>%
-#   filter(SeasonNumber %in% as.factor(1:d)) %>%
-#   filter(ID != "76011") %>%
-#   select(ID,SeasonNumber,Result,Gender,Environment,Age,AgeEntrance,Days,t_ji)
-#
-# # Center data and covariates
-# data_longform_input$Result      = data_longform_input$Result
-# data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
-# data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
-# data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
-
-
 # Hyperparameters: P0 ---------------------------------------------------------
 
 Res_range = range( data_longform_input$Result )
@@ -172,45 +142,6 @@ par(mfrow = c(1,1))
 plot(GDFMM$K, type = "l", col = "black", ylim = c(10,40))
 points(GDFMM$K+GDFMM$Mstar, type = "l", col = "grey85")
 
-# Analysis: betas -------------------------------------------------------------------
-
-Beta = tail(GDFMM$beta, n=20000) #get sampled values
-Beta_table = abind(Beta, along = 3) # transform into array  (d x r x niter)
-
-Beta_post_mean = apply(Beta_table, c(1,2), mean) # posterior mean
-Beta_post_quant = apply(Beta_table, c(1,2), quantile, prob=c(0.025,0.5,0.975)) # calcolo quantili
-
-
-Beta_tibble = tibble("coefficient" = as.numeric(), "season" = as.integer())
-for(j in 1:d){
-  temp = tibble("coefficient" = Beta_table[j,1,], "season" = rep(j,length(Beta_table[j,1,]))  )
-  Beta_tibble = rbind(Beta_tibble, temp)
-}
-Beta_tibble = Beta_tibble %>% mutate(season = as.factor(season))
-
-
-col_season = "grey47"
-name = "coefficient"
-
-lower  = Beta_tibble %>% group_by(season) %>% summarise(lowerCL  = quantile(coefficient, probs = c(0.025)))
-median = Beta_tibble %>% group_by(season) %>% summarise(medianCL = quantile(coefficient, probs = c(0.500)))
-upper  = Beta_tibble %>% group_by(season) %>% summarise(upperCL  = quantile(coefficient, probs = c(0.975)))
-Beta_CI = lower %>% left_join(median) %>% left_join(upper)
-
-Beta_CI %>%
-  ggplot(aes(y = medianCL, x = season, fill = season)) +
-  geom_point(size = 4, color = col_season) +
-  geom_segment(aes(y = lowerCL, x = season, yend = upperCL, xend = season),
-               size = 2, color = col_season, lineend = "round") +
-  labs(y=" ") + theme_bw() +
-  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-        text = element_text(size = 10))
-
-
-par(mfrow = c(1,2))
-plot(Beta_table[13,1,], type = "l")
-plot(density(Beta_table[13,1,]))
-
 # Clustering --------------------------------------------------------------
 
 
@@ -261,7 +192,7 @@ for(j in 1:d){
 
 # Analysis: betas -------------------------------------------------------------------
 
-Beta = GDFMM$beta[15000:20000] #get sampled values
+Beta = GDFMM$beta#[15000:20000] #get sampled values
 Beta_table = abind(Beta, along = 3) # transform into array  (d x r x niter)
 
 Beta_post_mean = apply(Beta_table, c(1,2), mean) # posterior mean
@@ -456,36 +387,6 @@ colnames(Local_sizes) = unlist(lapply(list(1:d), function(j){paste0("S",j)}))
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
 
-# Local sizes plots ----------------------------------------------------
-
-n_j_seasons = apply(Local_sizes,2,sum)
-Nseason = 15
-Nclus = length(table(data_with_clustering$Clustering))
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
-Local_sizes_perc = Local_sizes
-for(jj in 1:ncol(Local_sizes)){
-  Local_sizes_perc[,jj] = Local_sizes_perc[,jj]/n_j_seasons[jj]
-}
-
-
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
-
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
-
 # Final clustering  Visualization -----------------------------------------
 
 counter_obs = 1
@@ -550,8 +451,8 @@ for( cl in cl_plots ){
           y = temp$Result,
           pch = 16, cex = 0.3, col = mycol_clus[cl])
 }
-# highlight women in cluster 14
-cl = 14
+# highlight women in special cluster
+cl = 1
 temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
 points( x = temp$t_ji,
         y = temp$Result,
@@ -745,6 +646,22 @@ for(ii in raf_ply){
 }
 
 
+
+
+# save --------------------------------------------------------------------
+
+nome_exp = "quantile"
+nome_run = "HMFM"
+nome_file = paste0("./save/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
+
+res = list("GDFMM" = GDFMM,
+           "sim_matrix" = sim_matrix,
+           "VI_sara" = VI_sara, "dt" = dt,
+           "Local_Clustering" = Local_Clustering,
+           "Kj_VI" = Kj_VI)
+
+
+save(res, file = nome_file)
 
 
 
