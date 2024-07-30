@@ -13,51 +13,51 @@ suppressWarnings(suppressPackageStartupMessages(library(knitr)))
 setwd(here::here())
 data("ShotPutData")
 setwd("./ShotPutApplication")
-seed0 = 11921
+seed0 = 29071996
 set.seed(seed0)
 # Load data ---------------------------------------------------------------
-# data_longform_input = ShotPutData
-#
-# # Center data and covariates
-# data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
-# data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
-# data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
-
-
-# Load data (old) ---------------------------------------------------------
-
-data_aligned = read.csv("../Shotput_longformat_preproc_nofew50.csv", row.names=1)
-data_aligned = as_tibble(data_aligned) %>% mutate(ID = as.factor(ID),
-                                                  SeasonNumber = as.factor(SeasonNumber),
-                                                  Gender = as.factor(Gender),
-                                                  Environment = as.factor(Environment)) %>%
-  select(ID,SeasonNumber,Result,
-         Gender,Environment,Age,AgeEntrance,
-         Days,t_ji)
-
-
-# select first 15 seasons only
-n = nrow(data_aligned %>% distinct(ID))
-selectIDs = 1:n
-d = 15
-IDs  = data_aligned %>% distinct(ID) %>% pull(ID)
-data_longform_input = data_aligned %>%
-  filter(ID %in% IDs[selectIDs]) %>%
-  filter(SeasonNumber %in% as.factor(1:d)) %>%
-  filter(ID != "76011") %>%
-  select(ID,SeasonNumber,Result,Gender,Environment,Age,AgeEntrance,Days,t_ji)
+data_longform_input = ShotPutData
 
 # Center data and covariates
-data_longform_input$Result      = data_longform_input$Result
 data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
 data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
 data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
 
 
+# Load data (old) ---------------------------------------------------------
+
+# data_aligned = read.csv("Shotput_longformat_preproc_nofew50.csv", row.names=1)
+# data_aligned = as_tibble(data_aligned) %>% mutate(ID = as.factor(ID),
+#                                                   SeasonNumber = as.factor(SeasonNumber),
+#                                                   Gender = as.factor(Gender),
+#                                                   Environment = as.factor(Environment)) %>%
+#   select(ID,SeasonNumber,Result,
+#          Gender,Environment,Age,AgeEntrance,
+#          Days,t_ji)
+#
+#
+# # select first 15 seasons only
+# n = nrow(data_aligned %>% distinct(ID))
+# selectIDs = 1:n
+# d = 15
+# IDs  = data_aligned %>% distinct(ID) %>% pull(ID)
+# data_longform_input = data_aligned %>%
+#   filter(ID %in% IDs[selectIDs]) %>%
+#   filter(SeasonNumber %in% as.factor(1:d)) %>%
+#   filter(ID != "76011") %>%
+#   select(ID,SeasonNumber,Result,Gender,Environment,Age,AgeEntrance,Days,t_ji)
+#
+# # Center data and covariates
+# data_longform_input$Result      = data_longform_input$Result
+# data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
+# data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
+# data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
+
+
 # Hyperparameters: P0 ---------------------------------------------------------
 
-# Res_range = range( data_longform_input$Result )
-Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
+Res_range = range( data_longform_input$Result )
+# Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data_longform_input$Result) # should be 0
 k0  = 1/R^2
@@ -132,7 +132,7 @@ thin   <-      10
 
 
 # initial values
-beta0 = rep(-2,dt$r)
+beta0  = rep(-2,dt$r)
 Sigma0 = diag(dt$r)
 
 Lambda0 = 5
@@ -168,13 +168,13 @@ GDFMM = ConditionalSampler(dt[1:11], niter, burnin, thin, seed = 123, option = o
 
 beepr::beep()
 
-
+par(mfrow = c(1,1))
 plot(GDFMM$K, type = "l", col = "black", ylim = c(10,40))
 points(GDFMM$K+GDFMM$Mstar, type = "l", col = "grey85")
 
 # Analysis: betas -------------------------------------------------------------------
 
-Beta = GDFMM$beta[15000:20000] #get sampled values
+Beta = tail(GDFMM$beta, n=20000) #get sampled values
 Beta_table = abind(Beta, along = 3) # transform into array  (d x r x niter)
 
 Beta_post_mean = apply(Beta_table, c(1,2), mean) # posterior mean
@@ -206,6 +206,10 @@ Beta_CI %>%
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10))
 
+
+par(mfrow = c(1,2))
+plot(Beta_table[13,1,], type = "l")
+plot(density(Beta_table[13,1,]))
 
 # Clustering --------------------------------------------------------------
 
