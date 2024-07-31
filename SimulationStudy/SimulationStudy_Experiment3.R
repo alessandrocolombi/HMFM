@@ -78,6 +78,7 @@ SimStudy_Exp3 = function(seed){
                         seed = seed)
   data2 = genD2$data
   real_partition2 = genD2$real_partition
+  real_partition2 = real_partition2 + length(mu1)
 
   data = rbind(data1,data2)
   real_partition = c(real_partition1,real_partition2)
@@ -190,7 +191,8 @@ SimStudy_Exp3 = function(seed){
   for(j in 1:d){
     Pred_median[[j]] = Pred_all[[j]][2,]
     take_indices = idx_start[j]:idx_end[j]
-    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],sim_matrix[take_indices,take_indices] )
+    local_sim_matrix = psm(GDFMM$Partition[,take_indices])
+    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],local_sim_matrix )
   }
   local_coclus_j = sapply(local_coclus_list, FUN = function(xx){xx[[1]]})
 
@@ -310,7 +312,8 @@ SimStudy_Exp3 = function(seed){
   for(j in 1:d){
     Pred_median[[j]] = Pred_all[[j]][2,]
     take_indices = idx_start[j]:idx_end[j]
-    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],sim_matrix[take_indices,take_indices] )
+    local_sim_matrix = psm(fit$Partition[,take_indices])
+    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],local_sim_matrix )
   }
 
   # Compute L1 distance wrt to true density, which is the same for all first d1 groups
@@ -490,7 +493,8 @@ SimStudy_Exp3 = function(seed){
   for(j in 1:d){
     Pred_median[[j]] = Pred_all[[j]][2,]
     take_indices = idx_start[j]:idx_end[j]
-    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],sim_matrix[take_indices,take_indices] )
+    local_sim_matrix = psm(GDFMM$Partition[,take_indices])
+    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],local_sim_matrix )
   }
 
   # Compute L1 distance wrt to true density, which is the same for all first d1 groups
@@ -578,9 +582,9 @@ SimStudy_Exp3 = function(seed){
   local_coclus_list = vector("list", length = d)
   for(j in 1:d){
     take_indices = idx_start[j]:idx_end[j]
-    local_coclus_list[[j]] = Compute_coclust_error( real_partition[take_indices],sim_matrix[take_indices,take_indices] )
+    local_coclus_list[[j]] = NaN#Compute_coclust_error( real_partition[take_indices],sim_matrix[take_indices,take_indices] )
   }
-  local_coclus_j = sapply(local_coclus_list, FUN = function(xx){xx[[1]]})
+  local_coclus_j = NaN#sapply(local_coclus_list, FUN = function(xx){xx[[1]]})
 
   # save
   results$pooled$ARI_est_part = ARI_VI
@@ -590,7 +594,7 @@ SimStudy_Exp3 = function(seed){
   results$pooled$K_ARI = K_ARI
   results$pooled$K_ARI_local = NaN
   results$pooled$err_coclust = coclus_list$coclust_err
-  results$pooled$err_coclust_local = local_coclus_j
+  results$pooled$err_coclust_local = NaN#local_coclus_j
   results$pooled$err_L1_local = NaN
   results$pooled$err_L1_mean = NaN
 
@@ -611,7 +615,7 @@ K = 5
 n_j = rep(30,d)
 d1 = 12
 d2 = d-d1
-seed = 12243
+seed = 123545
 # prima mistura
 mu1 = c(-3,0,3)         # vectors of means
 sd1 = c(sqrt(0.5),sqrt(0.5),sqrt(0.5))       # vector of sd
@@ -742,14 +746,16 @@ dens_pooled = density(data_small %>% pull(Value))
 points(dens_pooled$x, dens_pooled$y, col = "red", lwd = 2, type = "l")
 
 
+
+
 # Run ----------------------------------------------------------
 
 Nrep  = 50
 
-seed0 = 1605
+seed0 = 290696
 set.seed(seed0)
 seeds = sample(1:999999, size = Nrep)
-num_cores = 3
+num_cores = 7
 
 tictoc::tic()
   cluster <- parallel::makeCluster(num_cores, type = "SOCK")
