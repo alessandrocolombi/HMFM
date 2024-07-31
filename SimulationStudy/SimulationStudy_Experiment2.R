@@ -6,7 +6,8 @@ suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
-col_type = c("chartreuse3","orange","darkred","royalblue","cyan3")
+# col_type = c("","orange","darkred","royalblue","cyan3")
+col_type = c("darkred","orange","chartreuse3","royalblue","cyan3")
 # Functions ----------------------------------------------------------------
 AM_density_estimation <- function(grid, fit, burnin = 1){
   n_iter <- length(fit$K) #number of iterations
@@ -814,185 +815,158 @@ tictoc::tic()
   parallel::stopCluster(cluster)
 tictoc::toc()
 
-save(res, file = "Exp2_25.Rdat")
-#
-# ## PS1
-# name = "err_L1_group1"
-# ylabel = "PS group 1"
-#
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-# MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM-indep")))
-#
-#
-# PS1_plot1 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS1_plotI = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## PS2
-# name = "err_L1_group2"
-# ylabel = "PS group 2"
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-# MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("MFM")))
-#
-#
-# PS2_plot1 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS2_plotI = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## CCE
-# name = "err_coclust"
-# ylabel = "CCE"
-#
-# HDP_res = sapply(res, function(x){x$HDP$err_coclust})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
-# pooled_res = sapply(res, function(x){x$pooled$err_coclust})
-#
-#
-# exp_temp = tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_coclust" = pooled_res,   "type" = as_factor("pooled")))
-#
-# CCE_plot1 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-# # CCE_plot1
-#
-#
-# ## K_ARI
-# name = "K_ARI"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_ARI})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
-# pooled_res = sapply(res, function(x){x$pooled$K_ARI})
-#
-# exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
-#
-#
-# K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[5])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-# # K_ARI_plot1
-#
-#
-# ## K_mode
-# name = "K_mode"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_mode})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_mode})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_mode})
-# pooled_res   = sapply(res, function(x){x$pooled$K_mode})
-#
-#
-# exp_temp = tibble("K_mode" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_mode" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("pooled")))
-#
-#
-# K_mode_plot1 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[4])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-# # K_mode_plot1
-#
-#
-# # Table
-# HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-# pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-#
-# cat("\n n = ",sum(n_j),"\n")
-# cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-# cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-# cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-# cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-#
-# beepr::beep()
+# save(res, file = "Exp2_25.Rdat")
+# load("Exp2_25.Rdat")
+
+
+## PS1
+name = "err_L1_group1"
+ylabel = "PS group 1"
+
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS1_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP")))
+
+PS1_plotI = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## PS2
+name = "err_L1_group2"
+ylabel = "PS group 2"
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group2" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS2_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP")))
+
+
+PS2_plotI = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## CCE
+name = "err_coclust"
+ylabel = "CCE"
+
+HDP_res = sapply(res, function(x){x$HDP$err_coclust})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
+pooled_res = sapply(res, function(x){x$pooled$err_coclust})
+
+
+exp_temp = tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_coclust" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+
+CCE_plot1 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## K_ARI
+name = "K_ARI"
+ylabel = "Est. K"
+
+HDP_res = sapply(res, function(x){x$HDP$K_ARI})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
+pooled_res = sapply(res, function(x){x$pooled$K_ARI})
+
+exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
+                               "HMFM-cond" = col_type[2],
+                               "HDP" = col_type[3],
+                               "MFM-pooled" = col_type[5])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+
+# K_ARI_plot1
+
+
+
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","MFM-pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
+beepr::beep()
 
 # n_j = c(50,50) ----------------------------------------------------------
 
@@ -1014,185 +988,156 @@ tictoc::tic()
   parallel::stopCluster(cluster)
 tictoc::toc()
 
-save(res, file = "Exp2_50.Rdat")
+# save(res, file = "Exp2_50.Rdat")
+# load("Exp2_50.Rdat")
 
-#
-# ## PS1
-# name = "err_L1_group1"
-# ylabel = "PS group 1"
-#
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-# MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM")))
-#
-#
-# PS1_plot2 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS1_plotII = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## PS2
-# name = "err_L1_group2"
-# ylabel = "PS group 2"
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-# MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("MFM")))
-#
-#
-# PS2_plot2 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS2_plotII = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## CCE
-# name = "err_coclust"
-# ylabel = "CCE"
-#
-# HDP_res = sapply(res, function(x){x$HDP$err_coclust})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
-# pooled_res = sapply(res, function(x){x$pooled$err_coclust})
-#
-#
-# exp_temp = tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_coclust" = pooled_res,   "type" = as_factor("pooled")))
-#
-# CCE_plot2 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-# # CCE_plot1
-#
-#
-# ## K_ARI
-# name = "K_ARI"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_ARI})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
-# pooled_res = sapply(res, function(x){x$pooled$K_ARI})
-#
-# exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
-#
-#
-# K_ARI_plot2 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[5])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-# # K_ARI_plot1
-#
-#
-# ## K_mode
-# name = "K_mode"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_mode})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_mode})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_mode})
-# pooled_res   = sapply(res, function(x){x$pooled$K_mode})
-#
-#
-# exp_temp = tibble("K_mode" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_mode" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("pooled")))
-#
-#
-# K_mode_plot2 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[4])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-#
-# # Table
-# HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-# pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-#
-# cat("\n n = ",sum(n_j),"\n")
-# cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-# cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-# cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-# cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-#
-#
-# beepr::beep()
+## PS1
+name = "err_L1_group1"
+ylabel = "PS group 1"
+
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS1_plot2 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP")))
+
+PS1_plotII = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## PS2
+name = "err_L1_group2"
+ylabel = "PS group 2"
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group2" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS2_plot2 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP")))
+
+
+PS2_plotII = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## CCE
+name = "err_coclust"
+ylabel = "CCE"
+
+HDP_res = sapply(res, function(x){x$HDP$err_coclust})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
+pooled_res = sapply(res, function(x){x$pooled$err_coclust})
+
+
+exp_temp = tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_coclust" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+
+CCE_plot2 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## K_ARI
+name = "K_ARI"
+ylabel = "Est. K"
+
+HDP_res = sapply(res, function(x){x$HDP$K_ARI})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
+pooled_res = sapply(res, function(x){x$pooled$K_ARI})
+
+exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+K_ARI_plot2 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
+                               "HMFM-cond" = col_type[2],
+                               "HDP" = col_type[3],
+                               "MFM-pooled" = col_type[5])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+
+
+
+
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","MFM-pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
+beepr::beep()
 
 
 # n_j = c(100,100) --------------------------------------------------------
@@ -1215,193 +1160,172 @@ res = parallel::parLapply( cl = cluster, seeds,
 parallel::stopCluster(cluster)
 tictoc::toc()
 
-save(res, file = "Exp2_100.Rdat")
-#
-# ## PS1
-# name = "err_L1_group1"
-# ylabel = "PS group 1"
-#
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-# MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM")))
-#
-#
-# PS1_plot3 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
-#
-# exp_temp = tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS1_plotIII = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## PS2
-# name = "err_L1_group2"
-# ylabel = "PS group 2"
-#
-# # With MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-# MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("MFM")))
-#
-#
-# PS2_plot3 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-# # Without MFM
-# HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
-#
-# exp_temp = tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
-#
-#
-# PS2_plotIII = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## CCE
-# name = "err_coclust"
-# ylabel = "CCE"
-#
-# HDP_res = sapply(res, function(x){x$HDP$err_coclust})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
-# pooled_res = sapply(res, function(x){x$pooled$err_coclust})
-#
-#
-# exp_temp = tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("err_coclust" = pooled_res,   "type" = as_factor("pooled")))
-#
-# CCE_plot3 = exp_temp %>% select(type,!!name) %>%
-#   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10))  + ylim(c(0,0.5))
-#
-#
-# ## K_ARI
-# name = "K_ARI"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_ARI})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
-# pooled_res = sapply(res, function(x){x$pooled$K_ARI})
-#
-# exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
-#
-#
-# K_ARI_plot3 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[5])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-# # K_ARI_plot1
-#
-#
-# ## K_mode
-# name = "K_mode"
-# ylabel = "Est. K"
-#
-# HDP_res = sapply(res, function(x){x$HDP$K_mode})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_mode})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_mode})
-# pooled_res   = sapply(res, function(x){x$pooled$K_mode})
-#
-#
-# exp_temp = tibble("K_mode" = HDP_res, "type" = as_factor("HDP"))
-# exp_temp = exp_temp %>%
-#   rbind(tibble("K_mode" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-#   rbind(tibble("K_mode" = HMFMcond_res, "type" = as_factor("pooled")))
-#
-#
-# K_mode_plot3 = ggplot(exp_temp, aes(x = K_mode, fill = type)) +
-#   geom_bar(position = "dodge") + theme_bw() +
-#   scale_fill_manual(values = c("HDP" = col_type[1],
-#                                "HMFM-marg" = col_type[2],
-#                                "HMFM-cond" = col_type[3],
-#                                "pooled" = col_type[4])) +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-#         text = element_text(size = 10)) +
-#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-#
-# # Table
-# HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
-# HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
-# HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
-# pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
-#
-# cat("\n n = ",sum(n_j),"\n")
-# cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
-# cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
-# cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
-# cat("\n","pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
-#
-# beepr::beep()
-#
-#
-# # Final plots -------------------------------------------------------------
-#
-# ggpubr::ggarrange(PS1_plot1, PS1_plot2, PS1_plot3, ncol = 3)
-# ggpubr::ggarrange(PS2_plot1, PS2_plot2, PS2_plot3, ncol = 3)
-# ggpubr::ggarrange(PS1_plotI, PS1_plotII, PS1_plotIII, ncol = 3)
-# ggpubr::ggarrange(PS2_plotI, PS2_plotII, PS2_plotIII, ncol = 3)
-# ggpubr::ggarrange(CCE_plot1, CCE_plot2, CCE_plot3, ncol = 3)
-# ggpubr::ggarrange(K_ARI_plot1, K_ARI_plot2, K_ARI_plot3, ncol = 3)
-# ggpubr::ggarrange(K_mode_plot1, K_mode_plot2, K_mode_plot3, ncol = 3)
-#
-#
-#
+# save(res, file = "Exp2_100.Rdat")
+# load("Exp2_100.Rdat")
+
+## PS1
+name = "err_L1_group1"
+ylabel = "PS group 1"
+
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+MFM_res = sapply(res, function(x){x$MFM$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group1" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS1_plot3 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group1})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group1})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group1})
+
+exp_temp = tibble("err_L1_group1" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group1" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group1" = HDP_res, "type" = as_factor("HDP")))
+
+PS1_plotIII = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## PS2
+name = "err_L1_group2"
+ylabel = "PS group 2"
+
+# With MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+MFM_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_L1_group2" = MFM_res,      "type" = as_factor("MFM-indep")))
+
+
+PS2_plot3 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:4]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+# Without MFM
+HDP_res = sapply(res, function(x){x$HDP$err_L1_group2})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_group2})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_group2})
+
+exp_temp = tibble("err_L1_group2" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_L1_group2" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_L1_group2" = HDP_res, "type" = as_factor("HDP")))
+
+
+PS2_plotIII = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## CCE
+name = "err_coclust"
+ylabel = "CCE"
+
+HDP_res = sapply(res, function(x){x$HDP$err_coclust})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_coclust})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
+pooled_res = sapply(res, function(x){x$pooled$err_coclust})
+
+
+exp_temp = tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_coclust" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+
+CCE_plot3 = exp_temp %>% select(type,!!name) %>%
+  ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type[c(1,2,3,5)]) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10))  + ylim(c(0,0.5))
+
+
+## K_ARI
+name = "K_ARI"
+ylabel = "Est. K"
+
+HDP_res = sapply(res, function(x){x$HDP$K_ARI})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
+pooled_res = sapply(res, function(x){x$pooled$K_ARI})
+
+exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
+exp_temp = exp_temp %>%
+  rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
+
+# %>%
+#   rbind(tibble("K_ARI" = 1, type = "fake"))
+
+K_ARI_plot3 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+  geom_bar(position = "dodge") + theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
+                               "HMFM-cond" = col_type[2],
+                               "HDP" = col_type[3],
+                               "MFM-pooled" = col_type[5])) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") +
+  scale_x_continuous(limits = c(0.5,4.5))
+K_ARI_plot3
+
+# theme(plot.title = element_text(hjust = 0.5),
+#       legend.position = c(0.2,0.98), # Adjust the position coordinates as needed
+#       legend.justification = c("right", "top"), # Ensure the legend is aligned to the top-right
+#       text = element_text(size = 10))
+
+# Table
+HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})
+HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$ARI_est_part})
+HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
+pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
+
+cat("\n n = ",sum(n_j),"\n")
+cat("\n","HMFM-cond ARI: mean = ",mean(HMFMcond_res),"; sd = ",sd(HMFMcond_res),"\n")
+cat("\n","HMFM-marg ARI: mean = ",mean(HMFMmarg_res),"; sd = ",sd(HMFMmarg_res),"\n")
+cat("\n","HDP ARI: mean = ",mean(HDP_res),"; sd = ",sd(HDP_res),"\n")
+cat("\n","MFM-pooled ARI: mean = ",mean(pooled_res),"; sd = ",sd(pooled_res),"\n")
+
+beepr::beep()
+# Final plots -------------------------------------------------------------
+
+
+ggpubr::ggarrange(PS1_plot1, PS1_plot2, PS1_plot3, ncol = 3)
+ggpubr::ggarrange(PS2_plot1, PS2_plot2, PS2_plot3, ncol = 3)
+ggpubr::ggarrange(PS1_plotI, PS1_plotII, PS1_plotIII, ncol = 3)
+ggpubr::ggarrange(PS2_plotI, PS2_plotII, PS2_plotIII, ncol = 3)
+ggpubr::ggarrange(CCE_plot1, CCE_plot2, CCE_plot3, ncol = 3)
+ggpubr::ggarrange(K_ARI_plot1, K_ARI_plot2, K_ARI_plot3, ncol = 3)
+
+
+
