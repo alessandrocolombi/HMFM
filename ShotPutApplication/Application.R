@@ -26,8 +26,8 @@ data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_lo
 
 # Hyperparameters: P0 ---------------------------------------------------------
 
-Res_range = range( data_longform_input$Result )
-# Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
+# Res_range = range( data_longform_input$Result )
+Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data_longform_input$Result) # should be 0
 k0  = 1/R^2
@@ -192,7 +192,7 @@ for(j in 1:d){
 
 # Analysis: betas -------------------------------------------------------------------
 
-Beta = GDFMM$beta#[15000:20000] #get sampled values
+Beta = GDFMM$beta[15000:20000] #get sampled values
 Beta_table = abind(Beta, along = 3) # transform into array  (d x r x niter)
 
 Beta_post_mean = apply(Beta_table, c(1,2), mean) # posterior mean
@@ -291,7 +291,12 @@ for(cl in 1:Nclus){
                 filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
   MeanMalecl   = temp %>% filter(Gender == "M") %>% summarise(mean = mean(Result) ) %>% pull(mean)
   MeanFemalecl = temp %>% filter(Gender == "W") %>% summarise(mean = mean(Result) ) %>% pull(mean)
-  MeanMaleFemalecl = mean(c(MeanMalecl,MeanFemalecl))
+  if(is.na(MeanMalecl))
+    MeanMalecl = 0
+  if(is.na(MeanFemalecl))
+    MeanFemalecl = 0
+
+  MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
 
   VarMalecl   = temp %>% filter(Gender == "M") %>% summarise(var = var(Result) ) %>% pull(var)
   VarFemalecl = temp %>% filter(Gender == "W") %>% summarise(var = var(Result) ) %>% pull(var)
@@ -409,7 +414,7 @@ data_with_clustering$Clustering = old2
 
 
 Nclus = length(table(data_with_clustering$Clustering))
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
+mycol_clus = hcl.colors(n = 15, palette = "Temps")
 
 seasons = 1:d
 cl_plots = 1:Nclus #c(1:6,8:10,12:13)
@@ -433,7 +438,7 @@ for( cl in cl_plots ){
 # Then, I repeat the previous plot **female athletes**, which  is coherent with the one for male.
 
 Nclus = length(table(data_with_clustering$Clustering))
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
+mycol_clus = hcl.colors(n = 15, palette = "Temps")
 
 seasons = 1:d
 cl_plots = 1:Nclus #c(1:6,8:10,12:13)
@@ -650,9 +655,9 @@ for(ii in raf_ply){
 
 # save --------------------------------------------------------------------
 
-nome_exp = "quantile"
+nome_exp = "range"
 nome_run = "HMFM"
-nome_file = paste0("./save/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
+nome_file = paste0("G:/Il mio Drive/BicoccaDrive/GDFMM_Functional/BAMajorRev/ShotPut/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
 
 res = list("GDFMM" = GDFMM,
            "sim_matrix" = sim_matrix,

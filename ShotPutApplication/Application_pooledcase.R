@@ -43,8 +43,8 @@ n_j = dt$n_j
 
 # Hyperparameters: P0 ---------------------------------------------------------
 
-Res_range = range(data_longform_input$Result)
-# Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
+# Res_range = range(data_longform_input$Result)
+Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data_longform_input$Result) # should be 0
 k0  = 1/R^2
@@ -259,7 +259,12 @@ for(cl in 1:Nclus){
     filter(Gender == "W") %>% summarise(count = n() ) %>% pull(count)
   MeanMalecl   = temp %>% filter(Gender == "M") %>% summarise(mean = mean(Result) ) %>% pull(mean)
   MeanFemalecl = temp %>% filter(Gender == "W") %>% summarise(mean = mean(Result) ) %>% pull(mean)
-  MeanMaleFemalecl = mean(c(MeanMalecl,MeanFemalecl))
+  if(is.na(MeanMalecl))
+    MeanMalecl = 0
+  if(is.na(MeanFemalecl))
+    MeanFemalecl = 0
+
+  MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
 
   VarMalecl   = temp %>% filter(Gender == "M") %>% summarise(var = var(Result) ) %>% pull(var)
   VarFemalecl = temp %>% filter(Gender == "W") %>% summarise(var = var(Result) ) %>% pull(var)
@@ -351,35 +356,10 @@ colnames(Local_sizes) = unlist(lapply(list(1:Nseason), function(j){paste0("S",j)
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
 
-# Local sizes plots ----------------------------------------------------
 
-n_j_seasons = apply(Local_sizes,2,sum)
-Nseason = 15
-Nclus = length(table(data_with_clustering$Clustering))
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
-Local_sizes_perc = Local_sizes
-for(jj in 1:ncol(Local_sizes)){
-  Local_sizes_perc[,jj] = Local_sizes_perc[,jj]/n_j_seasons[jj]
-}
-
-
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
-
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[1:4,]), type = "b", pch = 16, lty = 1, col = mycol_clus[1:4])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[5:8,]), type = "b", pch = 16, lty = 1, col = mycol_clus[5:8])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[9:12,]), type = "b", pch = 16, lty = 1, col = mycol_clus[9:12])
-par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-matplot(t(Local_sizes_perc[13:15,]), type = "b", pch = 16, lty = 1, col = mycol_clus[13:15])
+Fake_Kj = apply(Local_sizes,2,function(x){length(which(x > 0))})
+cat("Number of local cluster: \n")
+Fake_Kj
 
 # Final clustering  Visualization -----------------------------------------
 
@@ -447,11 +427,11 @@ for( cl in cl_plots ){
           pch = 16, cex = 0.3, col = mycol_clus[cl])
 }
 # highlight women in cluster 15
-cl = 15
-temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
-points( x = temp$t_ji,
-        y = temp$Result,
-        pch = 8, cex = 0.4, col = mycol_clus[15])
+# cl = 2
+# temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
+# points( x = temp$t_ji,
+#         y = temp$Result,
+#         pch = 8, cex = 0.4, col = mycol_clus[15])
 
 
 # Extra - Cluster specific plots ------------------------------------------
@@ -649,7 +629,7 @@ for(ii in raf_ply){
 
 nome_exp = "quantile"
 nome_run = "pooled"
-nome_file = paste0("./save/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
+nome_file = paste0("G:/Il mio Drive/BicoccaDrive/GDFMM_Functional/BAMajorRev/ShotPut/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
 
 res = list("GDFMM" = GDFMM,
            "sim_matrix" = sim_matrix,
