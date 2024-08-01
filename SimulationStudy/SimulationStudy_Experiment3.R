@@ -6,7 +6,8 @@ suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 
-col_type = c("chartreuse3","orange","darkred","cyan3")
+# col_type = c("chartreuse3","orange","darkred","cyan3")
+col_type = c("darkred","orange","chartreuse3","cyan3")
 
 # Functions ----------------------------------------------------------------
 
@@ -622,6 +623,7 @@ sd1 = c(sqrt(0.5),sqrt(0.5),sqrt(0.5))       # vector of sd
 mix_probs1_vec = c(0.25,0.5,0.25)
 mix_probs1 = matrix(0,nrow = d1, ncol = length(mu1))
 K_j = rep(0,d)
+set.seed(seed)
 for(j in 1:d1){
   K_j[j] = sample(2:3, size = 1)
   components_j = sort(sample(1:3, size = K_j[j]))
@@ -723,7 +725,7 @@ for(j in (d1+1):d){
 
 # Pooled data
 par(mfrow = c(1,1), mar = c(2,2,2,1), bty = "l")
-plot(0,0,main = paste0("Pooled data"),xlab = " ", type = "n", xlim = xrange, ylim = c(0,1.5))
+plot(0,0,main = paste0("Pooled data"),xlab = " ", type = "n", xlim = xrange, ylim = c(0,0.75))
 grid(lty = 1,lwd = 1, col = "gray90" )
 for(k in 1:3){
   res = data_small %>% filter(Group %in% 1:d1) %>% filter(TrueClustering == k) %>% pull(Value)
@@ -755,7 +757,7 @@ Nrep  = 50
 seed0 = 290696
 set.seed(seed0)
 seeds = sample(1:999999, size = Nrep)
-num_cores = 7
+num_cores = 3
 
 tictoc::tic()
   cluster <- parallel::makeCluster(num_cores, type = "SOCK")
@@ -768,6 +770,7 @@ tictoc::toc()
 
 beepr::beep()
 
+save(res,file = "Exp3.Rdat")
 
 ## Predictive score
 name = "err_L1_local"
@@ -778,10 +781,10 @@ for(j in 1:d){
   HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$err_L1_local[j]})
   HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_L1_local[j]})
 
-  exp_temp = tibble("var" = HDP_res, "type" = as_factor("HDP"))
+  exp_temp = tibble("var" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
   exp_temp = exp_temp %>%
     rbind(tibble("var" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-    rbind(tibble("var" = HMFMcond_res, "type" = as_factor("HMFM-cond")))
+    rbind(tibble("var" = HDP_res, "type" = as_factor("HDP")))
 
 
   PS_plot[[j]] = exp_temp %>% select(type,var) %>%
@@ -808,11 +811,11 @@ HMFMcond_res = sapply(res, function(x){x$HMFM_cond$ARI_est_part})
 pooled_res = sapply(res, function(x){x$pooled$ARI_est_part})
 
 
-exp_temp = tibble("ARI_est_part" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = tibble("ARI_est_part" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("ARI_est_part" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-  rbind(tibble("ARI_est_part" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-  rbind(tibble("ARI_est_part" = pooled_res,   "type" = as_factor("pooled")))
+  rbind(tibble("ARI_est_part" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("ARI_est_part" = pooled_res,   "type" = as_factor("MFM-pooled")))
 
 ARI_plot = exp_temp %>% select(type,!!name) %>%
   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type) +
@@ -831,11 +834,11 @@ HMFMcond_res = sapply(res, function(x){x$HMFM_cond$err_coclust})
 pooled_res = sapply(res, function(x){x$pooled$err_coclust})
 
 
-exp_temp = tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("err_coclust" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-  rbind(tibble("err_coclust" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-  rbind(tibble("err_coclust" = pooled_res,   "type" = as_factor("pooled")))
+  rbind(tibble("err_coclust" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("err_coclust" = pooled_res,   "type" = as_factor("MFM-pooled")))
 
 CCE_plot = exp_temp %>% select(type,!!name) %>%
   ggplot(aes(y=!!sym(name), x=type, fill=type)) + geom_boxplot(fill = col_type) +
@@ -853,19 +856,19 @@ HMFMmarg_res = sapply(res, function(x){x$HMFM_marg$K_ARI})
 HMFMcond_res = sapply(res, function(x){x$HMFM_cond$K_ARI})
 pooled_res = sapply(res, function(x){x$pooled$K_ARI})
 
-exp_temp = tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))
+exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
-  rbind(tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))) %>%
-  rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("pooled")))
+  rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("K_ARI" = pooled_res,   "type" = as_factor("MFM-pooled")))
 
 
 K_ARI_plot = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
   geom_bar(position = "dodge") + theme_bw() +
-  scale_fill_manual(values = c("HDP" = col_type[1],
+  scale_fill_manual(values = c("HDP" = col_type[3],
                                "HMFM-marg" = col_type[2],
-                               "HMFM-cond" = col_type[3],
-                               "pooled" = col_type[4])) +
+                               "HMFM-cond" = col_type[1],
+                               "MFM-pooled" = col_type[4])) +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10)) +
   scale_x_continuous(breaks = seq(min(exp_temp$K_ARI), max(exp_temp$K_ARI), by = 1)) +
