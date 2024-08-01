@@ -198,8 +198,8 @@ SimStudy_Exp1 = function(seed){
 
   ## Indici
   coclus_list  = Compute_coclust_error(real_partition, sim_matrix)
-  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix[1:n_j[1],1:n_j[1]])
-  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
+  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], psm(GDFMM$Partition[,1:n_j[1]]))#sim_matrix[1:n_j[1],1:n_j[1]])
+  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], psm(GDFMM$Partition[,(1+n_j[1]):sum(n_j)]))#sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
 
   Pred_median = vector("list", length = d)
   for(j in 1:d){
@@ -316,9 +316,11 @@ SimStudy_Exp1 = function(seed){
                                         priorMean = priorMean, priorA = priorA, priorB = priorB,
                                         priorLambda = priorLambda, burnin = Niter/2)
   ## Indici
-  coclus_list = Compute_coclust_error(real_partition, sim_matrix)
-  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix[1:n_j[1],1:n_j[1]])
-  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
+  coclus_list  = Compute_coclust_error(real_partition, sim_matrix)
+  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], psm(fit$Partition[,1:n_j[1]]))#sim_matrix[1:n_j[1],1:n_j[1]])
+  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], psm(fit$Partition[,(1+n_j[1]):sum(n_j)]))#sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
+
+
 
   Pred_median = vector("list", length = d)
   for(j in 1:d){
@@ -497,9 +499,10 @@ SimStudy_Exp1 = function(seed){
   # Predictive in all groups
   Pred_all = GDFMM::predictive_all_groups(grid = grid, fit = GDFMM, burnin = 1)
   ## Indici
-  coclus_list = Compute_coclust_error(real_partition, sim_matrix)
-  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], sim_matrix[1:n_j[1],1:n_j[1]])
-  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
+  coclus_list  = Compute_coclust_error(real_partition, sim_matrix)
+  coclus_list1 = Compute_coclust_error(real_partition[1:n_j[1]], psm(GDFMM$Partition[,1:n_j[1]]))#sim_matrix[1:n_j[1],1:n_j[1]])
+  coclus_list2 = Compute_coclust_error(real_partition[(1+n_j[1]):sum(n_j)], psm(GDFMM$Partition[,(1+n_j[1]):sum(n_j)]))#sim_matrix[(1+n_j[1]):sum(n_j),(1+n_j[1]):sum(n_j)])
+
 
   Pred_median = vector("list", length = d)
   for(j in 1:d){
@@ -707,6 +710,8 @@ SimStudy_Exp1 = function(seed){
   }
 
   K_ARI = length(table(VI_sara$cl))
+  K1_ARI = length(table(VI_sara$cl[1:n_j[1]]))
+  K2_ARI = length(table(VI_sara$cl[(n_j[1]+1):sum(n_j)]))
   K_mod = as.numeric(names(which.max(table(fit$K))))
 
   ## Indici
@@ -722,8 +727,8 @@ SimStudy_Exp1 = function(seed){
   results$pooled$K1_mode = NaN
   results$pooled$K2_mode = NaN
   results$pooled$K_ARI = K_ARI
-  results$pooled$K1_ARI = NaN
-  results$pooled$K2_ARI = NaN
+  results$pooled$K1_ARI = K1_ARI
+  results$pooled$K2_ARI = K2_ARI
   results$pooled$err_coclust = coclus_list$coclust_err
   results$pooled$err_coclust_group1 = coclus_list1$coclust_err
   results$pooled$err_coclust_group2 = coclus_list2$coclust_err
@@ -839,7 +844,7 @@ points(dens_pooled$x, dens_pooled$y, col = "red", lwd = 2, type = "l")
 
 # Run ----------------------------------------------------------
 
-Nrep  = 50
+Nrep  = 7
 
 seed0 = 1605
 set.seed(seed0)
@@ -855,6 +860,7 @@ tictoc::tic()
   parallel::stopCluster(cluster)
 tictoc::toc()
 
+save(res, file = "Exp1.Rdat")
 
 ## PS1
 name = "err_L1_group1"
