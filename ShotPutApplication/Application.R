@@ -296,7 +296,8 @@ for(cl in 1:Nclus){
   if(is.na(MeanFemalecl))
     MeanFemalecl = 0
 
-  MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
+  # MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
+  MeanMaleFemalecl = mean(temp$Result)
 
   VarMalecl   = temp %>% filter(Gender == "M") %>% summarise(var = var(Result) ) %>% pull(var)
   VarFemalecl = temp %>% filter(Gender == "W") %>% summarise(var = var(Result) ) %>% pull(var)
@@ -336,7 +337,7 @@ cluster_summary = cluster_summary %>% mutate(Cluster = new_labels)
 cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
                                  NMales = NMale, NFemales = NFemale,
                                  MeanMale = MeanMale, MeanFemale = MeanFemale,
-                                 MeanMaleFemalecl = MeanMaleFemalecl,
+                                 MeanMaleFemalecl = (NMale*MeanMale + NFemale*MeanFemale )/(NMale+NFemale),
                                  VarMale = VarMale, VarFemale = VarFemale,
                                  AgeMale = AgeMale, AgeFemale = AgeFemale,
                                  AgeEntranceMale = AoeMale, AgeEntranceFemale = AoeFemale),
@@ -345,14 +346,15 @@ cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
 cluster_summary = cluster_summary %>% mutate(Size = NMales+NFemales) %>% mutate(across(5:14, ~ round(., digits = 2))) %>% select(Cluster,Size,everything())
 
 cluster_summary_means = cluster_summary[,c(1:10)]
-cluster_summary_ages = cluster_summary[,c(1,10:13)]
+cluster_summary_ages = cluster_summary[,c(1,10:14)]
 
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
 kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
-
-
-
+cluster_summary_ages[,3] = cluster_summary_ages[,3] + mean(ShotPutData$Age )
+cluster_summary_ages[,4] = cluster_summary_ages[,4] + mean(ShotPutData$Age )
+cluster_summary_ages[,5] = cluster_summary_ages[,5] + mean(ShotPutData$AgeEntrance)
+cluster_summary_ages[,6] = cluster_summary_ages[,6] + mean(ShotPutData$AgeEntrance)
 # Global clusters' sizes
 
 # Compute similarity matrix
@@ -511,6 +513,35 @@ for( cl in cl_plots ){
 most_pop_cl = apply(Local_sizes,2,which.max)
 most_pop_cl
 
+cl_prop = apply(Local_sizes,2,function(x){x/sum(x)})
+plot(cl_prop[11,])
+plot(apply(cl_prop[c(11,12),],2,sum))
+
+# Extra - Peak --------------------------------------------------------------------
+
+ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
+peak = c()
+for(i in seq_along(ID_plyrs)){
+  ID_i = ID_plyrs[i]
+  temp_i = data_with_clustering %>% filter(ID == ID_i)
+  temp_i = temp_i %>% filter(Clustering == min(as.integer(temp_i$Clustering)))
+  seasons_i = as.integer(temp_i %>% pull(SeasonNumber))
+  peak = c(peak,min(seasons_i))
+}
+
+val_peak = rep(0,d)
+val_peak[as.numeric(names(table(peak)))] = table(peak)
+peak_tibble = tibble( "Season" = as.factor(1:d), "val" = as.integer(val_peak) )
+
+col_season = "grey47"
+ggplot(peak_tibble, aes(x = Season, y = val)) +
+  geom_bar(stat = "identity", fill = col_season) + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=" ", x = "Season")
+
+
+
 
 # Extra - Season specific plots ------------------------------------------
 
@@ -615,29 +646,31 @@ abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
 
 # Analysis: trajectories --------------------------------------------------
 
-
-
-
 # posterior plot of trajectories with bands
-ID_plyrs = data_with_ordered_clustering %>% distinct(ID) %>% pull(ID)
+ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
 raf_ply = c(32,110,214,254)
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
-mycol_clus[12] = mycol_clus[15]
+mycol_clus = hcl.colors(n = 15, palette = "Temps")
+mycol_clus[1] = mycol_clus[15]
 
+plys_names = c("Robert Haggblom",
+               "Anton Lyuboslavskiy",
+               "Natallia Mikhnevich",
+               "Rachel Wallader")
+counter = 1
 for(ii in raf_ply){
   ID_ply = ID_plyrs[ii]
-  curva_ply = predictive_players(ID_ply = ID_ply, dt = application_result$dt,
-                                 fit = application_result$GDFMM,
+  curva_ply = predictive_players(ID_ply = ID_ply, dt = dt,
+                                 fit = GDFMM,
                                  burnin = niter/2 )
   n_ji = nrow(curva_ply)
-  temp = data_with_ordered_clustering %>% filter(ID == ID_ply) %>% arrange(t_ji)
+  temp = data_with_clustering %>% filter(ID == ID_ply) %>% arrange(t_ji)
 
   mycol = hcl.colors(n=3,palette = "Zissou1")
   par(mar = c(4,4,2,1), mfrow = c(1,1))
   plot( x = 0, y = 0,
         ylab = "Result", xlab = "Season",
-        main = paste0("Athlete - ",ID_ply),
-        xlim = range(data_with_ordered_clustering$t_ji),
+        main = plys_names[counter],#paste0("Athlete - ",ID_ply),
+        xlim = range(data_with_clustering$t_ji),
         ylim = yrange,
         pch = 16, cex = pt_size, type = "n")
   abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
@@ -645,6 +678,7 @@ for(ii in raf_ply){
     x_ji = temp %>% filter(SeasonNumber == j) %>% pull(t_ji)
     y_ji = temp %>% filter(SeasonNumber == j) %>% pull(Result)
     cl_ji = temp %>% filter(SeasonNumber == j) %>% pull(Clustering)
+    # print(cl_ji)
     points( x = x_ji, y = y_ji, col = mycol_clus[cl_ji[1]],
             pch = 16, cex = pt_size )
     segments(x0 = j-1, x1 = j,
@@ -655,6 +689,7 @@ for(ii in raf_ply){
          col = ACutils::t_col(mycol[1], percent = 85),border = NA )
   }
 
+  counter = counter + 1
 
 }
 
