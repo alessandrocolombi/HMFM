@@ -771,6 +771,7 @@ tictoc::toc()
 beepr::beep()
 
 save(res,file = "Exp3.Rdat")
+load("Exp3.Rdat")
 
 ## Predictive score
 name = "err_L1_local"
