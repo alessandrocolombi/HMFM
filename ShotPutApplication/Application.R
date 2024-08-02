@@ -18,7 +18,6 @@ set.seed(seed0)
 # Load data ---------------------------------------------------------------
 data_longform_input = ShotPutData
 
-
 # Center data and covariates
 data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
 data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
