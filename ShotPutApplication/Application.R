@@ -18,6 +18,7 @@ set.seed(seed0)
 # Load data ---------------------------------------------------------------
 data_longform_input = ShotPutData
 
+
 # Center data and covariates
 data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
 data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
@@ -348,7 +349,7 @@ cluster_summary_means = cluster_summary[,c(1:10)]
 cluster_summary_ages = cluster_summary[,c(1,10:13)]
 
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
-# kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
+kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
 
 
@@ -464,7 +465,6 @@ points( x = temp$t_ji,
         pch = 8, cex = 0.4, col = mycol_clus[15])
 
 
-
 # Extra - Cluster specific plots ------------------------------------------
 
 # Male
@@ -505,14 +505,23 @@ for( cl in cl_plots ){
           pch = 16, cex = 0.3, col = mycol_clus[cl])
 }
 
+
+
+# Extra - Most populated cluster ------------------------------------------
+
+most_pop_cl = apply(Local_sizes,2,which.max)
+most_pop_cl
+
+
 # Extra - Season specific plots ------------------------------------------
 
 # Male
 
 seasons = 1:d
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
+cl_plots = 1:Nclus
 
 par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
+# par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
 for( j in seasons ){
   plot( x = 0, y = 0, type = "n",
         ylab = "Result", xlab = "Season",
