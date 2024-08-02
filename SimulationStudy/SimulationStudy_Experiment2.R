@@ -761,7 +761,7 @@ grid = seq(xrange[1],xrange[2],length.out = l_grid)
 
 
 
-par(mfrow = c(1,2), mar = c(2,2,2,1), bty = "l")
+par(mfrow = c(1,3), mar = c(2,2,2,1), bty = "l")
 for(j in 1:d){
   plot(0,0,main = paste0("Group ",j),xlab = " ", type = "n", xlim = xrange, ylim = c(0,0.55))
   grid(lty = 1,lwd = 1, col = "gray90" )
@@ -780,7 +780,7 @@ for(j in 1:d){
 
 
 # Pooled data
-par(mfrow = c(1,1), mar = c(2,2,2,1), bty = "l")
+# par(mfrow = c(1,1), mar = c(2,2,2,1), bty = "l")
 plot(0,0,main = paste0("Pooled data"),xlab = " ", type = "n", xlim = xrange, ylim = c(0,0.55))
 grid(lty = 1,lwd = 1, col = "gray90" )
 for(k in 1:K){
