@@ -695,6 +695,27 @@ for(ii in raf_ply){
 
 
 
+# Extra: Kj comparison, HMFM vs pooled ------------------------------------
+
+Kj_pooled = c(13,12,13,12,13,13,13,15,14,13,14,14,12,11,12)
+Kj_HMFM = c(8,9,10,10,10,11,11,10,9,9,9,7,7,6,7)
+
+exp = tibble( "type" = as.factor( c(rep("HMFM",length(Kj_HMFM)),rep("MFM-pooled",length(Kj_pooled))) ),
+              "val"  = c(Kj_HMFM, Kj_pooled),
+              "Season" = as.factor( c(1:15,1:15) ) )
+
+col_type = c("darkred","cyan3")
+
+
+
+ggplot(exp, aes(x = Season, y = val, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  scale_fill_manual(values = col_type) +
+  labs(y="Number of season-specific clusters", x = "Season")
+
+
 
 # save --------------------------------------------------------------------
 

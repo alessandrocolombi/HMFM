@@ -115,6 +115,7 @@ GDFMM = ConditionalSampler(dt[1:11], niter, burnin, thin, seed = 123, option = o
 # Clustering --------------------------------------------------------------
 
 
+
 # Get labels for each iterations for each data point
 part_matrix <- GDFMM$Partition[(niter/2):niter,] #GDFMM$Partition is a (n_iter x n_data) matrix
 
@@ -144,19 +145,6 @@ for(j in 1:d){
 
 
 
-# Level dependent clustering ----------------------------------------------
-
-# Local_Clustering = list("list", length = d)
-# idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-# idx_end = cumsum(n_j)
-# Kj = matrix(0,nrow = niter, ncol = d)
-# for(j in 1:d){
-#   Local_Clustering[[j]] = GDFMM$Partition[ , idx_start[j]:idx_end[j] ]
-#   Kj[,j] = apply(Local_Clustering[[j]], 1, FUN = function(Part_it){length(table(Part_it))})
-# }
-#
-#
-# plot(Kj[,1], type = "l")
 
 # Analysis: betas -------------------------------------------------------------------
 
@@ -192,7 +180,6 @@ Beta_CI %>%
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10))
 
-plot(Beta_tibble$coefficient, type = "l", main = "Traceplot Beta coefficient")
 
 # Analysis: clustering --------------------------------------------------------------
 
@@ -264,7 +251,8 @@ for(cl in 1:Nclus){
   if(is.na(MeanFemalecl))
     MeanFemalecl = 0
 
-  MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
+  MeanMaleFemalecl = mean(temp$Result)
+  # MeanMaleFemalecl = (NMalecl*MeanMalecl + NFemalecl*MeanFemalecl )/(NMalecl+NFemalecl)
 
   VarMalecl   = temp %>% filter(Gender == "M") %>% summarise(var = var(Result) ) %>% pull(var)
   VarFemalecl = temp %>% filter(Gender == "W") %>% summarise(var = var(Result) ) %>% pull(var)
@@ -300,7 +288,7 @@ cluster_summary = cluster_summary %>% mutate(Cluster = new_labels)
 cluster_summary =  rbind( tibble(Cluster = "Pooled", Nputs = sum(n_j),
                                  NMales = NMale, NFemales = NFemale,
                                  MeanMale = MeanMale, MeanFemale = MeanFemale,
-                                 MeanMaleFemalecl = MeanMaleFemalecl,
+                                 MeanMaleFemalecl = (NMale*MeanMale + NFemale*MeanFemale )/(NMale+NFemale),
                                  VarMale = VarMale, VarFemale = VarFemale,
                                  AgeMale = AgeMale, AgeFemale = AgeFemale,
                                  AgeEntranceMale = AoeMale, AgeEntranceFemale = AoeFemale),
@@ -513,6 +501,37 @@ for( j in seasons ){
           y = temp$Result,
           pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
 }
+
+
+# Extra - Most populated cluster ------------------------------------------
+
+most_pop_cl = apply(Local_sizes,2,which.max)
+most_pop_cl
+
+# Extra - Peak --------------------------------------------------------------------
+
+ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
+peak = c()
+for(i in seq_along(ID_plyrs)){
+  ID_i = ID_plyrs[i]
+  temp_i = data_with_clustering %>% filter(ID == ID_i)
+  temp_i = temp_i %>% filter(Clustering == min(as.integer(temp_i$Clustering)))
+  seasons_i = as.integer(temp_i %>% pull(SeasonNumber))
+  peak = c(peak,min(seasons_i))
+}
+
+val_peak = rep(0,Nseason)
+val_peak[as.numeric(names(table(peak)))] = table(peak)
+peak_tibble = tibble( "Season" = as.factor(1:Nseason), "val" = as.integer(val_peak) )
+
+col_season = "grey47"
+ggplot(peak_tibble, aes(x = Season, y = val)) +
+  geom_bar(stat = "identity", fill = col_season) + theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+        text = element_text(size = 10)) +
+  labs(y=" ", x = "Season")
+
+
 
 # Trajectories ------------------------------------------------------------
 
