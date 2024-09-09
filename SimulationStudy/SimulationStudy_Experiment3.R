@@ -771,6 +771,11 @@ tictoc::toc()
 beepr::beep()
 
 save(res,file = "Exp3.Rdat")
+
+
+# Plot --------------------------------------------------------------------
+
+
 load("Exp3.Rdat")
 
 ## Predictive score
