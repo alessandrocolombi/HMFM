@@ -770,7 +770,7 @@ tictoc::toc()
 
 beepr::beep()
 
-save(res,file = "Exp3.Rdat")
+# save(res,file = "Exp3.Rdat")
 
 
 # Plot --------------------------------------------------------------------
@@ -797,7 +797,8 @@ for(j in 1:d){
     ggplot(aes(y=var, x=type, fill=type)) + geom_boxplot(fill = col_type[1:3]) +
     labs(y=paste0(ylabel,j,", n = ",sum(n_j)), x = " ") + theme_bw() +
     theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-          text = element_text(size = 10))  + ylim(c(0,0.6))
+          text = element_text(size = 10),
+          axis.text.x = element_text(size = 10))  + ylim(c(0,0.6))
 }
 
 # Combine all plots together

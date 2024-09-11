@@ -394,6 +394,27 @@ colnames(Local_sizes) = unlist(lapply(list(1:d), function(j){paste0("S",j)}))
 kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row represents a cluster, each column represents a season")
 
 
+# Plot cluster sizes evolution
+library(plot.matrix)
+Local_sizes_plot = Local_sizes
+rownames(Local_sizes_plot) = as.character(1:Nclus)
+colnames(Local_sizes_plot) = as.character(1:d)
+my_breaks = c(0,1,10,30,50,70,
+              120,140,253 )
+n_breaks  = length(my_breaks)
+my_col_mat = hcl.colors(n = n_breaks - 2, palette = "Heat 2", rev = TRUE)
+my_col_mat = c("white",my_col_mat)
+
+par(mar = c(2.75,2.75,0.5,2), mgp = c(1.75,0.75,0))
+plot(Local_sizes_plot,
+     breaks = my_breaks, col = my_col_mat,
+     xlab = "Season", ylab = "Cluster", main = "",
+     cex.axis = 0.7, axes = FALSE,
+     key=list(side=4, cex.axis=0.75), axis.key=NULL, spacing.key=0.75, fmt.key="%.0f",
+     )
+
+
+
 # Final clustering  Visualization -----------------------------------------
 
 counter_obs = 1
@@ -508,14 +529,6 @@ for( cl in cl_plots ){
 
 
 
-# Extra - Most populated cluster ------------------------------------------
-
-most_pop_cl = apply(Local_sizes,2,which.max)
-most_pop_cl
-
-cl_prop = apply(Local_sizes,2,function(x){x/sum(x)})
-plot(cl_prop[11,])
-plot(apply(cl_prop[c(11,12),],2,sum))
 
 # Extra - Peak --------------------------------------------------------------------
 
@@ -538,7 +551,7 @@ ggplot(peak_tibble, aes(x = Season, y = val)) +
   geom_bar(stat = "identity", fill = col_season) + theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
         text = element_text(size = 10)) +
-  labs(y=" ", x = "Season")
+  labs(y="Number of athletes", x = "Season")
 
 
 

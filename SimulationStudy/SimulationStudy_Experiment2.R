@@ -938,20 +938,60 @@ exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
   rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
+  rbind(tibble("K_ARI" = 4,      "type" = as_factor("fake"))) %>%
   rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
 
-K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-  geom_bar(position = "dodge") + theme_bw() +
-  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
-                               "HMFM-cond" = col_type[2],
-                               "HDP" = col_type[3],
-                               "MFM-pooled" = col_type[5])) +
-  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
-        text = element_text(size = 10)) +
-  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
-
+# K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+#   geom_bar(position = "dodge") + theme_bw() +
+#   scale_fill_manual(values = c("HMFM-marg" = col_type[2],
+#                                "HMFM-cond" = col_type[1],
+#                                "HDP" = col_type[3],
+#                                "fake" = "white",
+#                                "MFM-pooled" = col_type[5])) +
+#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+#         text = element_text(size = 10)) +
+#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+#
 # K_ARI_plot1
 
+library(ggpattern)
+
+K_ARI_plot1 = ggplot(exp_temp, aes(x = K_ARI, fill = type, pattern = type)) +
+  geom_bar_pattern(position = "dodge",
+                   aes(pattern_fill = type,
+                       pattern_density = type,
+                       pattern_angle = type
+                       ),
+                   pattern_spacing = 0.02, # Spacing of patterns
+                   color = "white",        # Color of pattern borders
+                   pattern_fill    = 'white' ) +      # Color of pattern inside
+  theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[1],
+                               "HDP" = col_type[3],
+                               "fake" = "white",
+                               "MFM-pooled" = col_type[5])) +
+  scale_pattern_manual(values = c("HMFM-marg" = "stripe",
+                                  "HMFM-cond" = "stripe",
+                                  "HDP" = "stripe",
+                                  "fake" = "none",
+                                  "MFM-pooled" = "crosshatch")) +
+  scale_pattern_angle_manual(values = c("HMFM-marg" = 0, # Adjust density of patterns
+                                          "HMFM-cond"=45,
+                                          "HDP"=90,
+                                          "fake" = 0,
+                                          "MFM-pooled" = 135)) +
+  scale_pattern_density_manual(values = c("HMFM-marg" = 0.25, # Adjust density of patterns
+                                          "HMFM-cond"=0.25,
+                                          "HDP"=0.25,
+                                          "fake" = 0,
+                                          "MFM-pooled" = 0.25)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none",
+        text = element_text(size = 10)) +
+  labs(y = paste0(ylabel, ", n = ", sum(n_j)), x = " ")
+
+# K_ARI_plot1
 
 
 # Table
@@ -1110,19 +1150,57 @@ exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
   rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
-  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
+  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled"))) %>%
+  rbind(tibble("K_ARI" = c(1,4),      "type" = as_factor("fake")))
 
-K_ARI_plot2 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-  geom_bar(position = "dodge") + theme_bw() +
-  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
-                               "HMFM-cond" = col_type[2],
+# K_ARI_plot2 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+#   geom_bar(position = "dodge") + theme_bw() +
+#   scale_fill_manual(values = c("HMFM-marg" = col_type[1],
+#                                "HMFM-cond" = col_type[2],
+#                                "HDP" = col_type[3],
+#                                "fake" = "white",
+#                                "MFM-pooled" = col_type[5])) +
+#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+#         text = element_text(size = 10)) +
+#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+# K_ARI_plot2
+
+K_ARI_plot2 = ggplot(exp_temp, aes(x = K_ARI, fill = type, pattern = type)) +
+  geom_bar_pattern(position = "dodge",
+                   aes(pattern_fill = type,
+                       pattern_density = type,
+                       pattern_angle = type
+                   ),
+                   pattern_spacing = 0.02, # Spacing of patterns
+                   color = "white",        # Color of pattern borders
+                   pattern_fill    = 'white' ) +      # Color of pattern inside
+  theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[1],
                                "HDP" = col_type[3],
+                               "fake" = "white",
                                "MFM-pooled" = col_type[5])) +
-  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+  scale_pattern_manual(values = c("HMFM-marg" = "stripe",
+                                  "HMFM-cond" = "stripe",
+                                  "HDP" = "stripe",
+                                  "fake" = "none",
+                                  "MFM-pooled" = "crosshatch")) +
+  scale_pattern_angle_manual(values = c("HMFM-marg" = 0, # Adjust density of patterns
+                                        "HMFM-cond"=45,
+                                        "HDP"=90,
+                                        "fake" = 0,
+                                        "MFM-pooled" = 135)) +
+  scale_pattern_density_manual(values = c("HMFM-marg" = 0.25, # Adjust density of patterns
+                                          "HMFM-cond"=0.25,
+                                          "HDP"=0.25,
+                                          "fake" = 0,
+                                          "MFM-pooled" = 0.25)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none",
         text = element_text(size = 10)) +
-  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ")
+  labs(y = paste0(ylabel, ", n = ", sum(n_j)), x = " ")
 
-
+# K_ARI_plot2
 
 
 # Table
@@ -1281,28 +1359,71 @@ pooled_res = sapply(res, function(x){x$pooled$K_ARI})
 exp_temp = tibble("K_ARI" = HMFMcond_res, "type" = as_factor("HMFM-cond"))
 exp_temp = exp_temp %>%
   rbind(tibble("K_ARI" = HMFMmarg_res, "type" = as_factor("HMFM-marg"))) %>%
+  rbind(tibble("K_ARI" = 2, "type" = as_factor("fake1"))) %>%
   rbind(tibble("K_ARI" = HDP_res, "type" = as_factor("HDP"))) %>%
-  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled")))
+  rbind(tibble("K_ARI" = pooled_res,      "type" = as_factor("MFM-pooled"))) %>%
+  rbind(tibble("K_ARI" = 2, "type" = as_factor("fake2"))) %>%
+  rbind(tibble("K_ARI" = 4, "type" = as_factor("fake3")))
 
-# %>%
-#   rbind(tibble("K_ARI" = 1, type = "fake"))
 
-K_ARI_plot3 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
-  geom_bar(position = "dodge") + theme_bw() +
-  scale_fill_manual(values = c("HMFM-marg" = col_type[1],
-                               "HMFM-cond" = col_type[2],
+# K_ARI_plot3 = ggplot(exp_temp, aes(x = K_ARI, fill = type)) +
+#   geom_bar(position = "dodge") + theme_bw() +
+#   scale_fill_manual(values = c("HMFM-marg" = col_type[1],
+#                                "HMFM-cond" = col_type[2],
+#                                "HDP" = col_type[3],
+#                                "fake3" = "white",
+#                                "MFM-pooled" = col_type[5])) +
+#   theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+#         text = element_text(size = 10)) +
+#   labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") +
+#   scale_x_continuous(limits = c(0.5,4.5))
+# K_ARI_plot3
+
+K_ARI_plot3 = ggplot(exp_temp, aes(x = K_ARI, fill = type, pattern = type)) +
+  geom_bar_pattern(position = "dodge",
+                   aes(pattern_fill = type,
+                       pattern_density = type,
+                       pattern_angle = type
+                   ),
+                   pattern_spacing = 0.02, # Spacing of patterns
+                   color = "white",        # Color of pattern borders
+                   pattern_fill    = 'white' ) +      # Color of pattern inside
+  theme_bw() +
+  scale_fill_manual(values = c("HMFM-marg" = col_type[2],
+                               "HMFM-cond" = col_type[1],
                                "HDP" = col_type[3],
+                               "fake1" = "white",
+                               "fake2" = "white",
+                               "fake3" = "white",
                                "MFM-pooled" = col_type[5])) +
-  theme(plot.title = element_text(hjust = 0.5), legend.position="none",
+  scale_pattern_manual(values = c("HMFM-marg" = "stripe",
+                                  "HMFM-cond" = "stripe",
+                                  "HDP" = "stripe",
+                                  "fake1" = "none",
+                                  "fake2" = "none",
+                                  "fake3" = "none",
+                                  "MFM-pooled" = "crosshatch")) +
+  scale_pattern_angle_manual(values = c("HMFM-marg" = 0, # Adjust density of patterns
+                                        "HMFM-cond"=45,
+                                        "HDP"=90,
+                                        "fake1" = 0,
+                                        "fake2" = 0,
+                                        "fake3" = 0,
+                                        "MFM-pooled" = 135)) +
+  scale_pattern_density_manual(values = c("HMFM-marg" = 0.25, # Adjust density of patterns
+                                          "HMFM-cond"=0.25,
+                                          "HDP"=0.25,
+                                          "fake1" = 0,
+                                          "fake2" = 0,
+                                          "fake3" = 0,
+                                          "MFM-pooled" = 0.25)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none",
         text = element_text(size = 10)) +
-  labs(y=paste0(ylabel,", n = ",sum(n_j)), x = " ") +
-  scale_x_continuous(limits = c(0.5,4.5))
-K_ARI_plot3
+  scale_x_continuous(limits = c(0.5,4.5)) +
+  labs(y = paste0(ylabel, ", n = ", sum(n_j)), x = " ")
 
-# theme(plot.title = element_text(hjust = 0.5),
-#       legend.position = c(0.2,0.98), # Adjust the position coordinates as needed
-#       legend.justification = c("right", "top"), # Ensure the legend is aligned to the top-right
-#       text = element_text(size = 10))
+# K_ARI_plot3
 
 # Table
 HDP_res = sapply(res, function(x){x$HDP$ARI_est_part})

@@ -304,6 +304,9 @@ kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Varia
 
 
 
+cbind(cluster_summary_means[,c(1,8,4,5,6,7,9,10)],cluster_summary_ages[,c(3,4)]+mean(ShotPutData$Age))
+
+
 # Global clusters' sizes
 
 # Compute similarity matrix
@@ -348,6 +351,27 @@ kable(Local_sizes, caption = "Cluster sizes across different seasons. Each row r
 Fake_Kj = apply(Local_sizes,2,function(x){length(which(x > 0))})
 cat("Number of local cluster: \n")
 Fake_Kj
+
+# Plot cluster sizes evolution
+library(plot.matrix)
+Local_sizes_plot = Local_sizes
+rownames(Local_sizes_plot) = as.character(1:Nclus)
+colnames(Local_sizes_plot) = as.character(1:Nseason)
+my_breaks = c(0,1,10,30,50,70,
+              120,140,253 )
+n_breaks  = length(my_breaks)
+my_col_mat = hcl.colors(n = n_breaks - 2, palette = "Heat 2", rev = TRUE)
+my_col_mat = c("white",my_col_mat)
+
+par(mar = c(2.75,2.75,0.5,2), mgp = c(1.75,0.75,0))
+plot(Local_sizes_plot,
+     breaks = my_breaks, col = my_col_mat,
+     xlab = "Season", ylab = "Cluster", main = "",
+     cex.axis = 0.7, axes = FALSE,
+     key=list(side=4, cex.axis=0.75), axis.key=NULL, spacing.key=0.75, fmt.key="%.0f",
+)
+
+
 
 # Final clustering  Visualization -----------------------------------------
 
