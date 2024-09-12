@@ -5,6 +5,7 @@ suppressWarnings(suppressPackageStartupMessages(library(hdp)))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
+suppressWarnings(suppressPackageStartupMessages(library(ggpattern)))
 
 # col_type = c("","orange","darkred","royalblue","cyan3")
 col_type = c("darkred","orange","chartreuse3","royalblue","cyan3")
