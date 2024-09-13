@@ -6,9 +6,6 @@ suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 suppressWarnings(suppressPackageStartupMessages(library(abind)))
 suppressWarnings(suppressPackageStartupMessages(library(knitr)))
-# suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
-# suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
-# suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
 
 setwd(here::here())
 data("ShotPutData")
@@ -19,10 +16,7 @@ set.seed(seed0)
 data_longform_input = ShotPutData
 
 # Center data and covariates
-data_longform_input$Result      = data_longform_input$Result
 data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
-data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
-data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
 
 # Create a pooled ID
 data_longform_input$ID_ji = as.factor(paste0(as.character(data_longform_input$ID),"_",data_longform_input$SeasonNumber))
@@ -303,30 +297,16 @@ kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Varia
 # kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
 
-
-cbind(cluster_summary_means[,c(1,8,4,5,6,7,9,10)],cluster_summary_ages[,c(3,4)]+mean(ShotPutData$Age))
-
-
-# Global clusters' sizes
-
-# Compute similarity matrix
-# sim_matrix = application_result$sim_matrix
-# VI_sara = application_result$VI_sara
+paper_summary =  cbind(cluster_summary_means[,c(1,8,4:7,9:10)],
+                       cluster_summary_ages[,c(3,4)])
+kable(paper_summary, caption = "Cluster Interpretation - Paper table")
 
 
+# Recode lables
 recode_map <- setNames(new_labels, old_labels)
 VI_sara$cl <- recode(VI_sara$cl, !!!recode_map)
 table(VI_sara$cl)
 
-# Kj_VI = vector(length = d)
-# idx_start = c(1,cumsum(n_j)[1:(d-1)]+1)
-# idx_end = cumsum(n_j)
-# for(j in 1:d){
-#   Kj_VI[j] = length(table(VI_sara$cl[idx_start[j]:idx_end[j]]))
-# }
-#
-# cat("Number of local cluster: \n")
-# Kj_VI
 
 
 # Now, given the 15 global clusters ordered as above, I want to print their sizes in each season
@@ -375,16 +355,6 @@ plot(Local_sizes_plot,
 
 # Final clustering  Visualization -----------------------------------------
 
-
-# counter_obs = 1
-# for(j in 1:d){
-#   for(i in 1:n){
-#     if(dt$N_ji[j,i] > 0){
-#       dt$finalPartition[[j]][[i]] = VI_sara$cl[counter_obs]
-#       counter_obs = counter_obs + 1
-#     }
-#   }
-# }
 
 
 # I must also recode labels in data_with_clustering
@@ -438,101 +408,10 @@ for( cl in cl_plots ){
           y = temp$Result,
           pch = 16, cex = 0.3, col = mycol_clus[cl])
 }
-# highlight women in cluster 15
-# cl = 2
-# temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
-# points( x = temp$t_ji,
-#         y = temp$Result,
-#         pch = 8, cex = 0.4, col = mycol_clus[15])
 
 
-# Extra - Cluster specific plots ------------------------------------------
 
-# Male
-
-seasons = 1:Nseason
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( cl in cl_plots ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Male athletes",
-        xlim = c(0,Nseason), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[cl])
-}
-
-# Female
-
-seasons = 1:Nseason
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( cl in cl_plots ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Female athletes",
-        xlim = c(0,Nseason), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[cl])
-}
-
-# Extra - Season specific plots ------------------------------------------
-
-# Male
-
-seasons = 1:Nseason
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( j in seasons ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Male athletes",
-        xlim = c(0,Nseason), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "M")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
-}
-
-# Female
-
-seasons = 1:Nseason
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( j in seasons ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Female athletes",
-        xlim = c(0,Nseason), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "W")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
-}
-
-
-# Extra - Most populated cluster ------------------------------------------
-
-most_pop_cl = apply(Local_sizes,2,which.max)
-most_pop_cl
-
-# Extra - Peak --------------------------------------------------------------------
+# Peak histogram --------------------------------------------------------------------
 
 ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
 peak = c()
@@ -557,126 +436,3 @@ ggplot(peak_tibble, aes(x = Season, y = val)) +
 
 
 
-# Trajectories ------------------------------------------------------------
-
-# plot some trajectories c(32,110,214,254)
-seasons = 1:15
-ID_plyrs = data_longform_input %>% distinct(ID) %>% pull(ID)
-yrange = c(-4.7,3.5)
-pt_size = 1 #1.3 (for slide/poster)
-
-mycol = hcl.colors(n=3,palette = "Zissou1")
-par(mar = c(4,4,3,1), mfrow = c(1,1))
-
-ID_ply = ID_plyrs[32]
-temp = data_longform_input %>% filter(ID == ID_ply) %>% arrange(t_ji)
-plot( x = temp$t_ji, y = temp$Result,
-      ylab = "Result", xlab = "Season",
-      main = paste0("Athlete - ",ID_ply),
-      xlim = c(0,15),
-      ylim = yrange,
-      pch = 16, cex = pt_size, col = "black")
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-
-
-ID_ply = ID_plyrs[110]
-temp = data_longform_input %>% filter(ID == ID_ply) %>% arrange(t_ji)
-par(mar = c(4,4,3,1), mfrow = c(1,1))
-plot( x = temp$t_ji, y = temp$Result,
-      ylab = "Result", xlab = "Season",
-      main = paste0("Athlete - ",ID_ply),
-      xlim = c(0,15),
-      ylim = yrange,
-      pch = 16, cex = pt_size, col = "black")
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-
-
-ID_ply = ID_plyrs[214]
-temp = data_longform_input %>% filter(ID == ID_ply) %>% arrange(t_ji)
-par(mar = c(4,4,3,1), mfrow = c(1,1))
-plot( x = temp$t_ji, y = temp$Result,
-      ylab = "Result", xlab = "Season",
-      main = paste0("Athlete - ",ID_ply),
-      xlim = c(0,15),
-      ylim = yrange,
-      pch = 16, cex = pt_size, col = "black")
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-
-
-ID_ply = ID_plyrs[254]
-temp = data_longform_input %>% filter(ID == ID_ply) %>% arrange(t_ji)
-par(mar = c(4,4,3,1), mfrow = c(1,1))
-plot( x = temp$t_ji, y = temp$Result,
-      ylab = "Result", xlab = "Season",
-      main = paste0("Athlete - ",ID_ply),
-      xlim = c(0,15),
-      ylim = yrange,
-      pch = 16, cex = pt_size, col = "black")
-abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-
-
-
-
-# Analysis: trajectories --------------------------------------------------
-
-# posterior plot of trajectories with bands
-ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
-raf_ply = c(32,110,214,254)
-mycol_clus = hcl.colors(n = Nclus, palette = "Temps")
-mycol_clus[12] = mycol_clus[15]
-
-for(ii in raf_ply){
-  ID_ply = ID_plyrs[ii]
-  curva_ply = predictive_players(ID_ply = ID_ply, dt = dt,
-                                 fit = GDFMM,
-                                 burnin = niter/2 )
-  n_ji = nrow(curva_ply)
-  temp = data_with_clustering %>% filter(ID == ID_ply) %>% arrange(t_ji)
-
-  mycol = hcl.colors(n=3,palette = "Zissou1")
-  par(mar = c(4,4,2,1), mfrow = c(1,1))
-  plot( x = 0, y = 0,
-        ylab = "Result", xlab = "Season",
-        main = paste0("Athlete - ",ID_ply),
-        xlim = range(data_with_clustering$t_ji),
-        ylim = yrange,
-        pch = 16, cex = pt_size, type = "n")
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  for(j in 1:n_ji){
-    x_ji = temp %>% filter(SeasonNumber == j) %>% pull(t_ji)
-    y_ji = temp %>% filter(SeasonNumber == j) %>% pull(Result)
-    cl_ji = temp %>% filter(SeasonNumber == j) %>% pull(Clustering)
-    points( x = x_ji, y = y_ji, col = mycol_clus[cl_ji[1]],
-            pch = 16, cex = pt_size )
-    segments(x0 = j-1, x1 = j,
-             y0 = curva_ply[j,2], y1 = curva_ply[j,2],
-             mycol[1], lwd = 2 )
-    rect(xleft = j-1, xright = j,
-         ybottom = curva_ply[j,1], ytop = curva_ply[j,3],
-         col = ACutils::t_col(mycol[1], percent = 85),border = NA )
-  }
-
-
-}
-
-
-
-
-
-
-
-
-
-
-# save --------------------------------------------------------------------
-
-nome_exp = "quantile"
-nome_run = "pooled"
-nome_file = paste0("G:/Il mio Drive/BicoccaDrive/GDFMM_Functional/BAMajorRev/ShotPut/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
-
-res = list("GDFMM" = GDFMM,
-           "sim_matrix" = sim_matrix,
-           "VI_sara" = VI_sara, "dt" = dt)
-
-
-save(res, file = nome_file)
