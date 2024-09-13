@@ -6,9 +6,6 @@ suppressWarnings(suppressPackageStartupMessages(library(salso)))
 suppressWarnings(suppressPackageStartupMessages(library(mcclust.ext)))
 suppressWarnings(suppressPackageStartupMessages(library(abind)))
 suppressWarnings(suppressPackageStartupMessages(library(knitr)))
-# suppressWarnings(suppressPackageStartupMessages(library(ACutils)))
-# suppressWarnings(suppressPackageStartupMessages(library(RColorBrewer)))
-# suppressWarnings(suppressPackageStartupMessages(library(wesanderson)))
 
 setwd(here::here())
 data("ShotPutData")
@@ -19,14 +16,11 @@ set.seed(seed0)
 data_longform_input = ShotPutData
 
 # Center data and covariates
-data_longform_input$Result      = data_longform_input$Result      - mean(data_longform_input$Result)
-data_longform_input$Age         = data_longform_input$Age         - mean(data_longform_input$Age)
-data_longform_input$AgeEntrance = data_longform_input$AgeEntrance - mean(data_longform_input$AgeEntrance)
+data_longform_input$Result      = data_longform_input$Result - mean(data_longform_input$Result)
 
 
 # Hyperparameters: P0 ---------------------------------------------------------
 
-# Res_range = range( data_longform_input$Result )
 Res_range = quantile(data_longform_input$Result, probs = c(0.005,0.995))
 R = Res_range[2] - Res_range[1]
 mu0 = mean(data_longform_input$Result) # should be 0
@@ -351,13 +345,11 @@ cluster_summary_ages = cluster_summary[,c(1,10:14)]
 kable(cluster_summary_means, caption = "Cluster Interpretation - Means and Variances")
 kable(cluster_summary_ages, caption = "Cluster Interpretation - Ages")
 
-cluster_summary_ages[,3] = cluster_summary_ages[,3] + mean(ShotPutData$Age )
-cluster_summary_ages[,4] = cluster_summary_ages[,4] + mean(ShotPutData$Age )
-cluster_summary_ages[,5] = cluster_summary_ages[,5] + mean(ShotPutData$AgeEntrance)
-cluster_summary_ages[,6] = cluster_summary_ages[,6] + mean(ShotPutData$AgeEntrance)
-# Global clusters' sizes
+paper_summary = cbind(cluster_summary_means[,c(1,8,4:7,9:10)],cluster_summary_ages[,3:4])
+kable(paper_summary, caption = "Cluster Interpretation - Paper Table")
 
-# Compute similarity matrix
+
+# Recode labels
 recode_map <- setNames(new_labels, old_labels)
 VI_sara$cl <- recode(VI_sara$cl, !!!recode_map)
 table(VI_sara$cl)
@@ -487,50 +479,8 @@ points( x = temp$t_ji,
         pch = 8, cex = 0.4, col = mycol_clus[15])
 
 
-# Extra - Cluster specific plots ------------------------------------------
 
-# Male
-
-seasons = 1:d
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( cl in cl_plots ){
-plot( x = 0, y = 0, type = "n",
-      ylab = "Result", xlab = "Season",
-      main = "Male athletes",
-      xlim = c(0,d), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "M")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[cl])
-}
-
-# Female
-
-seasons = 1:d
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( cl in cl_plots ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Female athletes",
-        xlim = c(0,d), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(Clustering == cl)%>% filter(Gender == "W")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[cl])
-}
-
-
-
-
-# Extra - Peak --------------------------------------------------------------------
+# Peak histogram --------------------------------------------------------------------
 
 ID_plyrs = data_with_clustering %>% distinct(ID) %>% pull(ID)
 peak = c()
@@ -555,47 +505,6 @@ ggplot(peak_tibble, aes(x = Season, y = val)) +
 
 
 
-
-# Extra - Season specific plots ------------------------------------------
-
-# Male
-
-seasons = 1:d
-cl_plots = 1:Nclus
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-# par(mar = c(2,2,2,1), mfrow = c(1,1), bty = "l")
-for( j in seasons ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Male athletes",
-        xlim = c(0,d), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "M")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
-}
-
-# Female
-
-seasons = 1:d
-cl_plots = 1:Nclus #c(1:6,8:10,12:13)
-
-par(mar = c(2,2,2,1), mfrow = c(4,4), bty = "l")
-for( j in seasons ){
-  plot( x = 0, y = 0, type = "n",
-        ylab = "Result", xlab = "Season",
-        main = "Female athletes",
-        xlim = c(0,d), ylim = c(-6,4.5))
-  abline(v = seasons, lty = 2, col = "grey45", lwd = 1)
-  temp = data_with_clustering %>% filter(SeasonNumber == j)%>% filter(Gender == "W")
-  #par(mar = c(4,4,2,1))
-  points( x = temp$t_ji,
-          y = temp$Result,
-          pch = 16, cex = 0.3, col = mycol_clus[temp$Clustering])
-}
 
 # Trajectories ------------------------------------------------------------
 
@@ -729,21 +638,6 @@ ggplot(exp, aes(x = Season, y = val, fill = type)) +
   labs(y="Number of season-specific clusters", x = "Season")
 
 
-
-# save --------------------------------------------------------------------
-
-nome_exp = "range"
-nome_run = "HMFM"
-nome_file = paste0("G:/Il mio Drive/BicoccaDrive/GDFMM_Functional/BAMajorRev/ShotPut/application_results_",nome_run,"_",nome_exp,seed0,".Rdat")
-
-res = list("GDFMM" = GDFMM,
-           "sim_matrix" = sim_matrix,
-           "VI_sara" = VI_sara, "dt" = dt,
-           "Local_Clustering" = Local_Clustering,
-           "Kj_VI" = Kj_VI)
-
-
-save(res, file = nome_file)
 
 
 
