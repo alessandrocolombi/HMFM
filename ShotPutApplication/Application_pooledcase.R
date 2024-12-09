@@ -343,14 +343,21 @@ n_breaks  = length(my_breaks)
 my_col_mat = hcl.colors(n = n_breaks - 2, palette = "Heat 2", rev = TRUE)
 my_col_mat = c("white",my_col_mat)
 
-par(mar = c(2.75,2.75,0.5,2), mgp = c(1.75,0.75,0))
+# par(mar = c(2.75,2.75,0.5,2), mgp = c(1.75,0.75,0))
+# plot(Local_sizes_plot,
+#      breaks = my_breaks, col = my_col_mat,
+#      xlab = "Season", ylab = "Cluster", main = "",
+#      cex.axis = 0.7, axes = FALSE,
+#      key=list(side=4, cex.axis=0.75), axis.key=NULL, spacing.key=0.75, fmt.key="%.0f",
+# )
+
+par(mar = c(3.5,3.5,0.5,3), mgp = c(2,0.55,0))
 plot(Local_sizes_plot,
      breaks = my_breaks, col = my_col_mat,
      xlab = "Season", ylab = "Cluster", main = "",
-     cex.axis = 0.7, axes = FALSE,
-     key=list(side=4, cex.axis=0.75), axis.key=NULL, spacing.key=0.75, fmt.key="%.0f",
+     cex.axis = 1, cex.lab = 1.75, axes = FALSE,
+     key=list(side=4, cex.axis=1.5), axis.key=NULL, spacing.key=0.75, fmt.key="%.0f",
 )
-
 
 
 # Final clustering  Visualization -----------------------------------------
